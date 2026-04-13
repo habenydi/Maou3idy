@@ -14,20 +14,20 @@ export default function Login() {
 
 		try {
 			const res = await fetch("http://127.0.0.1:8080/api/login", {
-method: "POST",
-headers: {
-"Content-Type": "application/json",
-"Accept": "application/json",
-},
-body: JSON.stringify({ email, password }),
-});
+			method: "POST",
+			headers: {
+			"Content-Type": "application/json",
+			"Accept": "application/json",
+			},
+			body: JSON.stringify({ email, password }),
+			});
 
 			const data = await res.json();
 
 			if (!res.ok) {
 				throw new Error(
-data.message ||
-(data.errors && Array.isArray(Object.values((data.errors as Record<string, string[]>))) && Object.values((data.errors as Record<string, string[]>))[0][0]) ||
+			data.message ||
+			(data.errors && Array.isArray(Object.values((data.errors as Record<string, string[]>))) && Object.values((data.errors as Record<string, string[]>))[0][0]) ||
 					"Login failed"
 				);
 			}
@@ -46,7 +46,7 @@ data.message ||
 	};
 
 	return (
-<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
+	<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
 			{/* Ambient Background Decorations */}
 			<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
 				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[120px]" style={{backgroundColor: "rgba(0, 87, 205, 0.05)"}}></div>
@@ -101,7 +101,7 @@ data.message ||
 							<div className="flex justify-between items-center">
 								<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="password" style={{color: "#191c1e"}}>Password</label>
 								<a 
-									onClick={() => router.push('/auth/forgot-password')} 
+									onClick={() => router.push('/forgot-password')} 
 									className="text-xs font-bold transition-colors duration-200 cursor-pointer"
 									style={{color: "#0057cd"}}
 									onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"}
@@ -170,7 +170,6 @@ data.message ||
 					<div className="mt-8 text-center">
 						<button 
 							type="button" 
-							onClick={() => router.push('/auth/register')}
 							className="text-sm font-medium" 
 							style={{color: "#424655"}}
 						>

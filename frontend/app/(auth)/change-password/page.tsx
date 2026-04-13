@@ -2,39 +2,49 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Register() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+export default function ChangePassword() {
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
-	const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		setLoading(true);
 
-		if (password !== confirmPassword) {
-			alert("Passwords do not match");
+		if (newPassword !== confirmPassword) {
+			alert("New passwords do not match");
+			setLoading(false);
 			return;
 		}
 
 		try {
-			const res = await fetch("http://127.0.0.1:8080/api/register", {
+			const token = localStorage.getItem('access_token');
+			if (!token) {
+				router.push("/login");
+				return;
+			}
+
+			const res = await fetch("http://127.0.0.1:8080/api/user/change-password", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					"Accept": "application/json",
+					"Authorization": `Bearer ${token}`,
 				},
-				body: JSON.stringify({ email, password }),
+				body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
 			});
 
 			const data = await res.json();
 
 			if (!res.ok) {
-				throw new Error(data.message || "Registration failed");
+				throw new Error(data.message || "Failed to change password");
 			}
 
-			alert("Registration successful! Please login.");
-			router.push("/auth");
+			alert("Password changed successfully");
+			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
@@ -43,12 +53,14 @@ export default function Register() {
 			} else {
 				alert("An unknown error occurred.");
 			}
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
-			<main className="w-full max-w-[480px]">
+			<main className="w-full max-w-120">
 				<div className="flex flex-col items-center mb-10">
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{color: "#191c1e"}}>
 						MedReserve
@@ -57,37 +69,21 @@ export default function Register() {
 
 				<div className="glass-panel rounded-xl shadow-[0_12px_40px_rgba(0,87,206,0.06)] p-8 md:p-12">
 					<header className="mb-8 text-center">
-						<h2 className="font-headline text-3xl font-bold tracking-tight mb-2" style={{color: "#191c1e"}}>Create Account</h2>
-						<p className="text-sm font-medium" style={{color: "#424655"}}>Join MedReserve to book your appointments</p>
+						<h2 className="font-headline text-3xl font-bold tracking-tight mb-2" style={{color: "#191c1e"}}>Change Password</h2>
+						<p className="text-sm font-medium" style={{color: "#424655"}}>Update your account password</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleRegister}>
+					<form className="space-y-6" onSubmit={handleSubmit}>
 						<div className="space-y-2">
-							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="email" style={{color: "#191c1e"}}>Email Address</label>
+							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="currentPassword" style={{color: "#191c1e"}}>Current Password</label>
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
-								id="email"
-								name="email"
-								placeholder="your@email.com"
-								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								required
-								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
-								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="password" style={{color: "#191c1e"}}>Password</label>
-							<input
-								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
-								id="password"
-								name="password"
+								id="currentPassword"
+								name="currentPassword"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
+								value={currentPassword}
+								onChange={(e) => setCurrentPassword(e.target.value)}
 								required
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
@@ -95,7 +91,23 @@ export default function Register() {
 						</div>
 
 						<div className="space-y-2">
-							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="confirmPassword" style={{color: "#191c1e"}}>Confirm Password</label>
+							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="newPassword" style={{color: "#191c1e"}}>New Password</label>
+							<input
+								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
+								id="newPassword"
+								name="newPassword"
+								placeholder="••••••••"
+								type={showPassword ? "text" : "password"}
+								value={newPassword}
+								onChange={(e) => setNewPassword(e.target.value)}
+								required
+								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
+								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="confirmPassword" style={{color: "#191c1e"}}>Confirm New Password</label>
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="confirmPassword"
@@ -123,25 +135,25 @@ export default function Register() {
 
 						<button
 							type="submit"
+							disabled={loading}
 							className="w-full py-4 px-6 font-bold rounded-xl transition-all duration-200 active:scale-[0.98]" 
-							style={{backgroundColor: "#0057cd", color: "#ffffff", boxShadow: "0 8px 16px rgba(0, 87, 205, 0.2)", borderRadius: "24px"}}
+							style={{backgroundColor: "#0057cd", color: "#ffffff", boxShadow: "0 8px 16px rgba(0, 87, 205, 0.2)", opacity: loading ? 0.5 : 1, borderRadius: "24px"}}
 							onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 12px 24px rgba(0, 87, 205, 0.3)"}
 							onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 87, 205, 0.2)"}
 						>
-							Create Account
+							{loading ? "Changing..." : "Change Password"}
 						</button>
 					</form>
 
 					<div className="mt-8 text-center">
 						<p className="text-sm font-medium" style={{color: "#424655"}}>
-							Already have an account? 
 							<span
-								onClick={() => router.push('/auth')}
-								className="font-bold hover:underline underline-offset-4 ml-2 cursor-pointer" style={{color: "#0057cd", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}
+								onClick={() => router.push('/success')}
+								className="font-bold hover:underline underline-offset-4 cursor-pointer" style={{color: "#0057cd", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}
 								onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
 								onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
 							>
-								Sign In
+								Back to Dashboard
 							</span>
 						</p>
 					</div>

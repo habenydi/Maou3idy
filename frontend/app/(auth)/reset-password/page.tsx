@@ -22,7 +22,7 @@ export default function ResetPassword() {
 		}
 
 		try {
-			const res = await fetch("http://127.0.0.1:8080/api/reset-password", {
+			const res = await fetch(`http://127.0.0.1:8080/api/reset-password`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -38,7 +38,7 @@ export default function ResetPassword() {
 			}
 
 			alert("Password has been reset successfully");
-			router.push("/auth");
+			router.push("/login");
 
 		} catch (err) {
 			console.error(err);
@@ -54,7 +54,7 @@ export default function ResetPassword() {
 
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
-			<main className="w-full max-w-[480px]">
+			<main className="w-full max-w-120">
 				<div className="flex flex-col items-center mb-10">
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{color: "#191c1e"}}>
 						MedReserve

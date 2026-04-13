@@ -35,7 +35,7 @@ export default function VerificationEmail() {
 
 				setMessage("Email verified successfully! Redirecting to login...");
 				setTimeout(() => {
-					router.push("/auth");
+					router.push("/login");
 				}, 2000);
 
 			} catch (err) {
@@ -55,7 +55,7 @@ export default function VerificationEmail() {
 
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
-			<main className="w-full max-w-[480px]">
+			<main className="w-full max-w-120">
 				<div className="flex flex-col items-center mb-10">
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{color: "#191c1e"}}>
 						MedReserve
