@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Register() {
+	const  [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -63,7 +64,8 @@ export default function Register() {
 					"Registration failed"
 				);
 			}
-			router.push("/login");
+			localStorage.setItem("token", data.access_token);
+			router.push("/verification-code");
 		} catch (err) {
 			console.error(err);
 			if (err instanceof Error) {
@@ -160,24 +162,31 @@ export default function Register() {
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="password" style={{color: "#5f6368"}}>Password</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="lock" style={{color: "#727787"}}>lock</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="password" name="password" placeholder="••••••••" type="password" value={formData.password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="password" name="password" placeholder="••••••••" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
 									</div>
 								</div>
 								<div className="space-y-2">
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="confirm_password" style={{color: "#5f6368"}}>Confirm Password</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="verified_user" style={{color: "#727787"}}>verified_user</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="confirm_password" name="confirm_password" placeholder="••••••••" type="password" value={formData.confirm_password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="confirm_password" name="confirm_password" placeholder="••••••••" type={showPassword ? "text" : "password"} value={formData.confirm_password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
 									</div>
 								</div>
 							</div>
-
 							{/* Terms Agreement */}
-							<div className="flex items-start gap-3 py-2">
-								<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" name="terms" type="checkbox" checked={formData.terms} onChange={handleChange} />
-								<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="terms">
-									I agree to the <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Terms of Service</a> and <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Privacy Policy</a>.
-								</label>
+							<div className="flex flex-col items-start gap-3">
+								<div className="flex gap-2">
+									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="show_password" name="show_password" type="checkbox" checked={showPassword} onChange={() => setShowPassword(prev => !prev)} />
+									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="show_password">
+										Show Password
+									</label>
+								</div>
+								<div className="flex gap-2">
+									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" name="terms" type="checkbox" checked={formData.terms} onChange={handleChange} />
+									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="terms">
+										I agree to the <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Terms of Service</a> and <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Privacy Policy</a>.
+									</label>
+								</div>
 							</div>
 
 							{/* Primary Action */}

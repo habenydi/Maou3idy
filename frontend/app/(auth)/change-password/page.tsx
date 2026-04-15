@@ -27,14 +27,14 @@ export default function ChangePassword() {
 				return;
 			}
 
-			const res = await fetch("http://127.0.0.1:8080/api/user/change-password", {
+			const res = await fetch("http://127.0.0.1:8080/api/change-password", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					"Accept": "application/json",
 					"Authorization": `Bearer ${token}`,
 				},
-				body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+				body: JSON.stringify({ current_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword }),
 			});
 
 			const data = await res.json();

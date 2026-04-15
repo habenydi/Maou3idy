@@ -15,7 +15,7 @@ class User extends Authenticatable
     use SoftDeletes;
     protected $dates = ['deleted_at'];
     protected $table = 'users';
-    protected $fillable = ['name', 'email', 'password', 'role', 'phone', 'verification_code'];
+    protected $fillable = ['name', 'email', 'email_verified_at','password', 'role', 'phone', 'verification_code'];
 
     public function Doctors()
     {
