@@ -1,19 +1,21 @@
-import { Controller, Post, Query } from '@nestjs/common';
+import { Controller, Post, Query,Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
     constructor (private Authservice: AuthService) {}
     @Post('register')
-    register(@Query() Query: any) {
-        return this.Authservice.register(Query.email, Query.password);
+    register(@Query() Query: RegisterDto) {
+        return this.Authservice.register(Query);
     }
     @Post('login')
-    login(@Query() Query: any) {
-        return this.Authservice.login(Query.email, Query.password);
+    login(@Query() Query: LoginDto) {
+        return this.Authservice.login(Query);
     }
     @Post('logout')
-    logout(@Query() Query: any) {
-        return this.Authservice.logout(Query.email, Query.token);
+    logout(@Headers('authorization') autheader: string) {
+        return this.Authservice.logout(autheader);
     }
 }
