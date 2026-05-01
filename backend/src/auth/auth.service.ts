@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
     constructor (private jwtService: JwtService) {}
-    private table:{email: string, password: string, token: string, id: number} [] = [];
+    private table:{email: string, password: string, id: number} [] = [];
     async hashPassword(password: string){
         return await bcrypt.hash(password, 10);
     }
@@ -42,22 +42,12 @@ export class AuthService {
         if (!(await this.compare(Body.password, existe.password))) {
             throw new BadRequestException("Wrong Password!");
         }
-        existe.token = "Fake_token" + existe.id;
+        const playload = {sub: this.table.length + 1, email: Body.email};
+        const token = this.jwtService.sign(playload);
         return {
             id: existe.id,
             email: Body.email,
-            token: existe.token
-        };
-    }
-    async logout(token: string) {
-        const existe = this.table.find(u => u.token === token);
-        if (!existe) {
-            throw new BadRequestException("your are not logged in!");
-        }
-        existe.token = "";
-        return {
-            email: existe.email,
-            message: "you are now logged out"
+            token: token
         };
     }
     async forget_password(){}
