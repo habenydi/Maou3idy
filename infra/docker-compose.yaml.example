@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+  # 🌐 API Gateway (entry point)
+  api-gateway:
+    build: ../apps/api-gateway
+    ports: ["3000:3000"]
+    environment:
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+    depends_on: [auth-service, user-service]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [app-net]
+
+  # 🔐 Auth Service
+  auth-service:
+    build: ../apps/auth-service
+    ports: ["3001:3001"]
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://dev:dev123@auth-db:5432/auth_db
+    depends_on: [auth-db]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [app-net]
+
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+      POSTGRES_DB: auth_db
+    volumes: [auth_data:/var/lib/postgresql/data]
+    networks: [app-net]
+    # Only auth-service can reach this. No port exposed to host.
+
+  # 👤 User Service
+  user-service:
+    build: ../apps/user-service
+    ports: ["3002:3002"]
+    environment:
+      - PORT=3002
+      - DATABASE_URL=postgresql://dev:dev123@user-db:5432/user_db
+    depends_on: [user-db]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [app-net]
+
+  user-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev123
+      POSTGRES_DB: user_db
+    volumes: [user_data:/var/lib/postgresql/data]
+    networks: [app-net]
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  auth_data:
+  user_data:
