@@ -7,6 +7,9 @@ up:
 	@echo "PostgreSQL is running..."
 	$(APP)
 
+ins:
+	npm i
+	npx prisma generate
 down:
 	$(COMPOSE) down
 

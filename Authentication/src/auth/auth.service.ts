@@ -1,12 +1,13 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException, Unlock } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
-    constructor (private jwtService: JwtService) {}
+    constructor (private jwtService: JwtService, private UserService: UsersService) {}
     private table:{email: string, password: string, id: number} [] = [];
     async hashPassword(password: string){
         return await bcrypt.hash(password, 10);
@@ -14,41 +15,41 @@ export class AuthService {
     async compare(password: string, hashed: string) {
         return await bcrypt.compare(password, hashed);
     }
-    async register(Body: RegisterDto) {
-        const existe = this.table.find(u => u.email === Body.email); 
-        if (existe) {
-            throw new BadRequestException("email already exist");
-        }
-        const playload = {sub: this.table.length + 1, email: Body.email};
-        const token = this.jwtService.sign(playload);
-        const newUser = {
-            email: Body.email,
-            password: await this.hashPassword(Body.password),
-            id : this.table.length + 1,
-            token: token
+    async register(body: RegisterDto) {
+        const hashedPassword = await this.hashPassword(body.password);
+
+        const user = await this.UserService.create({
+            ...body,
+            password: hashedPassword,
+        });
+
+        const payload = {
+            sub: user.id,
+            email: user.email,
         };
-        this.table.push(newUser);
+        const token = this.jwtService.sign(payload);
         return {
-            id: newUser.id,
-            email: newUser.email,
-            token: newUser.token,
+            access_token: token,
+            user,
         };
     }
     async login(Body: LoginDto) {
-        const existe = this.table.find(u => u.email === Body.email);
-        if (!existe) {
-            throw new BadRequestException("the email does not existe");
+        const user = await this.UserService.findByEmail(Body.email);
+        if (!user) {
+            throw new UnauthorizedException("User not found");
         }
-        if (!(await this.compare(Body.password, existe.password))) {
-            throw new BadRequestException("Wrong Password!");
+        const isMatched = this.compare(Body.password, user.password);
+        if (!isMatched) {
+            throw new UnauthorizedException("Wrong password");
         }
-        const playload = {sub: this.table.length + 1, email: Body.email};
+        const playload = {sub: user.id , email: user.email};
         const token = this.jwtService.sign(playload);
         return {
-            id: existe.id,
-            email: Body.email,
-            token: token
-        };
+            Message : 'Login success',
+            user,
+            access_token: token
+        }
+
     }
     async forget_password(){}
 }
