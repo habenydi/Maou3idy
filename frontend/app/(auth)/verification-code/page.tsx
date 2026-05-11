@@ -34,6 +34,20 @@ export default function VerificationCodePage() {
 			if (!res.ok) {
 				throw new Error(data.message || "Verification failed");
 			}
+
+			const storedUser = localStorage.getItem('auth_user');
+			if (storedUser) {
+				try {
+					const parsedUser = JSON.parse(storedUser) as { verified?: boolean };
+					localStorage.setItem('auth_user', JSON.stringify({
+						...parsedUser,
+						verified: true,
+					}));
+				} catch {
+					localStorage.setItem('auth_user', JSON.stringify({ verified: true }));
+				}
+			}
+
             alert("Email verified successfully");
 			router.push("/success");
 

@@ -26,10 +26,23 @@ export default function VerificationEmail() {
 					throw new Error(data.message || 'Failed to verify email');
 				}
 
+				const storedUser = localStorage.getItem('auth_user');
+				if (storedUser) {
+					try {
+						const parsedUser = JSON.parse(storedUser) as { verified?: boolean };
+						localStorage.setItem('auth_user', JSON.stringify({
+							...parsedUser,
+							verified: true,
+						}));
+					} catch {
+						localStorage.setItem('auth_user', JSON.stringify({ verified: true }));
+					}
+				}
+
 				setStatus('success');
 				setMessage(data.message || 'Email verified successfully.');
 				setTimeout(() => {
-					router.replace('/login');
+					router.replace('/success');
 				}, 2000);
 			} catch (error) {
 				setStatus('error');
