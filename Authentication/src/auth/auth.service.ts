@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { ForgetPasswordDto } from './dto/forget_password.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { stat } from 'fs';
 
 
 @Injectable()
@@ -21,7 +22,9 @@ export class AuthService {
     }
     async register(body: RegisterDto) {
         const hashedPassword = await this.hashPassword(body.password);
-
+        if (await this.UserService.findByEmail(body.email)) {
+            throw new BadRequestException("Email already exists");
+        }
         const user = await this.UserService.create({
             ...body,
             password: hashedPassword,
@@ -32,12 +35,13 @@ export class AuthService {
             email: user.email,
         };
         const token = this.jwtService.sign(payload);
-        // const url = `http://localhost:3000/auth/verify_email/token=${token}`;
-        // await this.email.sendMail({
-        //     to: user.email,
-        //     subject: 'Verify your email',
-        //     text: `Please click the following link to verify your email: ${url}`,
-        // });
+        const url = `http://localhost:3000/verification-email?token=${encodeURIComponent(token)}`;
+        await this.email.sendMail({
+            to: user.email,
+            subject: 'Verify your email',
+            text: `Please click the following link to verify your email: ${url}`,
+            html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
+        });
         return {
             statusCode: 201,
             message: 'User registered successfully',
@@ -50,13 +54,14 @@ export class AuthService {
         if (!user) {
             throw new UnauthorizedException("User not found");
         }
-        const isMatched = this.compare(Body.password, user.password);
+        const isMatched = await this.compare(Body.password, user.password);
         if (!isMatched) {
             throw new UnauthorizedException("Wrong password");
         }
         const playload = {sub: user.id , email: user.email};
         const token = this.jwtService.sign(playload);
         return {
+            statusCode: 200,
             Message : 'Login success',
             user,
             access_token: token
@@ -68,8 +73,16 @@ export class AuthService {
         if (!user) {
             throw new BadRequestException("User not found");
         }
-        const url = `http://localhost:3000/auth/reset_password/token=${this.jwtService.sign({sub: user.id, email: user.email})}`;
-        return { url };
+        const url = `http://localhost:3000/reset-password/?token=${this.jwtService.sign({sub: user.id, email: user.email})}`;
+        await this.email.sendMail({
+            to: user.email,
+            subject: 'Reset your password',
+            text: `Please click the following link to reset your password: ${url}`,
+            html: `<p>Please click the following link to reset your password:</p><p><a href="${url}">${url}</a></p>`,
+        });
+        return {
+            statusCode: 200,
+            message: "Password reset link has been sent to your email" };
     }
     async reset_password(token: string, new_password: string) {
         try {
@@ -81,7 +94,10 @@ export class AuthService {
             const hashedPassword = await this.hashPassword(new_password);
             await this.UserService.update(user.id, { password: hashedPassword });
             this.verify_email(token);
-            return { message: "Password reset successful" };
+            return { 
+                statusCode: 200,
+                message: "Password reset successful"
+            };
         } catch (error) {
             throw new ForbiddenException("Invalid or expired token");
         }
@@ -94,7 +110,10 @@ export class AuthService {
                 throw new BadRequestException("User not found");
             }
             await this.UserService.update(user.id, { verified: true });
-            return { message: "Email verified successfully" };
+            return {
+                statusCode: 200,
+                message: "Email verified successfully"
+            };
         } catch (error) {
             throw new ForbiddenException("Invalid or expired token");
         }
@@ -110,6 +129,9 @@ export class AuthService {
         }
         const hashedPassword = await this.hashPassword(new_password);
         await this.UserService.update(user.id, { password: hashedPassword });
-        return { message: "Password changed successfully" };
+        return { 
+            statusCode: 200,
+            message: "Password changed successfully"
+        };
     }
 }
