@@ -5,6 +5,7 @@ APP = npm run start:dev
 up:
 	$(COMPOSE) up -d
 	@echo "PostgreSQL is running..."
+	npx prisma migrate dev --name init
 	$(APP)
 
 ins:
