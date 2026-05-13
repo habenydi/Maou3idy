@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedReserve - Doctor Schedule Management</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#0057cd",
+                    "secondary": "#425c9b",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#dae2ff",
+                    "primary-fixed-dim": "#b1c5ff",
+                    "secondary-fixed": "#dae2ff",
+                    "on-primary-fixed-variant": "#00419e",
+                    "on-tertiary-fixed": "#370e00",
+                    "inverse-surface": "#2e3133",
+                    "on-tertiary-fixed-variant": "#7f2b00",
+                    "inverse-primary": "#b1c5ff",
+                    "on-surface": "#191c1e",
+                    "tertiary-fixed": "#ffdbce",
+                    "surface-bright": "#f9f9fd",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#0d6efd",
+                    "on-error": "#ffffff",
+                    "surface-container": "#edeef1",
+                    "surface-dim": "#d9dadd",
+                    "surface-container-low": "#f3f3f7",
+                    "background": "#f9f9fd",
+                    "surface-container-highest": "#e2e2e6",
+                    "error": "#ba1a1a",
+                    "outline": "#727787",
+                    "surface": "#f9f9fd",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c2c6d8",
+                    "on-surface-variant": "#424655",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#2e4986",
+                    "secondary-container": "#a0baff",
+                    "on-primary-container": "#ffffff",
+                    "tertiary-container": "#cf4b00",
+                    "inverse-on-surface": "#f0f0f4",
+                    "surface-variant": "#e2e2e6",
+                    "on-tertiary-container": "#ffffff",
+                    "on-primary-fixed": "#001946",
+                    "secondary-fixed-dim": "#b1c5ff",
+                    "surface-tint": "#0057ce",
+                    "surface-container-high": "#e7e8eb",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed-variant": "#294481",
+                    "on-secondary-fixed": "#001946",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb599",
+                    "tertiary": "#a63b00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2e2e6;
+            border-radius: 10px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- SideNavBar Shell -->
+<aside class="w-64 fixed left-0 top-0 border-r-0 bg-slate-50 dark:bg-slate-900 flex flex-col h-screen p-4 gap-2 z-50">
+<div class="flex items-center gap-3 px-2 mb-8">
+<div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg">
+<span class="material-symbols-outlined" data-icon="clinical_notes">clinical_notes</span>
+</div>
+<div>
+<h1 class="font-headline font-bold text-xl text-slate-900 dark:text-slate-50 leading-none">MedReserve</h1>
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-1">Clinical Admin</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 font-semibold rounded-lg shadow-sm group" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Inter'] font-medium text-sm">Schedules</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Inter'] font-medium text-sm">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['Inter'] font-medium text-sm">Applications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-['Inter'] font-medium text-sm">Categories</span>
+</a>
+</nav>
+<div class="mt-auto p-2 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center gap-3">
+<img alt="Dr. Smith Profile" class="w-10 h-10 rounded-lg object-cover" data-alt="professional headshot of a middle-aged doctor with a kind expression wearing a white coat in a bright clinic setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjgHhnNCLsCZO3QnKR2gzmInjDYMvtZug9OkfZ_b_Ymx9tIjN_HYLCxIL0abCUE50HHsoCJVC4cMEjbCOOUxkUbtOz3hr7v4gE_Uib6XpsE-p54H7DVEybAks_-5zX4ybodESuqYI6WohJ2qYXOTN1lGa5efIAqWmvsT7z8oTvj3NRaQ4Xsw47fG2obhMzdbUQk8U7hHm5G6vjhVa4CGXykchpGOlnBjCKH1Ablt4tnPRjzZQ9Nhf9Qo4VJHquRYAQTZeNiekn9pE"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-slate-900 dark:text-slate-50 truncate">Dr. Sarah Smith</p>
+<p class="text-[10px] text-slate-500 truncate">Cardiologist</p>
+</div>
+<button class="ml-auto text-slate-400 hover:text-slate-900">
+<span class="material-symbols-outlined text-lg" data-icon="logout">logout</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-none flex justify-between items-center px-8">
+<div class="flex items-center gap-8">
+<h2 class="font-headline font-extrabold text-blue-700 dark:text-blue-400 text-lg">Schedule &amp; Slot Management</h2>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 pb-1 font-headline font-semibold text-base transition-all" href="#">Weekly View</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300 font-headline font-semibold text-base transition-all" href="#">List View</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="mt-16 p-8 flex-1 flex flex-col gap-8 bg-surface overflow-y-auto">
+<!-- Action Bar -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<h3 class="font-headline font-bold text-2xl text-on-surface">Oct 23 - Oct 29, 2023</h3>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-medium text-sm flex items-center gap-2 transition-all hover:bg-surface-dim">
+<span class="material-symbols-outlined text-lg" data-icon="auto_awesome">auto_awesome</span>
+                        Auto-generate Slots
+                    </button>
+<button class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+                        Add Slot
+                    </button>
+</div>
+</div>
+<!-- Dashboard Stats Tonal Layering -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col gap-1">
+<span class="text-xs font-bold text-outline uppercase tracking-wider">Total Slots</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">42</span>
+<span class="text-xs font-medium text-primary">+4 this week</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col gap-1">
+<span class="text-xs font-bold text-outline uppercase tracking-wider">Booked</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">28</span>
+<span class="text-xs font-medium text-tertiary">66.7% occupancy</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col gap-1">
+<span class="text-xs font-bold text-outline uppercase tracking-wider">Available</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">14</span>
+<span class="text-xs font-medium text-primary">Open for booking</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl flex flex-col gap-1">
+<span class="text-xs font-bold text-outline uppercase tracking-wider">Avg. Wait</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-extrabold text-on-surface">12m</span>
+<span class="text-xs font-medium text-on-error-container">-2m from avg</span>
+</div>
+</div>
+</div>
+<!-- Weekly Grid View -->
+<div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col min-h-[600px]">
+<!-- Grid Headers -->
+<div class="calendar-grid mb-6 border-b border-surface-container pb-4">
+<div class="flex items-center justify-center font-label text-xs font-bold text-outline uppercase">Time</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-outline uppercase">Mon</span>
+<span class="text-xl font-headline font-extrabold">23</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-outline uppercase">Tue</span>
+<span class="text-xl font-headline font-extrabold text-primary">24</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-outline uppercase">Wed</span>
+<span class="text-xl font-headline font-extrabold">25</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-outline uppercase">Thu</span>
+<span class="text-xl font-headline font-extrabold">26</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-outline uppercase">Fri</span>
+<span class="text-xl font-headline font-extrabold">27</span>
+</div>
+<div class="flex flex-col items-center opacity-40">
+<span class="text-xs font-bold text-outline uppercase">Sat</span>
+<span class="text-xl font-headline font-extrabold">28</span>
+</div>
+<div class="flex flex-col items-center opacity-40">
+<span class="text-xs font-bold text-outline uppercase">Sun</span>
+<span class="text-xl font-headline font-extrabold">29</span>
+</div>
+</div>
+<!-- Grid Body (Scrollable Area) -->
+<div class="flex-1 overflow-y-auto pr-2 relative">
+<!-- Current Time Indicator -->
+<div class="absolute w-full top-[180px] z-20 pointer-events-none">
+<div class="flex items-center">
+<div class="w-2 h-2 rounded-full bg-primary -ml-1"></div>
+<div class="flex-1 h-px bg-primary opacity-30"></div>
+</div>
+</div>
+<div class="space-y-4">
+<!-- 09:00 Row -->
+<div class="calendar-grid min-h-[80px]">
+<div class="text-xs font-bold text-outline flex items-start justify-center pt-1">09:00 AM</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">John Doe</p>
+<p class="text-[10px] text-outline truncate">Follow-up</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="add">add</span>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Alice Wang</p>
+<p class="text-[10px] text-outline truncate">Consultation</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="add">add</span>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Robert Chen</p>
+<p class="text-[10px] text-outline truncate">Checkup</p>
+</div>
+</div>
+<div class="px-1"></div>
+<div class="px-1"></div>
+</div>
+<!-- 10:00 Row -->
+<div class="calendar-grid min-h-[80px]">
+<div class="text-xs font-bold text-outline flex items-start justify-center pt-1">10:00 AM</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">30m Slot</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Mike Tyson</p>
+<p class="text-[10px] text-outline truncate">Physiology</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">1h Slot</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Sarah Jenkins</p>
+<p class="text-[10px] text-outline truncate">Cardio Test</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="add">add</span>
+</div>
+</div>
+<div class="px-1"></div>
+<div class="px-1"></div>
+</div>
+<!-- 11:00 Row -->
+<div class="calendar-grid min-h-[80px]">
+<div class="text-xs font-bold text-outline flex items-start justify-center pt-1">11:00 AM</div>
+<div class="px-1 col-span-3">
+<div class="bg-surface-container-high border-l-4 border-outline p-3 rounded-xl h-full flex items-center gap-3">
+<span class="material-symbols-outlined text-outline" data-icon="block">block</span>
+<div>
+<p class="text-xs font-bold text-on-surface">Hospital Rounds</p>
+<p class="text-[10px] text-outline">Busy until 1:00 PM</p>
+</div>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">1h Slot</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Peter Parker</p>
+<p class="text-[10px] text-outline truncate">Routine</p>
+</div>
+</div>
+<div class="px-1"></div>
+<div class="px-1"></div>
+</div>
+<!-- 12:00 Row -->
+<div class="calendar-grid min-h-[80px]">
+<div class="text-xs font-bold text-outline flex items-start justify-center pt-1">12:00 PM</div>
+<div class="px-1 col-span-5 bg-surface-container-low rounded-xl flex items-center justify-center border-y border-surface-container-high border-dashed">
+<span class="text-xs font-bold text-outline uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="restaurant">restaurant</span>
+                                    Lunch Break
+                                </span>
+</div>
+<div class="px-1"></div>
+<div class="px-1"></div>
+</div>
+<!-- 01:00 Row -->
+<div class="calendar-grid min-h-[80px]">
+<div class="text-xs font-bold text-outline flex items-start justify-center pt-1">01:00 PM</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">1h Slot</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">30m Slot</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-outline group-hover:text-primary" data-icon="add">add</span>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-primary uppercase">Booked</span>
+<p class="text-xs font-bold text-on-surface truncate">Gwen Stacy</p>
+<p class="text-[10px] text-outline truncate">New Patient</p>
+</div>
+</div>
+<div class="px-1">
+<div class="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
+<span class="text-[10px] font-bold text-tertiary uppercase">Available</span>
+<p class="text-xs font-bold text-on-surface">1h Slot</p>
+</div>
+</div>
+<div class="px-1"></div>
+<div class="px-1"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Bottom Section: Quick Settings -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<div class="lg:col-span-2 bg-surface-container-low p-6 rounded-3xl flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h4 class="font-headline font-bold text-lg">Auto-generation Settings</h4>
+<button class="text-primary font-bold text-sm">Reset to Default</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-xs font-bold text-outline uppercase px-1">Slot Duration</label>
+<select class="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm">
+<option>15 Minutes</option>
+<option selected="">30 Minutes</option>
+<option>45 Minutes</option>
+<option>1 Hour</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-outline uppercase px-1">Buffer Time</label>
+<select class="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm">
+<option>No Buffer</option>
+<option selected="">5 Minutes</option>
+<option>10 Minutes</option>
+<option>15 Minutes</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-outline uppercase px-1">Start Hour</label>
+<input class="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" type="time" value="09:00"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-outline uppercase px-1">End Hour</label>
+<input class="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" type="time" value="17:00"/>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col justify-between">
+<div>
+<h4 class="font-headline font-bold text-lg text-primary mb-2">Weekly Summary</h4>
+<p class="text-sm text-outline mb-6 leading-relaxed">Your current availability is set to 32 hours per week. You have filled 88% of your core cardiological slots.</p>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">Efficiency</span>
+<span class="text-sm font-bold">92%</span>
+</div>
+<div class="w-full h-2 bg-primary-fixed rounded-full overflow-hidden">
+<div class="w-[92%] h-full bg-primary"></div>
+</div>
+</div>
+</div>
+<button class="mt-8 w-full py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-on-primary-fixed-variant transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="analytics">analytics</span>
+                        View Detailed Insights
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button - Only for Schedule Primary Action -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-3xl transition-transform group-hover:rotate-90" data-icon="add">add</span>
+</button>
+<!-- Slot Detail Glass Modal (Hidden by default, used for illustration of Glassmorphism Rule) -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6">
+<div class="absolute inset-0 bg-on-surface/20 backdrop-blur-sm"></div>
+<div class="relative glass-panel w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-white/20">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-xs font-bold text-primary uppercase tracking-widest">New Appointment Slot</span>
+<h5 class="font-headline font-extrabold text-2xl mt-1">Configure Slot</h5>
+</div>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="space-y-6">
+<!-- Data components -->
+</div>
+</div>
+</div>
+</body></html>
