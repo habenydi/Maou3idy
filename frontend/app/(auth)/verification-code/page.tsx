@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 export default function VerificationCodePage() {
 	const [email, setEmail] = useState("");
@@ -11,17 +13,32 @@ export default function VerificationCodePage() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+	const verificationSchema = z.object({
+		email: z.string().email("Enter a valid email address"),
+		code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
+	});
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
 		setErrorMessage(null);
 		setSuccessMessage(null);
 
+		const parseResult = verificationSchema.safeParse({ email, code });
+		if (!parseResult.success) {
+			const message = parseResult.error.issues[0]?.message || "Invalid input";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
+			setLoading(false);
+			return;
+		}
+
         const token = localStorage.getItem("token");
         if (!token) {
             setErrorMessage("You must be logged in to verify your email.");
-            setLoading(false);
-            return;
+			toast.error(errorMessage + " Please try again.");
+			setLoading(false);
+			return;
         }
 		try {
 			const response = await axios.post(
@@ -35,9 +52,6 @@ export default function VerificationCodePage() {
 					},
 				}
 			);
-
-			const data = response.data;
-
 			const storedUser = localStorage.getItem('auth_user');
 			if (storedUser) {
 				try {
@@ -46,23 +60,28 @@ export default function VerificationCodePage() {
 						...parsedUser,
 						verified: true,
 					}));
+					toast.success("Email verified successfully");
 				} catch {
 					localStorage.setItem('auth_user', JSON.stringify({ verified: true }));
+					toast.error("Failed to update user verification status");
 				}
 			}
-
-            setSuccessMessage("Email verified successfully");
+			const message = response.data?.message || "Email verified successfully";
+			toast.success(message);
+            setSuccessMessage(message);
 			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
-			if (axios.isAxiosError(err)) {
-				setErrorMessage(err.response?.data?.message || err.message || "Verification failed");
-			} else if (err instanceof Error) {
-				setErrorMessage(err.message);
-			} else {
-				setErrorMessage("An unknown error occurred.");
-			}
+			const message = axios.isAxiosError(err) && err.response?.data?.message
+				? err.response.data.message
+				: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
+			setSuccessMessage(null);
+			router.push("/verification-email");
 		} finally {
 			setLoading(false);
 		}

@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 export default function ResetPassword() {
 	const [password, setPassword] = useState("");
@@ -14,20 +16,30 @@ export default function ResetPassword() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+	const resetSchema = z.object({
+		token: z.string().min(1, "Reset token is missing. Please request a new password reset link."),
+		password: z.string().min(8, "Password must be at least 8 characters"),
+		confirmPassword: z.string().min(8, "Confirm password is required"),
+	}).refine((data) => data.password === data.confirmPassword, {
+		path: ["confirmPassword"],
+		message: "Passwords do not match",
+	});
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
 		setErrorMessage(null);
 		setSuccessMessage(null);
 
-		if (!token) {
-			setErrorMessage("Reset token is missing. Please request a new password reset link.");
-			setLoading(false);
-			return;
-		}
-
-		if (password !== confirmPassword) {
-			setErrorMessage("Passwords do not match");
+		const parseResult = resetSchema.safeParse({
+			token: token ?? "",
+			password,
+			confirmPassword,
+		});
+		if (!parseResult.success) {
+			const message = parseResult.error.issues[0]?.message || "Invalid input";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
 			setLoading(false);
 			return;
 		}
@@ -43,21 +55,21 @@ export default function ResetPassword() {
 					},
 				}
 			);
-
-			const data = response.data;
-
-			setSuccessMessage("Password has been reset successfully");
+			setErrorMessage(null);
+			const message = response.data?.message || "Password has been reset successfully";
+			setSuccessMessage(message);
+			toast.success(message);
 			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
-			if (axios.isAxiosError(err)) {
-				setErrorMessage(err.response?.data?.message || err.message || "Failed to reset password");
-			} else if (err instanceof Error) {
-				setErrorMessage(err.message);
-			} else {
-				setErrorMessage("An unknown error occurred.");
-			}
+			const message = axios.isAxiosError(err) && err.response?.data?.message
+				? err.response.data.message
+				: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
 		} finally {
 			setLoading(false);
 		}

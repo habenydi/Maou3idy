@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "MedReserve - Clinical Appointment System",
@@ -31,7 +33,14 @@ export default function RootLayout({
           }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        closeOnClick
+        />
+      </body>
     </html>
   );
 }

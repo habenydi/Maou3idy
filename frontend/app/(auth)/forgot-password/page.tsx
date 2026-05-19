@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 export default function ForgotPassword() {
 	const [email, setEmail] = useState("");
@@ -9,10 +11,24 @@ export default function ForgotPassword() {
 	const router = useRouter();
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+	const forgotSchema = z.object({
+		email: z.string().email("Enter a valid email address"),
+	});
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
 		setErrorMessage(null);
+
+		const parseResult = forgotSchema.safeParse({ email });
+		if (!parseResult.success) {
+			const message = parseResult.error.issues[0]?.message || "Invalid input";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
+			setLoading(false);
+			return;
+		}
+
 		try {
 			const response = await axios.post(
 				"http://127.0.0.1:8000/auth/forgot-password",
@@ -25,20 +41,20 @@ export default function ForgotPassword() {
 				}
 			);
 
-			const data = response.data;
-
-			alert("Password reset link has been sent to your email");
+			const data = await response.data;
+			const message = data.message || "Password reset email sent successfully";
+			toast.success(message);
 			router.push("/login");
 
 		} catch (err) {
 			console.error(err);
-			if (axios.isAxiosError(err)) {
-				setErrorMessage(err.response?.data?.message || err.message || "Failed to send reset email");
-			} else if (err instanceof Error) {
-				setErrorMessage(err.message);
-			} else {
-				setErrorMessage("An unknown error occurred.");
-			}
+			const message = axios.isAxiosError(err) && err.response?.data?.message
+				? err.response.data.message
+				: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
 		} finally {
 			setLoading(false);
 		}

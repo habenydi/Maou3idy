@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Img from 'next/image';
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -26,9 +27,10 @@ const Sidebar = () => {
 
       <div className="px-4 mb-6">
         <div className="flex items-center gap-3 p-3 bg-slate-200/50 rounded-xl">
-          <img
+          <Img
             alt="Doctor Avatar"
             className="w-10 h-10 rounded-full object-cover"
+            fill
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1ZqETx9_RaazbfBUW5ZRV_2W2vPgBDwAceiiKcnOlPTtOWfn2bPOLIndSHqLQcSXyWg4esxd6baEAEt66oj3QDqVOlHAHl4LfjfgU-mrTW_tknyMDmQqArNxvOJRCm-3AjS4Uw1URqWd8cRWBLMp4GVV04Pgvur2gqbI-VK-dI0k620bUxGoR5py15JaEClW_73JsOZSxSm8O9tUaRVmCviAiPDDmykBZa6kBgi0cRATE3UhSNhZuEbiwQlEwP2v5RSewDpCoP0Y"
           />
           <div>

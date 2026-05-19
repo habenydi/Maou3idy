@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Img from 'next/image';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { z } from 'zod';
 
 export default function Login() {
 	const [email, setEmail] = useState("");
@@ -9,49 +12,52 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [rememberMe, setRememberMe] = useState(false);
 	const router = useRouter();
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+	const loginSchema = z.object({
+		email: z.string().email("Enter a valid email address"),
+		password: z.string().min(8, "Password must be at least 8 characters"),
+	});
 
 	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		setErrorMessage(null);
+
+		const parseResult = loginSchema.safeParse({ email, password });
+		if (!parseResult.success) {
+			const message = parseResult.error.issues[0]?.message || "Invalid input";
+			toast.error(message + " Please try again.");
+			return;
+		}
 
 		try {
-			const res = await fetch("http://127.0.0.1:8000/auth/login", {
-			method: "POST",
-			headers: {
-			"Content-Type": "application/json",
-			"Accept": "application/json",
-			},
-			body: JSON.stringify({ email, password }),
-			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				throw new Error(
-			data.message ||
-			(data.errors && Array.isArray(Object.values((data.errors as Record<string, string[]>))) && Object.values((data.errors as Record<string, string[]>))[0][0]) ||
-					"Login failed"
-				);
-			}
-
+			const { data } = await axios.post(
+				"http://127.0.0.1:8000/auth/login",
+				{ email, password },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+					},
+				}
+			);
+			toast.success("Login successful! Redirecting...");
 			localStorage.setItem("access_token", data.access_token);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
 			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
-			if (err instanceof Error) {
-				setErrorMessage(err.message + " Please try again.");
-			} else {
-				setErrorMessage("An unknown error occurred.");
-			}
+			const message =
+				axios.isAxiosError(err)
+					? (err.response?.data as { message?: string })?.message || "Login failed"
+					: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			toast.error(message + " Please try again.");
 		}
 	};
 
 	return (
 	<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
-			{/* Ambient Background Decorations */}
 			<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
 				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[120px]" style={{backgroundColor: "rgba(0, 87, 205, 0.05)"}}></div>
 				<div className="absolute -bottom-[10%] -right-[10%] w-[35%] h-[35%] rounded-full blur-[100px]" style={{backgroundColor: "rgba(66, 92, 155, 0.05)"}}></div>
@@ -209,8 +215,7 @@ export default function Login() {
 			{/* Contextual Aesthetic Element (Asymmetric Detail) */}
 			<div className="hidden lg:block fixed top-1/2 -right-24 -translate-y-1/2 w-64 h-96 opacity-10">
 				<Img 
-					alt="Clinical environment" 
-					className=""
+					alt="Clinical environment"
 					fill
 					data-alt="Modern high-tech medical clinic interior with clean white surfaces and soft blue ambient lighting in a professional setting" 
 					src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkHqkkpwr0eOnMgQc0OIf1L61TFcolCMTHxPm6BOqSKDRiZcSBj5i0SSx5YDrAaRtArjRlEEHUaSO-JlNGidngNLDvErm3f5oeqkg1OzfboKqwUC-o41oEq7TrP5w_f5_Lt9qOBSQgwipkNsgr4WGewltB2UuyVvXBEInZ_1wKX4tfdXTHXcysVLmGXmgFc_3PXZR-w0MjOE1pmCAFP5ZNg4Scl11cIBqnBVqLdjq-xpAgysxmGbsDU-fYCERKJBXnoXv8DACFh5w" 

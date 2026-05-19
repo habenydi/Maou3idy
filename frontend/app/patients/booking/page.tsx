@@ -1,4 +1,6 @@
 'use client';
+import Link from 'next/link';
+import Img from 'next/image';
 function Booking() {
     return (
         <>
@@ -8,16 +10,16 @@ function Booking() {
         {/* Fonts */}
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link crossOrigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-        <link
+        <Link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
             rel="stylesheet"
         />
         {/* Material Symbols */}
-        <link
+        <Link
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
             rel="stylesheet"
         />
-        <link
+        <Link
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
             rel="stylesheet"
         />
@@ -65,22 +67,22 @@ function Booking() {
                 </button>
             </div>
             </div>
-            <div className="bg-slate-200/50 h-[1px]" />
+            <div className="bg-slate-200/50 h-1px" />
         </header>
         <main className="pt-24 pb-20 max-w-screen-2xl mx-auto px-6">
             {/* Hero Section */}
             <section className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
             <div className="md:col-span-8 bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col md:flex-row items-center md:items-end p-8 gap-8 relative">
                 {/* Profile Image */}
-                <div className="relative w-48 h-48 md:w-64 md:h-64 flex-shrink-0">
-                <img
+                <div className="relative w-48 h-48 md:w-64 md:h-64 shrink-0">
+                <Img
                     alt="Doctor profile"
                     className="w-full h-full object-cover rounded-2xl shadow-xl shadow-primary/10"
                     data-alt="portrait of a professional male doctor in his 40s wearing a white clinical coat and stethoscope, smiling warmly in a bright modern medical office"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYtWdA_ohvneu_r7bu8XLHWOqsHTlLujlYSOedETiyvqwB4zTuLZAsMffAVXDPup4nk2uXDziPbmyXMJK8GQUkvCvNPDwMf9lQ0eYXcuOacE_hPSySvybd6eB9IQbGt4UquxqYuHq0wykOyIvm9HAj8wab0o-3053C4P36Eq1PkZhYh3xKzfdpTzwrK97cbjfV6FWtghYcY9So8noVbK1AnftIpO4uG1ik49OCMu6vr0REgMM3XQWipuFotLQn5p6zK9svC6-njtM"
                 />
                 </div>
-                <div className="flex-grow space-y-4 text-center md:text-left">
+                <div className="grow space-y-4 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-2">
                     <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-1 uppercase">
                     <span className="material-symbols-outlined text-sm material-fill">
@@ -324,7 +326,7 @@ function Booking() {
             {/* Right Column: Booking Sidebar */}
             <aside className="lg:col-span-4">
                 <div className="sticky top-28 space-y-6">
-                <div className="bg-surface-container-lowest p-8 rounded-[2rem] shadow-xl shadow-primary/5 border border-surface-container">
+                <div className="bg-surface-container-lowest p-8 rounded-4xl shadow-xl shadow-primary/5 border border-surface-container">
                     <div className="flex items-center justify-between mb-8">
                     <h4 className="text-xl font-headline font-extrabold text-on-surface">
                         Book Appointment
@@ -401,7 +403,7 @@ function Booking() {
                     </div>
                     </div>
                     {/* CTA */}
-                    <button className="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-4 rounded-2xl font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                    <button className="w-full bg-linear-to-r from-primary to-primary-container text-on-primary py-4 rounded-2xl font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform">
                     Book Appointment
                     </button>
                     <p className="text-[10px] text-center text-on-surface-variant mt-4 px-6">
@@ -412,14 +414,14 @@ function Booking() {
                 {/* Reviews Teaser */}
                 <div className="bg-surface-container-low p-6 rounded-3xl flex items-center justify-between">
                     <div className="flex -space-x-3">
-                    <img
+                    <Img
                         className="w-8 h-8 rounded-full border-2 border-surface"
-                        data-alt="close up headshot of a smiling man"
+                        alt="close up headshot of a smiling man"
                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSJfqkSwK5GuzjPMxwce2iOPyrObrnnFDww82Vytw_2z78RyI6xQURhwB2hOp2H4-HlRufFhc1v2-wty9G7TzVcbv3TldUAnVPhPOKRKdi5jpIf4tINudZGwbd_f4W08AqZt2OEHHiE3B-uhmaac0TUN1k4I2Rr789NRacSORH-Hj3WfOjEgiay2NX5ApQZIH07LlRFDBouGleRlwudJ9VpyJ2J-WlLYBCEKlVIVjAF0cwfqZWB0HxxSxmVum64lu4xwkLeggQsxM"
                     />
-                    <img
+                    <Img
                         className="w-8 h-8 rounded-full border-2 border-surface"
-                        data-alt="close up headshot of a professional woman"
+                        alt="close up headshot of a professional woman"
                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9RhaoKRAPAcJRI_2ffM--VF2ih9NarOCTiDiW6hCRCV_1HvC8qiX9OLaGStFwsaFjQ_nBnLbRgLLbin5RSbgfDgHwTOiwnsjDJu8o8zIVOAAtu8iRNQGFtj_UxNudWIKyHvNBFAS5bQYyOWB6OnYL-BWEDvvJxG1M3DxP2iXuP_9xxgLSSv3yTYdoEtNqlPGJLV3UqOxeeBgPjTKsCzVazDf_q2dKXRrIPCmthUTKTztiyppjxDzJPXzl7jdcxRVi9OJlPXAJICM"
                     />
                     <div className="w-8 h-8 rounded-full border-2 border-surface bg-primary flex items-center justify-center text-[10px] text-on-primary font-bold">

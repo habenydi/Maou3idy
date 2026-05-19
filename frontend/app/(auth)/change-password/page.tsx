@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 export default function ChangePassword() {
 	const [currentPassword, setCurrentPassword] = useState("");
@@ -9,16 +11,25 @@ export default function ChangePassword() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const router = useRouter();
+
+	const changeSchema = z.object({
+		currentPassword: z.string().min(8, "Current password is required"),
+		newPassword: z.string().min(8, "New password must be at least 8 characters"),
+		confirmPassword: z.string().min(8, "Confirm password is required"),
+	}).refine((data) => data.newPassword === data.confirmPassword, {
+		path: ["confirmPassword"],
+		message: "New passwords do not match",
+	});
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
-		setErrorMessage(null);
 
-		if (newPassword !== confirmPassword) {
-			setErrorMessage("New passwords do not match");
+		const parseResult = changeSchema.safeParse({ currentPassword, newPassword, confirmPassword });
+		if (!parseResult.success) {
+			const message = parseResult.error.issues[0]?.message || "Invalid input";
+			toast.error(message + " Please try again.");
 			setLoading(false);
 			return;
 		}
@@ -26,10 +37,11 @@ export default function ChangePassword() {
 		try {
 			const token = localStorage.getItem('access_token');
 			if (!token) {
+				const message = "You must be logged in to change your password.";
+				toast.error(message + " Please try again.");
 				router.push("/login");
 				return;
 			}
-
 			await axios.patch(
 				"http://127.0.0.1:8000/auth/change-password",
 				{ old_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword },
@@ -42,18 +54,17 @@ export default function ChangePassword() {
 				}
 			);
 
-			alert("Password changed successfully");
+			toast.success("Password changed successfully");
 			router.push("/success");
 
 		} catch (err: unknown) {
 			console.error(err);
-			if (axios.isAxiosError(err) && err.response?.data?.message) {
-				setErrorMessage(err.response.data.message);
-			} else if (err instanceof Error) {
-				setErrorMessage(err.message);
-			} else {
-				setErrorMessage("Failed to change password");
-			}
+			const message = axios.isAxiosError(err) && err.response?.data?.message
+				? err.response.data.message
+				: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			toast.error(message + " Please try again.");
 		} finally {
 			setLoading(false);
 		}
@@ -136,13 +147,6 @@ export default function ChangePassword() {
 							/>
 							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="showPassword" style={{color: "#424655"}}>Show password</label>
 						</div>
-
-						{errorMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{backgroundColor: "#ffe6e6", color: "#8b0000"}}>
-								{errorMessage}
-							</div>
-						)}
-
 						<button
 							type="submit"
 							disabled={loading}

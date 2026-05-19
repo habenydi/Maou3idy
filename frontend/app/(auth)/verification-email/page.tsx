@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import { z } from 'zod';
 
 export default function VerificationEmail() {
 	const searchParams = useSearchParams();
@@ -16,12 +18,19 @@ export default function VerificationEmail() {
 	const displayMessage = hasToken ? message : 'Verification token is missing.';
 	const displayErrorMessage = hasToken ? errorMessage : 'Verification token is missing.';
 
+	const tokenSchema = z.string().min(1, "Verification token is missing.");
+
 	useEffect(() => {
-		if (!token) return;
+		const tokenCheck = tokenSchema.safeParse(token ?? "");
+		if (!tokenCheck.success) {
+			const message = tokenCheck.error.issues[0]?.message || "Invalid verification token";
+			toast.error(message + " Please try again.");
+			return;
+		}
 
 		const verifyEmail = async () => {
 			try {
-				const response = await axios.get(`http://localhost:8000/auth/verify_email/token=${encodeURIComponent(token)}`);
+				const response = await axios.get(`http://localhost:8000/auth/verify_email/token=${encodeURIComponent(token ?? "")}`);
 				const data = response.data;
 
 				const storedUser = localStorage.getItem('auth_user');
@@ -39,6 +48,7 @@ export default function VerificationEmail() {
 
 				setStatus('success');
 				setMessage(data.message || 'Email verified successfully.');
+				toast.success("Email verified successfully");
 				setErrorMessage(null);
 				setTimeout(() => {
 					router.replace('/success');
@@ -49,16 +59,18 @@ export default function VerificationEmail() {
 					const msg = error.response?.data?.message || error.message || 'Failed to verify email';
 					setMessage(msg);
 					setErrorMessage(msg);
+					toast.error(msg + " Please try again.");
 				} else {
 					const msg = error instanceof Error ? error.message : 'An unknown error occurred.';
 					setMessage(msg);
 					setErrorMessage(msg);
+					toast.error(msg + " Please try again.");
 				}
 			}
 		};
 
 		verifyEmail();
-	}, [router, token]);
+	}, [router, token, tokenSchema]);
 
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{ backgroundColor: '#f9f9fd', color: '#191c1e' }}>

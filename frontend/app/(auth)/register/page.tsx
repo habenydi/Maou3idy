@@ -1,10 +1,13 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Img  from 'next/image';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { z } from 'zod';
 
 export default function Register() {
 	const  [showPassword, setShowPassword] = useState(false);
-	const [ErrorMessage, setErrorMessage] = useState<string | null>(null);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -15,6 +18,24 @@ export default function Register() {
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
+
+	const registerSchema = z.object({
+		name: z.string().min(2, "Name must be at least 2 characters"),
+		email: z.string().email("Enter a valid email address"),
+		phone: z.string().optional().or(z.literal("")).refine(
+			(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
+			{ message: "Enter a valid phone number" }
+		),
+		password: z.string().min(8, "Password must be at least 8 characters"),
+		confirm_password: z.string().min(8, "Confirm password is required"),
+		terms: z.boolean(),
+	}).refine((data) => data.terms, {
+		path: ["terms"],
+		message: "Please accept the Terms of Service and Privacy Policy",
+	}).refine((data) => data.password === data.confirm_password, {
+		path: ["confirm_password"],
+		message: "Passwords do not match",
+	});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value, type, checked } = e.target;
@@ -27,53 +48,44 @@ export default function Register() {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
-		setErrorMessage(null);
 		try {
-			if (!formData.terms) {
-				setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
+			const parseResult = registerSchema.safeParse(formData);
+			if (!parseResult.success) {
+				const message = parseResult.error.issues[0]?.message || "Invalid input";
+				toast.error(message + " Please try again.");
 				setIsLoading(false);
 				return;
 			}
 
-			if (formData.password !== formData.confirm_password) {
-				alert("Passwords do not match");
-				setIsLoading(false);
-				return;
-			}
-
-			const res = await fetch("http://127.0.0.1:8000/auth/register", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"Accept": "application/json",
-				},
-				body: JSON.stringify({
+			const { data } = await axios.post(
+				"http://127.0.0.1:8000/auth/register",
+				{
 					name: formData.name,
 					email: formData.email,
 					phone: formData.phone,
 					password: formData.password,
-				}),
-			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				throw new Error(
-					data.message ||
-					(data.errors && Array.isArray(Object.values((data.errors as Record<string, string[]>))) && Object.values((data.errors as Record<string, string[]>))[0][0]) ||
-					"Registration failed"
-				);
-			}
+				},
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+					},
+				}
+			);
 			localStorage.setItem("access_token", data.access_token);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
+			toast.success("Registration successful! Redirecting...");
 			router.push("/success");
 		} catch (err) {
 			console.error(err);
-			if (err instanceof Error) {
-				setErrorMessage(err.message);
-			} else {
-				setErrorMessage("An unknown error occurred.");
-			}
+			const message =
+				axios.isAxiosError(err)
+					? (err.response?.data as { message?: string })?.message || "Registration failed"
+					: err instanceof Error
+						? err.message
+						: "An unknown error occurred.";
+			toast.error(message + " Please try again.");
+		} finally {
 			setIsLoading(false);
 		}
 	};
@@ -118,7 +130,7 @@ export default function Register() {
 						{/* Social Login Section */}
 						<div className="flex flex-col gap-4 mb-8">
 							<button className="flex items-center justify-center gap-3 w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-200 active:scale-95" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#edeef1"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f3f3f7"}>
-								<img alt="Google Logo" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7sekk05ih7WxToSvBqVjBRIZ_sW2fr6DiucmVZvGhZmof4OkP2XJGGUTQIW7tAodaGdD7l4r0riWG05JO2Nnd8AiczWbQsbNEiywjHdF59_aXtElHddBdqHRVE6VtV-TvFhjgCk9ecyKmCUZZre7DxDHk-ktv44cUTS0X-pbfpNHQ2lRicHyQ-dkZUmZKaJrTpv9OZmQEy2m0kJqq1pm63_bOtCR73jugDvilnd2W0Ylj3xPuDFJ-IYJxHcpsz2vnO-33ui5xpTQ" />
+								<Img alt="Google Logo" width={20} height={20} src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7sekk05ih7WxToSvBqVjBRIZ_sW2fr6DiucmVZvGhZmof4OkP2XJGGUTQIW7tAodaGdD7l4r0riWG05JO2Nnd8AiczWbQsbNEiywjHdF59_aXtElHddBdqHRVE6VtV-TvFhjgCk9ecyKmCUZZre7DxDHk-ktv44cUTS0X-pbfpNHQ2lRicHyQ-dkZUmZKaJrTpv9OZmQEy2m0kJqq1pm63_bOtCR73jugDvilnd2W0Ylj3xPuDFJ-IYJxHcpsz2vnO-33ui5xpTQ" />
 								Continue with Google
 							</button>
 							<div className="flex items-center gap-4 py-2">
