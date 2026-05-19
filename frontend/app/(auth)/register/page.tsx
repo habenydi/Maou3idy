@@ -21,7 +21,9 @@ export default function Register() {
 
 	const registerSchema = z.object({
 		name: z.string().min(2, "Name must be at least 2 characters"),
-		email: z.string().email("Enter a valid email address"),
+		email: z.string()
+			.email("Enter a valid email address")
+			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
 		phone: z.string().optional().or(z.literal("")).refine(
 			(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
 			{ message: "Enter a valid phone number" }
@@ -48,6 +50,11 @@ export default function Register() {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
+		if (!formData.email.includes("@")) {
+			toast.error("Please enter a valid email address. It should contain '@'.");
+			setIsLoading(false);
+			return;
+		}
 		try {
 			const parseResult = registerSchema.safeParse(formData);
 			if (!parseResult.success) {
@@ -157,7 +164,7 @@ export default function Register() {
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="email" style={{color: "#5f6368"}}>Email</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="mail" style={{color: "#727787"}}>mail</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="email" name="email" placeholder="john@example.com" type="email" value={formData.email} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="email" name="email" placeholder="john@example.com"value={formData.email} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
 									</div>
 								</div>
 								<div className="space-y-2">

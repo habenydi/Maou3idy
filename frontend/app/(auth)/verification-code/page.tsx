@@ -14,7 +14,9 @@ export default function VerificationCodePage() {
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const verificationSchema = z.object({
-		email: z.string().email("Enter a valid email address"),
+		email: z.string()
+			.email("Enter a valid email address")
+			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
 		code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
 	});
 
@@ -23,6 +25,13 @@ export default function VerificationCodePage() {
 		setLoading(true);
 		setErrorMessage(null);
 		setSuccessMessage(null);
+		if (!email.includes("@")) {
+			const message = "Please enter a valid email address. It should contain '@'.";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
+			setLoading(false);
+			return;
+		}
 
 		const parseResult = verificationSchema.safeParse({ email, code });
 		if (!parseResult.success) {
@@ -116,8 +125,7 @@ export default function VerificationCodePage() {
 									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="email" 
 									name="email" 
-									placeholder="your@email.com" 
-									type="email" 
+									placeholder="your@email.com"
 									value={email} 
 									onChange={(e) => setEmail(e.target.value)} 
 									required

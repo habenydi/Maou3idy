@@ -18,7 +18,7 @@ export default function VerificationEmail() {
 	const displayMessage = hasToken ? message : 'Verification token is missing.';
 	const displayErrorMessage = hasToken ? errorMessage : 'Verification token is missing.';
 
-	const tokenSchema = z.string().min(1, "Verification token is missing.");
+	const tokenSchema = z.string().trim().min(1, "Verification token is missing.");
 
 	useEffect(() => {
 		const tokenCheck = tokenSchema.safeParse(token ?? "");

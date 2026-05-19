@@ -138,8 +138,7 @@ function LoginDoctor() {
                 </label>
                 <input
                   className="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all"
-                  placeholder="jane.smith@clinic.com"
-                  type="email"
+                  placeholder="jane.smith@clinic.com" 
                 />
               </div>
               <div className="space-y-2">

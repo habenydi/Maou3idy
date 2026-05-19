@@ -17,7 +17,7 @@ export default function ResetPassword() {
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const resetSchema = z.object({
-		token: z.string().min(1, "Reset token is missing. Please request a new password reset link."),
+		token: z.string().trim().min(1, "Reset token is missing. Please request a new password reset link."),
 		password: z.string().min(8, "Password must be at least 8 characters"),
 		confirmPassword: z.string().min(8, "Confirm password is required"),
 	}).refine((data) => data.password === data.confirmPassword, {

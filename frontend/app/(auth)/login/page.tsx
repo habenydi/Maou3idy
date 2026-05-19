@@ -14,13 +14,19 @@ export default function Login() {
 	const router = useRouter();
 
 	const loginSchema = z.object({
-		email: z.string().email("Enter a valid email address"),
+		email: z.string()
+			.email("Enter a valid email address")
+			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
 		password: z.string().min(8, "Password must be at least 8 characters"),
 	});
 
 	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
+		if (!email.includes("@")) {
+			toast.error("Please enter a valid email address. It should contain '@'.");
+			return;
+		}
 		const parseResult = loginSchema.safeParse({ email, password });
 		if (!parseResult.success) {
 			const message = parseResult.error.issues[0]?.message || "Invalid input";
@@ -99,7 +105,6 @@ export default function Login() {
 									id="email" 
 									name="email" 
 									placeholder="dr.wilson@medreserve.com" 
-									type="email" 
 									value={email} 
 									onChange={(e) => setEmail(e.target.value)} 
 								/>

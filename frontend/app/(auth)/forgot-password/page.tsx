@@ -12,7 +12,9 @@ export default function ForgotPassword() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const forgotSchema = z.object({
-		email: z.string().email("Enter a valid email address"),
+		email: z.string()
+			.email("Enter a valid email address")
+			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
 	});
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,6 +22,13 @@ export default function ForgotPassword() {
 		setLoading(true);
 		setErrorMessage(null);
 
+		if (!email.includes("@")) {
+			const message = "Please enter a valid email address. It should contain '@'.";
+			setErrorMessage(message);
+			toast.error(message + " Please try again.");
+			setLoading(false);
+			return;
+		}
 		const parseResult = forgotSchema.safeParse({ email });
 		if (!parseResult.success) {
 			const message = parseResult.error.issues[0]?.message || "Invalid input";
@@ -83,7 +92,6 @@ export default function ForgotPassword() {
 								id="email"
 								name="email"
 								placeholder="your@email.com"
-								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
