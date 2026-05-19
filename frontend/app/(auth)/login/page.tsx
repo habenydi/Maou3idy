@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Img from 'next/image';
 
 export default function Login() {
 	const [email, setEmail] = useState("");
@@ -8,9 +9,11 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [rememberMe, setRememberMe] = useState(false);
 	const router = useRouter();
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		setErrorMessage(null);
 
 		try {
 			const res = await fetch("http://127.0.0.1:8000/auth/login", {
@@ -39,9 +42,9 @@ export default function Login() {
 		} catch (err) {
 			console.error(err);
 			if (err instanceof Error) {
-				alert(err.message + " Please try again.");
+				setErrorMessage(err.message + " Please try again.");
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("An unknown error occurred.");
 			}
 		}
 	};
@@ -174,7 +177,7 @@ export default function Login() {
 							className="text-sm font-medium" 
 							style={{color: "#424655"}}
 						>
-							Don't have an account? 
+							Don&apos;t have an account? 
 							<span 
 								className="font-bold hover:underline underline-offset-4 ml-1 cursor-pointer"
 								style={{color: "#0057cd", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}
@@ -205,9 +208,10 @@ export default function Login() {
 
 			{/* Contextual Aesthetic Element (Asymmetric Detail) */}
 			<div className="hidden lg:block fixed top-1/2 -right-24 -translate-y-1/2 w-64 h-96 opacity-10">
-				<img 
+				<Img 
 					alt="Clinical environment" 
-					className="w-full h-full object-cover rounded-3xl grayscale hd-hide-temp" 
+					className=""
+					fill
 					data-alt="Modern high-tech medical clinic interior with clean white surfaces and soft blue ambient lighting in a professional setting" 
 					src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkHqkkpwr0eOnMgQc0OIf1L61TFcolCMTHxPm6BOqSKDRiZcSBj5i0SSx5YDrAaRtArjRlEEHUaSO-JlNGidngNLDvErm3f5oeqkg1OzfboKqwUC-o41oEq7TrP5w_f5_Lt9qOBSQgwipkNsgr4WGewltB2UuyVvXBEInZ_1wKX4tfdXTHXcysVLmGXmgFc_3PXZR-w0MjOE1pmCAFP5ZNg4Scl11cIBqnBVqLdjq-xpAgysxmGbsDU-fYCERKJBXnoXv8DACFh5w" 
 				/>

@@ -1,39 +1,42 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function VerificationCodePage() {
 	const [email, setEmail] = useState("");
 	const [code, setCode] = useState("");
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
+		setErrorMessage(null);
+		setSuccessMessage(null);
 
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("You must be logged in to verify your email.");
+            setErrorMessage("You must be logged in to verify your email.");
             setLoading(false);
             return;
         }
 		try {
-			const res = await fetch("http://127.0.0.1:8000/auth/verify-code", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"Accept": "application/json",
-                    "Authorization": `Bearer ${token}`,
-				},
-				body: JSON.stringify({ email, code }),
-			});
+			const response = await axios.post(
+				"http://127.0.0.1:8000/auth/verify-code",
+				{ email, code },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+						"Authorization": `Bearer ${token}`,
+					},
+				}
+			);
 
-			const data = await res.json();
-
-			if (!res.ok) {
-				throw new Error(data.message || "Verification failed");
-			}
+			const data = response.data;
 
 			const storedUser = localStorage.getItem('auth_user');
 			if (storedUser) {
@@ -48,15 +51,17 @@ export default function VerificationCodePage() {
 				}
 			}
 
-            alert("Email verified successfully");
+            setSuccessMessage("Email verified successfully");
 			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
-			if (err instanceof Error) {
-				alert(err.message);
+			if (axios.isAxiosError(err)) {
+				setErrorMessage(err.response?.data?.message || err.message || "Verification failed");
+			} else if (err instanceof Error) {
+				setErrorMessage(err.message);
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("An unknown error occurred.");
 			}
 		} finally {
 			setLoading(false);
@@ -124,6 +129,17 @@ export default function VerificationCodePage() {
 							</div>
 						</div>
 
+						{errorMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
+								{errorMessage}
+							</div>
+						)}
+						{successMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#e6fff1", color: "#0f7a3d" }} role="status" aria-live="polite">
+								{successMessage}
+							</div>
+						)}
+
 						<button
 							type="submit"
 							disabled={loading}
@@ -144,7 +160,7 @@ export default function VerificationCodePage() {
 								onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
 								onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
 							>
-								Didn't receive a code? Request a new one
+								Didn&apos;t receive a code? Request a new one
 							</span>
 						</p>
 					</div>

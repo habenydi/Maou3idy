@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function ChangePassword() {
 	const [currentPassword, setCurrentPassword] = useState("");
@@ -8,14 +9,16 @@ export default function ChangePassword() {
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const router = useRouter();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
+		setErrorMessage(null);
 
 		if (newPassword !== confirmPassword) {
-			alert("New passwords do not match");
+			setErrorMessage("New passwords do not match");
 			setLoading(false);
 			return;
 		}
@@ -27,31 +30,29 @@ export default function ChangePassword() {
 				return;
 			}
 
-			const res = await fetch("http://127.0.0.1:8000/auth/change-password", {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					"Accept": "application/json",
-					"Authorization": `Bearer ${token}`,
-				},
-				body: JSON.stringify({ old_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword }),
-			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				throw new Error(data.message || "Failed to change password");
-			}
+			await axios.patch(
+				"http://127.0.0.1:8000/auth/change-password",
+				{ old_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+						"Authorization": `Bearer ${token}`,
+					},
+				}
+			);
 
 			alert("Password changed successfully");
 			router.push("/success");
 
-		} catch (err) {
+		} catch (err: unknown) {
 			console.error(err);
-			if (err instanceof Error) {
-				alert(err.message);
+			if (axios.isAxiosError(err) && err.response?.data?.message) {
+				setErrorMessage(err.response.data.message);
+			} else if (err instanceof Error) {
+				setErrorMessage(err.message);
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("Failed to change password");
 			}
 		} finally {
 			setLoading(false);
@@ -80,6 +81,7 @@ export default function ChangePassword() {
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="currentPassword"
 								name="currentPassword"
+								autoComplete="current-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
 								value={currentPassword}
@@ -96,6 +98,7 @@ export default function ChangePassword() {
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="newPassword"
 								name="newPassword"
+								autoComplete="new-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
 								value={newPassword}
@@ -112,6 +115,7 @@ export default function ChangePassword() {
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="confirmPassword"
 								name="confirmPassword"
+								autoComplete="new-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
 								value={confirmPassword}
@@ -132,6 +136,12 @@ export default function ChangePassword() {
 							/>
 							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="showPassword" style={{color: "#424655"}}>Show password</label>
 						</div>
+
+						{errorMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{backgroundColor: "#ffe6e6", color: "#8b0000"}}>
+								{errorMessage}
+							</div>
+						)}
 
 						<button
 							type="submit"

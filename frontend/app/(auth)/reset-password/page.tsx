@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import axios from 'axios';
 
 export default function ResetPassword() {
 	const [password, setPassword] = useState("");
@@ -10,48 +11,52 @@ export default function ResetPassword() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const token = searchParams.get('token');
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
+		setErrorMessage(null);
+		setSuccessMessage(null);
 
 		if (!token) {
-			alert("Reset token is missing. Please request a new password reset link.");
+			setErrorMessage("Reset token is missing. Please request a new password reset link.");
 			setLoading(false);
 			return;
 		}
 
 		if (password !== confirmPassword) {
-			alert("Passwords do not match");
+			setErrorMessage("Passwords do not match");
 			setLoading(false);
 			return;
 		}
 
 		try {
-			const res = await fetch(`http://127.0.0.1:8000/auth/reset-password/token=${token}`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					"Accept": "application/json",
-				},
-				body: JSON.stringify({ new_password: password }),
-			});
+			const response = await axios.patch(
+				`http://127.0.0.1:8000/auth/reset-password/token=${token}`,
+				{ new_password: password },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+					},
+				}
+			);
 
-			const data = await res.json();
+			const data = response.data;
 
-			if (!res.ok) {
-				throw new Error(data.message || "Failed to reset password");
-			}
-
-			alert("Password has been reset successfully");
+			setSuccessMessage("Password has been reset successfully");
 			router.push("/success");
 
 		} catch (err) {
 			console.error(err);
-			if (err instanceof Error) {
-				alert(err.message);
+			if (axios.isAxiosError(err)) {
+				setErrorMessage(err.response?.data?.message || err.message || "Failed to reset password");
+			} else if (err instanceof Error) {
+				setErrorMessage(err.message);
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("An unknown error occurred.");
 			}
 		} finally {
 			setLoading(false);
@@ -116,6 +121,17 @@ export default function ResetPassword() {
 							/>
 							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="showPassword" style={{color: "#424655"}}>Show password</label>
 						</div>
+
+						{errorMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
+								{errorMessage}
+							</div>
+						)}
+						{successMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#e6fff1", color: "#0f7a3d" }} role="status" aria-live="polite">
+								{successMessage}
+							</div>
+						)}
 
 						<button
 							type="submit"

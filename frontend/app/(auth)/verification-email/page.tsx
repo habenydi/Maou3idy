@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import axios from 'axios';
 
 export default function VerificationEmail() {
 	const searchParams = useSearchParams();
@@ -9,22 +10,19 @@ export default function VerificationEmail() {
 	const token = searchParams.get('token');
 	const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 	const [message, setMessage] = useState('Verifying your email address...');
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const hasToken = Boolean(token);
+	const displayStatus = hasToken ? status : 'error';
+	const displayMessage = hasToken ? message : 'Verification token is missing.';
+	const displayErrorMessage = hasToken ? errorMessage : 'Verification token is missing.';
 
 	useEffect(() => {
-		if (!token) {
-			setStatus('error');
-			setMessage('Verification token is missing.');
-			return;
-		}
+		if (!token) return;
 
 		const verifyEmail = async () => {
 			try {
-				const response = await fetch(`http://localhost:8000/auth/verify_email/token=${encodeURIComponent(token)}`);
-				const data = await response.json();
-
-				if (!response.ok) {
-					throw new Error(data.message || 'Failed to verify email');
-				}
+				const response = await axios.get(`http://localhost:8000/auth/verify_email/token=${encodeURIComponent(token)}`);
+				const data = response.data;
 
 				const storedUser = localStorage.getItem('auth_user');
 				if (storedUser) {
@@ -41,12 +39,21 @@ export default function VerificationEmail() {
 
 				setStatus('success');
 				setMessage(data.message || 'Email verified successfully.');
+				setErrorMessage(null);
 				setTimeout(() => {
 					router.replace('/success');
 				}, 2000);
 			} catch (error) {
 				setStatus('error');
-				setMessage(error instanceof Error ? error.message : 'An unknown error occurred.');
+				if (axios.isAxiosError(error)) {
+					const msg = error.response?.data?.message || error.message || 'Failed to verify email';
+					setMessage(msg);
+					setErrorMessage(msg);
+				} else {
+					const msg = error instanceof Error ? error.message : 'An unknown error occurred.';
+					setMessage(msg);
+					setErrorMessage(msg);
+				}
 			}
 		};
 
@@ -73,18 +80,23 @@ export default function VerificationEmail() {
 
 				<div className="glass-panel rounded-2xl shadow-[0_12px_40px_rgba(0,87,206,0.06)] p-8 md:p-12 text-center">
 					<div className="flex flex-col items-center gap-4">
-						<div className="flex items-center justify-center w-20 h-20 rounded-full" style={{ backgroundColor: status === 'success' ? 'rgba(34, 197, 94, 0.12)' : status === 'error' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(0, 87, 205, 0.1)' }}>
-							<span className="material-symbols-outlined text-5xl" style={{ color: status === 'success' ? '#16a34a' : status === 'error' ? '#dc2626' : '#0057cd' }}>
-								{status === 'success' ? 'verified' : status === 'error' ? 'error' : 'mail'}
+						<div className="flex items-center justify-center w-20 h-20 rounded-full" style={{ backgroundColor: displayStatus === 'success' ? 'rgba(34, 197, 94, 0.12)' : displayStatus === 'error' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(0, 87, 205, 0.1)' }}>
+							<span className="material-symbols-outlined text-5xl" style={{ color: displayStatus === 'success' ? '#16a34a' : displayStatus === 'error' ? '#dc2626' : '#0057cd' }}>
+								{displayStatus === 'success' ? 'verified' : displayStatus === 'error' ? 'error' : 'mail'}
 							</span>
 						</div>
 						<h2 className="font-headline text-3xl font-bold tracking-tight" style={{ color: '#191c1e' }}>
 							Email Verification
 						</h2>
-						<p className="text-sm font-medium" style={{ color: '#424655' }}>
-							{message}
+						<p className="text-sm font-medium" style={{ color: '#424655' }} aria-live="polite">
+							{displayMessage}
 						</p>
-						{status === 'loading' ? (
+						{displayStatus === 'error' && displayErrorMessage && (
+							<div className="mt-2 rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
+								{displayErrorMessage}
+							</div>
+						)}
+						{displayStatus === 'loading' ? (
 							<p className="text-xs" style={{ color: '#727787' }}>Please wait while we confirm your account.</p>
 						) : null}
 					</div>

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Register() {
 	const  [showPassword, setShowPassword] = useState(false);
+	const [ErrorMessage, setErrorMessage] = useState<string | null>(null);
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -26,10 +27,10 @@ export default function Register() {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
-
+		setErrorMessage(null);
 		try {
 			if (!formData.terms) {
-				alert("Please agree to the Terms of Service and Privacy Policy");
+				setErrorMessage("Please agree to the Terms of Service and Privacy Policy");
 				setIsLoading(false);
 				return;
 			}
@@ -69,9 +70,9 @@ export default function Register() {
 		} catch (err) {
 			console.error(err);
 			if (err instanceof Error) {
-				alert(err.message);
+				setErrorMessage(err.message);
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("An unknown error occurred.");
 			}
 			setIsLoading(false);
 		}

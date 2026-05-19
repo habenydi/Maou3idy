@@ -1,19 +1,13 @@
 'use client';
 
+import Img from "next/image";
+
 function LoginDoctor() {
   return (
     <>
   <meta charSet="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>Join MedReserve | Professional Registration</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet"
-  />
   <style
     dangerouslySetInnerHTML={{
       __html:
@@ -96,15 +90,15 @@ function LoginDoctor() {
           </div>
         </div>
         <div className="relative overflow-hidden rounded-3xl h-64 shadow-xl">
-          <img
+          <Img
             className="absolute inset-0 w-full h-full object-cover"
-            data-alt="Modern medical office with glass walls, clean minimalist interior, and a professional doctor holding a tablet in a soft lit environment"
+            alt="Modern medical office with glass walls, clean minimalist interior, and a professional doctor holding a tablet in a soft lit environment"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuxGWOK3Rac8eDP76IXKsXa1MlbxnjHvgmeBpoTuCvnITlEUUekdeDiY7xbRssnn3HJb7v4C155JzPsub59XW_bREF8VjDuubuWsegRqZDWY6lpEC-VtgknwD0hJoLOXQpijuE5HUD3Fvz8wAWRt4bsooVX4aLNx9uu-2DN32P5p4rR-s4GY-aAXbGi9k_mAprlxCiOj1ZxXx7-T7w37hKLIeU_7azJwujTiDRvuwV_hYR4NWPDrO6tgLkD6YVs6jkHwdSpvXjrL0"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
             <p className="text-white font-medium italic text-sm">
-              "MedReserve has transformed how I manage my cardiologist clinic in
-              Manhattan."
+              &quot;MedReserve has transformed how I manage my cardiologist clinic in
+              Manhattan.&quot;
             </p>
             <p className="text-white/80 text-xs mt-2">— Dr. Elena Rossi</p>
           </div>
@@ -171,7 +165,7 @@ function LoginDoctor() {
                 </select>
               </div>
             </div>
-            <div className="bg-surface-container p-[1px]" />
+            <div className="bg-surface-container p-1px" />
             <div>
               <h2 className="text-2xl font-bold text-on-surface flex items-center gap-2">
                 <span
@@ -243,7 +237,7 @@ function LoginDoctor() {
             </div>
             <div className="pt-4">
               <button
-                className="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold text-lg rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-3"
+                className="w-full py-4 bg-linear-to-r from-primary to-primary-container text-on-primary font-bold text-lg rounded-2xl shadow-xl shadow-primary/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-3"
                 type="submit"
               >
                 Apply to Join

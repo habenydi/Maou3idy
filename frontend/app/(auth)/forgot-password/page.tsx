@@ -1,41 +1,43 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function ForgotPassword() {
 	const [email, setEmail] = useState("");
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
-
+		setErrorMessage(null);
 		try {
-			const res = await fetch("http://127.0.0.1:8000/auth/forgot-password", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"Accept": "application/json",
-				},
-				body: JSON.stringify({ email }),
-			});
+			const response = await axios.post(
+				"http://127.0.0.1:8000/auth/forgot-password",
+				{ email },
+				{
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json",
+					},
+				}
+			);
 
-			const data = await res.json();
-
-			if (!res.ok) {
-				throw new Error(data.message || "Failed to send reset email");
-			}
+			const data = response.data;
 
 			alert("Password reset link has been sent to your email");
 			router.push("/login");
 
 		} catch (err) {
 			console.error(err);
-			if (err instanceof Error) {
-				alert(err.message);
+			if (axios.isAxiosError(err)) {
+				setErrorMessage(err.response?.data?.message || err.message || "Failed to send reset email");
+			} else if (err instanceof Error) {
+				setErrorMessage(err.message);
 			} else {
-				alert("An unknown error occurred.");
+				setErrorMessage("An unknown error occurred.");
 			}
 		} finally {
 			setLoading(false);
@@ -73,6 +75,12 @@ export default function ForgotPassword() {
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
 						</div>
+
+						{errorMessage && (
+							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
+								{errorMessage}
+							</div>
+						)}
 
 						<button
 							type="submit"
