@@ -22,7 +22,9 @@ export default function Register() {
 	const registerSchema = z.object({
 		name: z.string().min(2, "Name must be at least 2 characters"),
 		email: z.string()
+			.trim()
 			.email("Enter a valid email address")
+			.refine((value) => value.includes("@"), "Please enter a valid email address. It should contain '@'.")
 			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
 		phone: z.string().optional().or(z.literal("")).refine(
 			(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
@@ -50,11 +52,6 @@ export default function Register() {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
-		if (!formData.email.includes("@")) {
-			toast.error("Please enter a valid email address. It should contain '@'.");
-			setIsLoading(false);
-			return;
-		}
 		try {
 			const parseResult = registerSchema.safeParse(formData);
 			if (!parseResult.success) {
@@ -65,7 +62,7 @@ export default function Register() {
 			}
 
 			const { data } = await axios.post(
-				"http://127.0.0.1:8000/auth/register",
+				"http://127.0.0.1:1337/auth/register",
 				{
 					name: formData.name,
 					email: formData.email,

@@ -35,7 +35,7 @@ const Schedule = () => {
             <span className="font-['Inter'] font-medium text-sm">Patients</span>
           </a>
           <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
-            <span className="material-symbols-outlined">description</span>
+            <span className="material-symbols-outlined">bio</span>
             <span className="font-['Inter'] font-medium text-sm">Applications</span>
           </a>
           <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">

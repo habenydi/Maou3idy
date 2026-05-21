@@ -36,7 +36,7 @@ export default function Login() {
 
 		try {
 			const { data } = await axios.post(
-				"http://127.0.0.1:8000/auth/login",
+				"http://127.0.0.1:1337/auth/login",
 				{ email, password },
 				{
 					headers: {
@@ -46,9 +46,12 @@ export default function Login() {
 				}
 			);
 			toast.success("Login successful! Redirecting...");
-			localStorage.setItem("access_token", data.access_token);
+			localStorage.setItem("access_token", data.user.access_token);
+			localStorage.setItem("name", data.user.name);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
-			router.push("/success");
+			localStorage.setItem("remember_me", rememberMe ? "true" : "false");
+			localStorage.setItem("user_role", data.user.role);
+			router.push( data.user.role === "DOCTOR" ? "/doctor/dashboard" : "/success" );
 
 		} catch (err) {
 			console.error(err);

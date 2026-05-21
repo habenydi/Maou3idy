@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "MedReserve - Clinical Appointment System",
-  description: "Schedule and manage your medical appointments with MedReserve",
+  bio: "Schedule and manage your medical appointments with MedReserve",
 };
 
 export default function RootLayout({

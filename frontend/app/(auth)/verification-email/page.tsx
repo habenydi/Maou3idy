@@ -30,7 +30,7 @@ export default function VerificationEmail() {
 
 		const verifyEmail = async () => {
 			try {
-				const response = await axios.get(`http://localhost:8000/auth/verify_email/token=${encodeURIComponent(token ?? "")}`);
+				const response = await axios.get(`http://localhost:1337/auth/verify_email/token=${encodeURIComponent(token ?? "")}`);
 				const data = response.data;
 
 				const storedUser = localStorage.getItem('auth_user');

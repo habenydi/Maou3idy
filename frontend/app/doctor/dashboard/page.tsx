@@ -3,14 +3,33 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
+import Img from 'next/image';
+
+type Stats = {
+  totalAppointments: number;
+  upcomingToday: number;
+  weeklyGrowth: number;
+};
+
+type ScheduleItem = {
+  id: number;
+  patientName: string;
+  type: string;
+  time: string;
+  avatar: string | null;
+  border?: string;
+};
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<any>(null);
-  const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [name, setName] = useState<string | null>(null);
+  
   useEffect(() => {
+    const storename = localStorage.getItem('name') || 'Doctor';
+    setName(storename);
     fetchDashboardData();
   }, []);
 
@@ -18,16 +37,16 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const [statsData, scheduleData] = await Promise.all([
+      const [statsData, scheduleData] = (await Promise.all([
         api.getDashboardStats().catch(() => ({ totalAppointments: 1284, upcomingToday: 18, weeklyGrowth: 84 })),
         api.getTodaySchedule().catch(() => [
           { id: 1, patientName: 'Sarah Jenkins', type: 'Follow-up', time: '09:30 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwAzAZFILC-8Py_Y2JMqWLfaWH_qkcDc1Rhc8sNEhtbV-ZPz3yCOMIOXDMQvktEBug-9fJqnFecptSxzbcK6px210Eu3l2mk0qLJ0RhCPBZlAhHjzaai4LgSB-0yc4uV5IluL8YltYHtQIM2Mod4Qb86FpJBqac5KalOq4mpFIHnpx_VBMWDI0NfSI4l-zpq0V2NkqFX_-VCwHr8lBoNoZ4QGT26ioR_LUoVkGGp4F6UsW5lKwgE9UxzRUoB_Gzis5B-a17-hXm-4' },
           { id: 2, patientName: 'Robert Chen', type: 'Consultation', time: '10:15 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDd2sN_aSZ6xmg8INy1lWjsh4H59I6g-xRGAuoUq8mvkWOvLNh6aPGhNoRfbx7TpBvt3ypO5K75DNn8cLYNCProQoR5zuccvub5CELgGKBSdmTAMrw21IdcaKDKm0Q4k2G-yPSdYgN2GlniWRcreMGdD1R19VwWQCZpMW8sqU9z6dCQho_zNpJmqJoauJ7Ps5QyhgGTiudB2FKrLb96G5JAYw19Ya7R0qwf5iU_QIeP-uyRsjFQcepY04T5Iy0tShH9nSALKz47kdk' },
           { id: 3, patientName: 'Aliyah Smith', type: 'ECG Report', time: '11:45 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVxmr6c2leRd_u4Z-TdmxP2eKSw0KZXMaUhS_Aha8oGncPqEb6OtpgH4A8TVCfAGAc_wSKyWg2oma2KTYGYFOY4WlNShHIjx_NVifMxclBqG9eHIVVYPYdLBVzw8uRKKUgbY-vlO6sCq7i8KF_2b6vEcBoxDRaQ0zNWSY3Orw0O9Q15wr5_Om8KZV2tTqg7ujNsmTMaDF5DaaTGjWAG0uQTfOa-WngmxcairEM7tzSuneY-y5MP_mqyyCKiDh8OnUhKaXhcDZ9HQk' },
         ]),
-      ] as const);
+      ])) as [Stats, ScheduleItem[]];
       setStats(statsData);
-      setTodaySchedule(scheduleData as any[]);
+      setTodaySchedule(scheduleData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
     } finally {
@@ -35,14 +54,14 @@ const Dashboard = () => {
     }
   };
 
-  const fallbackSchedule = [
+  const fallbackSchedule: ScheduleItem[] = [
     { id: 1, patientName: 'Sarah Jenkins', type: 'Follow-up', time: '09:30 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAwAzAZFILC-8Py_Y2JMqWLfaWH_qkcDc1Rhc8sNEhtbV-ZPz3yCOMIOXDMQvktEBug-9fJqnFecptSxzbcK6px210Eu3l2mk0qLJ0RhCPBZlAhHjzaai4LgSB-0yc4uV5IluL8YltYHtQIM2Mod4Qb86FpJBqac5KalOq4mpFIHnpx_VBMWDI0NfSI4l-zpq0V2NkqFX_-VCwHr8lBoNoZ4QGT26ioR_LUoVkGGp4F6UsW5lKwgE9UxzRUoB_Gzis5B-a17-hXm-4', border: 'border-blue-500' },
     { id: 2, patientName: 'Robert Chen', type: 'Consultation', time: '10:15 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDd2sN_aSZ6xmg8INy1lWjsh4H59I6g-xRGAuoUq8mvkWOvLNh6aPGhNoRfbx7TpBvt3ypO5K75DNn8cLYNCProQoR5zuccvub5CELgGKBSdmTAMrw21IdcaKDKm0Q4k2G-yPSdYgN2GlniWRcreMGdD1R19VwWQCZpMW8sqU9z6dCQho_zNpJmqJoauJ7Ps5QyhgGTiudB2FKrLb96G5JAYw19Ya7R0qwf5iU_QIeP-uyRsjFQcepY04T5Iy0tShH9nSALKz47kdk', border: 'border-amber-500' },
     { id: 3, patientName: 'Aliyah Smith', type: 'ECG Report', time: '11:45 AM', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVxmr6c2leRd_u4Z-TdmxP2eKSw0KZXMaUhS_Aha8oGncPqEb6OtpgH4A8TVCfAGAc_wSKyWg2oma2KTYGYFOY4WlNShHIjx_NVifMxclBqG9eHIVVYPYdLBVzw8uRKKUgbY-vlO6sCq7i8KF_2b6vEcBoxDRaQ0zNWSY3Orw0O9Q15wr5_Om8KZV2tTqg7ujNsmTMaDF5DaaTGjWAG0uQTfOa-WngmxcairEM7tzSuneY-y5MP_mqyyCKiDh8OnUhKaXhcDZ9HQk', border: 'border-emerald-500' },
     { id: 4, patientName: 'Marcus Thorne', type: 'Initial Check', time: '02:00 PM', avatar: null, border: 'border-blue-500' },
   ];
 
-  const scheduleItems = todaySchedule.length ? todaySchedule : fallbackSchedule;
+  const scheduleItems: ScheduleItem[] = todaySchedule.length ? todaySchedule : fallbackSchedule;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -56,7 +75,7 @@ const Dashboard = () => {
                 Clinic Overview
               </h1>
               <p className="text-slate-500 font-medium">
-                Welcome back, Dr. Wilson. Here&apos;s what&apos;s happening today.
+                Welcome back, Dr. {name}. Here&apos;s what&apos;s happening today.
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -184,13 +203,21 @@ const Dashboard = () => {
                     </a>
                   </div>
                   <div className="space-y-4">
-                    {scheduleItems.map((appointment: any) => (
+                    {scheduleItems.map((appointment: ScheduleItem) => (
                       <div
                         key={appointment.id}
                         className={`bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4 hover:bg-surface-bright transition-colors border-l-4 ${appointment.border || 'border-blue-500'}`}
                       >
                         {appointment.avatar ? (
-                          <img alt="Patient" className="w-10 h-10 rounded-lg object-cover" src={appointment.avatar} />
+                          <Img
+                            alt="Patient"
+                            width={40}
+                            height={40}
+                            sizes="40px"
+                            style={{ width: 40, height: 40 }}
+                            className="w-10 h-10 rounded-l-lg object-cover"
+                            src={appointment.avatar}
+                          />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
                             <span className="material-symbols-outlined">person</span>
