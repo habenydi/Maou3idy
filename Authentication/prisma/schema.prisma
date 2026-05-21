@@ -9,102 +9,102 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
-}
-
-model User {
-  id Int @default(autoincrement()) @id
-  verified Boolean @default(false)
-  email String @unique()
-  name String
-  password String @default("")
-  role Role @default(USER)
-  phone String @default("")
-  doctor Doctor?
-  appointments Appointment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt @default(now())
-}
-
-model Doctor {
-  id Int @default(autoincrement()) @id
-  user_id Int @unique()
-  user User @relation(fields: [user_id], references: [id])
-  working_hours WorkingHours[]
-  slots Slots[]
-  speciality String
-  description String
-  license_number String
-  Service Service[]
-  appointments Appointment[]
-  verified Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Category {
-  id Int @default(autoincrement()) @id
-  name String
-  Service Service[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Service {
-  id Int @default(autoincrement()) @id
-  name String
-  price Float
-  duration Int
-  category_id Int
-  category Category @relation(fields: [category_id], references: [id])
-  doctor_id Int
-  doctor Doctor @relation(fields: [doctor_id], references: [id])
-  appointments Appointment[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model WorkingHours {
-  id Int @default(autoincrement()) @id
-  doctor_id Int
-  doctor Doctor @relation(fields: [doctor_id], references: [id])
-  day_of_week Int
-  start_time String
-  end_time String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Slots {
-  id Int @default(autoincrement()) @id
-  doctor_id Int
-  doctor Doctor @relation(fields: [doctor_id], references: [id])
-  date DateTime
-  start_time String
-  end_time String
-  appointment Appointment?
-  is_booked Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Appointment {
-  id Int @default(autoincrement()) @id
-  user_id Int
-  user User @relation(fields: [user_id], references: [id])
-  doctor_id Int
-  doctor Doctor @relation(fields: [doctor_id], references: [id])
-  service_id Int
-  service Service @relation(fields: [service_id], references: [id])
-  slot_id Int @unique()
-  slot Slots @relation(fields: [slot_id], references: [id])
-  status String @default("scheduled")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 enum Role {
   USER
   DOCTOR
   ADMIN
+  PENDING_DOCTOR
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  verified     Boolean       @default(false)
+  email        String        @unique()
+  name         String
+  password     String        @default("")
+  role         Role          @default(USER)
+  phone        String        @default("")
+  doctor       Doctor?
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+}
+
+model Doctor {
+  id             Int            @id @default(autoincrement())
+  user_id        Int            @unique()
+  user           User           @relation(fields: [user_id], references: [id])
+  working_hours  WorkingHours[]
+  slots          Slots[]
+  speciality     String
+  bio            String
+  license_number String
+  Service        Service[]
+  appointments   Appointment[]
+  verified       Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  Service   Service[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  name         String
+  price        Float
+  duration     Int
+  category_id  Int
+  category     Category      @relation(fields: [category_id], references: [id])
+  doctor_id    Int
+  doctor       Doctor        @relation(fields: [doctor_id], references: [id])
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model WorkingHours {
+  id          Int      @id @default(autoincrement())
+  doctor_id   Int
+  doctor      Doctor   @relation(fields: [doctor_id], references: [id])
+  day_of_week Int
+  start_time  String
+  end_time    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Slots {
+  id          Int          @id @default(autoincrement())
+  doctor_id   Int
+  doctor      Doctor       @relation(fields: [doctor_id], references: [id])
+  date        DateTime
+  start_time  String
+  end_time    String
+  appointment Appointment?
+  is_booked   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Appointment {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  doctor_id  Int
+  doctor     Doctor   @relation(fields: [doctor_id], references: [id])
+  service_id Int
+  service    Service  @relation(fields: [service_id], references: [id])
+  slot_id    Int      @unique()
+  slot       Slots    @relation(fields: [slot_id], references: [id])
+  status     String   @default("scheduled")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -1,14 +1,14 @@
-import { HttpCode, Injectable } from '@nestjs/common';
-import { stat } from 'fs';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Hello World!';
+    return "Hello World!";
   }
   getTest(): string {
     return {
       statusCode: 201,
-      message: 'Hello World!'} as unknown as string;
+      message: "Hello World!",
+    } as unknown as string;
   }
 }

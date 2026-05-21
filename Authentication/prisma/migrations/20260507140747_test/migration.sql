@@ -20,7 +20,7 @@ CREATE TABLE "Doctor" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "speciality" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "bio" TEXT NOT NULL,
     "license_number" TEXT NOT NULL,
     "verified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
