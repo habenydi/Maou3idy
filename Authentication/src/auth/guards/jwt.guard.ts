@@ -6,10 +6,12 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
+import { Role } from "@prisma/client";
 
 interface JwtPayload {
   sub: string;
   email: string;
+  role: Role;
 }
 
 interface RequestWithUser extends Request {
@@ -31,10 +33,8 @@ export class JwtGuard implements CanActivate {
       throw new UnauthorizedException("Invalid token format");
     }
     try {
-      const payload = await this.JwtService.verifyAsync<{
-        sub: string;
-        email: string;
-      }>(token);
+      const payload = await this.JwtService.verifyAsync<JwtPayload>(token);
+      console.log("JwtGuard - token verified, payload:", payload);
       request.user = payload;
       return true;
     } catch {

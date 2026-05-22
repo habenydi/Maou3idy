@@ -3,9 +3,10 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { JwtModule } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
-import { JwtGuard } from "./jwt/jwt.guard";
+import { JwtGuard } from "./guards/jwt.guard";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { DoctorModule } from "src/doctor/doctor.module";
+import { RolesGuard } from "./guards/roles.guard";
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { DoctorModule } from "src/doctor/doctor.module";
     forwardRef(() => DoctorModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtGuard],
-  exports: [JwtModule, JwtGuard],
+  providers: [AuthService, UsersService, JwtGuard, RolesGuard],
+  exports: [JwtModule, JwtGuard, RolesGuard],
 })
 export class AuthModule {}

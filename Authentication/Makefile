@@ -20,6 +20,7 @@ logs:
 	$(COMPOSE) logs -f
 
 clean:
+	npx prisma migrate reset
 	$(COMPOSE) down -v
 
 build:

@@ -47,6 +47,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
+      role: user.role,
     };
     const token = this.jwtService.sign(payload);
     const url = `http://localhost:3000/verification-email?token=${encodeURIComponent(token)}`;
@@ -59,7 +60,7 @@ export class AuthService {
     return {
       statusCode: 201,
       message: "User registered successfully",
-      access_token: token,
+      token: token,
       user: {
         id: user.id,
         email: user.email,
@@ -78,7 +79,7 @@ export class AuthService {
     if (!isMatched) {
       throw new UnauthorizedException("Wrong password");
     }
-    const playload = { sub: user.id, email: user.email };
+    const playload = { sub: user.id, email: user.email, role: user.role };
     const token = this.jwtService.sign(playload);
     return {
       statusCode: 200,
@@ -90,7 +91,7 @@ export class AuthService {
         phone: user.phone,
         role: String(user.role),
       },
-      access_token: token,
+      token: token,
     };
   }
   async forget_password(ForgetPasswordDto: ForgetPasswordDto) {
@@ -98,7 +99,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException("User not found");
     }
-    const url = `http://localhost:3000/reset-password/?token=${this.jwtService.sign({ sub: user.id, email: user.email })}`;
+    const url = `http://localhost:3000/reset-password/?token=${this.jwtService.sign({ sub: user.id, email: user.email, role: user.role })}`;
     await this.email.sendMail({
       to: user.email,
       subject: "Reset your password",
@@ -130,6 +131,7 @@ export class AuthService {
       return {
         statusCode: 200,
         message: "Password reset successful",
+        token: token,
         user: {
           id: user.id,
           email: user.email,
