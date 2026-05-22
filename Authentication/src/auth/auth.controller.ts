@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
+import { Request } from "express";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
@@ -15,9 +16,11 @@ import { JwtGuard } from "./guards/jwt.guard";
 import { ForgetPasswordDto } from "./dto/forget_password.dto";
 import { ChangePasswordDto } from "./dto/ChangePassword.dto";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
+import { Role } from "@prisma/client";
 interface UserAuth {
   sub: number;
   email: string;
+  role: Role;
 }
 interface RequestWithUser extends Request {
   user: UserAuth;
@@ -52,10 +55,9 @@ export class AuthController {
   @Patch("change-password")
   change_password(
     @Body() ChangePassword: ChangePasswordDto,
-    @Req() req: { user: { sub: string } },
+    @Req() req: RequestWithUser,
   ) {
-    const id = parseInt(req.user.sub, 10);
-    console.log("User ID from JWT:", id);
+    const id = Number(req.user.sub);
     const { old_password, new_password } = ChangePassword;
     return this.Authservice.change_password(id, old_password, new_password);
   }

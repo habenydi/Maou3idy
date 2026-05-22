@@ -28,19 +28,44 @@ export class AuthService {
     private readonly email: MailerService,
     private readonly doctorService: DoctorService,
   ) {}
+
+  private get frontendBaseUrl() {
+    return process.env.FRONTEND_URL ?? "http://localhost:3000";
+  }
+
+  private signToken(
+    payload: { sub: number; email: string; role: Role },
+    expiresIn: string,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.jwtService.sign(payload, { expiresIn } as any);
+  }
+
+  private ensurePasswordStrength(password: string) {
+    if (password.length < 8) {
+      throw new BadRequestException("Password must be at least 8 characters");
+    }
+  }
+
   async hashPassword(password: string) {
     return await bcrypt.hash(password, 10);
   }
   async compare(password: string, hashed: string) {
     return await bcrypt.compare(password, hashed);
   }
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+  }
   async register(body: RegisterDto) {
+    this.ensurePasswordStrength(body.password);
+    const email = this.normalizeEmail(body.email);
     const hashedPassword = await this.hashPassword(body.password);
-    if (await this.UserService.findByEmail(body.email)) {
+    if (await this.UserService.findByEmail(email)) {
       throw new BadRequestException("Email already exists");
     }
     const user = await this.UserService.create({
       ...body,
+      email,
       password: hashedPassword,
     });
 
@@ -49,10 +74,10 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
-    const token = this.jwtService.sign(payload);
-    const url = `http://localhost:3000/verification-email?token=${encodeURIComponent(token)}`;
+    const token = this.signToken(payload, "15m");
+    const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
-      to: user.email,
+      to: email,
       subject: "Verify your email",
       text: `Please click the following link to verify your email: ${url}`,
       html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
@@ -72,7 +97,8 @@ export class AuthService {
     };
   }
   async login(Body: LoginDto) {
-    const user = await this.UserService.findByEmail(Body.email);
+    const email = this.normalizeEmail(Body.email);
+    const user = await this.UserService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException("User not found");
     }
@@ -81,7 +107,7 @@ export class AuthService {
       throw new UnauthorizedException("Wrong password");
     }
     const playload = { sub: user.id, email: user.email, role: user.role };
-    const token = this.jwtService.sign(playload);
+    const token = this.signToken(playload, "1d");
     return {
       statusCode: 200,
       Message: "Login success",
@@ -97,31 +123,33 @@ export class AuthService {
     };
   }
   async forget_password(ForgetPasswordDto: ForgetPasswordDto) {
-    const user = await this.UserService.findByEmail(ForgetPasswordDto.email);
+    const email = this.normalizeEmail(ForgetPasswordDto.email);
+    const user = await this.UserService.findByEmail(email);
     if (!user) {
-      throw new BadRequestException("User not found");
+      return {
+        statusCode: 200,
+        message:
+          "If an account exists, a reset link has been sent to your email",
+      };
     }
-    const url = `http://localhost:3000/reset-password/?token=${this.jwtService.sign({ sub: user.id, email: user.email, role: user.role })}`;
+    const token = this.signToken(
+      { sub: user.id, email: user.email, role: user.role },
+      "15m",
+    );
+    const url = `${this.frontendBaseUrl}/reset-password/?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
-      to: user.email,
+      to: email,
       subject: "Reset your password",
       text: `Please click the following link to reset your password: ${url}`,
       html: `<p>Please click the following link to reset your password:</p><p><a href="${url}">${url}</a></p>`,
     });
     return {
       statusCode: 200,
-      message: "Password reset link has been sent to your email",
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        role: String(user.role),
-        verified: user.verified,
-      },
+      message: "If an account exists, a reset link has been sent to your email",
     };
   }
   async reset_password(token: string, new_password: string) {
+    this.ensurePasswordStrength(new_password);
     try {
       const decoded = this.jwtService.verify<JwtPayload>(token);
       const user = await this.UserService.findByEmail(decoded.email);
@@ -169,8 +197,8 @@ export class AuthService {
           verified: true,
         },
       };
-    } catch (error) {
-      console.error("Error verifying email:", error);
+    } catch (_error) {
+      console.error("Error verifying email:", _error);
       throw new ForbiddenException("Invalid or expired token");
     }
   }
@@ -179,6 +207,7 @@ export class AuthService {
     old_password: string,
     new_password: string,
   ) {
+    this.ensurePasswordStrength(new_password);
     const user = await this.UserService.findById(userId);
     if (!user) {
       throw new BadRequestException("User not found");
@@ -202,8 +231,10 @@ export class AuthService {
     };
   }
   async doctor_register(body: DoctorRegisterDto) {
+    this.ensurePasswordStrength(body.password);
+    const email = this.normalizeEmail(body.email);
     const hashedPassword = await this.hashPassword(body.password);
-    const user = await this.UserService.findByEmail(body.email);
+    const user = await this.UserService.findByEmail(email);
     if (!user) {
       throw new BadRequestException("the email does not exist");
     }

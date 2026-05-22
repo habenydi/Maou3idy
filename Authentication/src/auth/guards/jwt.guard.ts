@@ -34,7 +34,9 @@ export class JwtGuard implements CanActivate {
     }
     try {
       const payload = await this.JwtService.verifyAsync<JwtPayload>(token);
-      console.log("JwtGuard - token verified, payload:", payload);
+      if (!payload?.sub || !payload?.email) {
+        throw new UnauthorizedException("Invalid token payload");
+      }
       request.user = payload;
       return true;
     } catch {
