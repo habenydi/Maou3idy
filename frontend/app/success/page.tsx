@@ -1,6 +1,9 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Img from 'next/image';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export default function Success() {
 	const router = useRouter();
@@ -9,14 +12,37 @@ export default function Success() {
 	const [userEmail, setUserEmail] = useState('');
 	const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
+	const handleAdmin = async () => {
+		try {
+			const { data } = await axios.get("http://localhost:1337/users", {
+				headers: {
+					"Content-Type": "application/json",
+					"Accept": "application/json",
+					"Authorization": `Bearer ${localStorage.getItem("token")}`,
+				},
+			});
+			console.log(data);
+			toast.success("Admin access successful! Check console for user data.");
+		} catch (error) {
+			console.error("Error fetching users:", error);
+			if (axios.isAxiosError(error) && error.response?.status === 403) {
+				toast.error("Access denied. You do not have permission to view this resource.");
+			}
+			if (axios.isAxiosError(error) && error.response?.status === 401) {
+				toast.error("Unauthorized. Please log in again.");
+				router.push("/login");
+			}
+		}
+	};
 	useEffect(() => {
-		const token = localStorage.getItem('access_token');
+		const token = localStorage.getItem('token');
 		const storedUser = localStorage.getItem('auth_user');
 		if (!token) {
 			router.push("/login");
-		} else {
-			setIsAuthenticated(true);
+			return;
 		}
+		// eslint-disable-next-line react-hooks/set-state-in-effect
+		setIsAuthenticated(true);
 		if (storedUser) {
 			try {
 				const parsedUser = JSON.parse(storedUser) as { email?: string; verified?: boolean };
@@ -30,7 +56,7 @@ export default function Success() {
 	}, [router]);
 	const handleLogout = () => {
 		setIsLoading(true);
-		localStorage.removeItem("access_token");
+		localStorage.removeItem("token");
 		localStorage.removeItem("auth_user");
 		router.push("/");
 	};
@@ -121,6 +147,7 @@ export default function Success() {
 							<span className="material-symbols-outlined text-[20px]" data-icon="refresh">refresh</span>
 							Change Password
 						</button>
+						<button className="w-full py-4 px-6 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] border-2" onClick={handleAdmin} style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Admin: test the roles of the Admin</button>
 
 						{/* Logout Button */}
 						<button 
@@ -157,8 +184,10 @@ export default function Success() {
 
 			{/* Contextual Aesthetic Element */}
 			<div className="hidden lg:block fixed top-1/2 -right-24 -translate-y-1/2 w-64 h-96 opacity-10">
-				<img 
+				<Img 
 					alt="Clinical environment" 
+					width={40}
+					height={40}
 					className="w-full h-full object-cover rounded-3xl grayscale hd-hide-temp" 
 					data-alt="Modern high-tech medical clinic interior with clean white surfaces and soft blue ambient lighting in a professional setting" 
 					src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkHqkkpwr0eOnMgQc0OIf1L61TFcolCMTHxPm6BOqSKDRiZcSBj5i0SSx5YDrAaRtArjRlEEHUaSO-JlNGidngNLDvErm3f5oeqkg1OzfboKqwUC-o41oEq7TrP5w_f5_Lt9qOBSQgwipkNsgr4WGewltB2UuyVvXBEInZ_1wKX4tfdXTHXcysVLmGXmgFc_3PXZR-w0MjOE1pmCAFP5ZNg4Scl11cIBqnBVqLdjq-xpAgysxmGbsDU-fYCERKJBXnoXv8DACFh5w" 

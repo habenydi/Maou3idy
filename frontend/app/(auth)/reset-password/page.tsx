@@ -46,7 +46,7 @@ export default function ResetPassword() {
 
 		try {
 			const response = await axios.patch(
-				`http://127.0.0.1:8000/auth/reset-password/token=${token}`,
+				`http://127.0.0.1:1337/auth/reset-password/token=${token}`,
 				{ new_password: password },
 				{
 					headers: {

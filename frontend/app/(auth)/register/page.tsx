@@ -76,7 +76,7 @@ export default function Register() {
 					},
 				}
 			);
-			localStorage.setItem("access_token", data.access_token);
+			localStorage.setItem("token", data.token);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
 			toast.success("Registration successful! Redirecting...");
 			router.push("/success");

@@ -51,7 +51,7 @@ export default function VerificationCodePage() {
         }
 		try {
 			const response = await axios.post(
-				"http://127.0.0.1:8000/auth/verify-code",
+				"http://127.0.0.1:1337/auth/verify-code",
 				{ email, code },
 				{
 					headers: {

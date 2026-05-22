@@ -35,7 +35,7 @@ export default function ChangePassword() {
 		}
 
 		try {
-			const token = localStorage.getItem('access_token');
+			const token = localStorage.getItem('token');
 			if (!token) {
 				const message = "You must be logged in to change your password.";
 				toast.error(message + " Please try again.");
@@ -43,7 +43,7 @@ export default function ChangePassword() {
 				return;
 			}
 			await axios.patch(
-				"http://127.0.0.1:8000/auth/change-password",
+				"http://127.0.0.1:1337/auth/change-password",
 				{ old_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword },
 				{
 					headers: {
