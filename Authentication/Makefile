@@ -9,6 +9,8 @@ up:
 	$(APP)
 
 ins:
+	touch .env
+	cp .env.example .env
 	npm i
 	npx prisma generate
 down:

@@ -66,6 +66,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         phone: user.phone,
+        verified: user.verified,
         role: String(user.role),
       },
     };
@@ -90,6 +91,7 @@ export class AuthService {
         name: user.name,
         phone: user.phone,
         role: String(user.role),
+        verified: user.verified,
       },
       token: token,
     };
@@ -115,6 +117,7 @@ export class AuthService {
         name: user.name,
         phone: user.phone,
         role: String(user.role),
+        verified: user.verified,
       },
     };
   }
@@ -138,6 +141,7 @@ export class AuthService {
           name: user.name,
           phone: user.phone,
           role: String(user.role),
+          verified: user.verified,
         },
       };
     } catch (error) {
@@ -162,6 +166,7 @@ export class AuthService {
           name: user.name,
           phone: user.phone,
           role: String(user.role),
+          verified: true,
         },
       };
     } catch (error) {
