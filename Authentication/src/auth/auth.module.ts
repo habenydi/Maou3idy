@@ -11,7 +11,7 @@ import { RolesGuard } from "./guards/roles.guard";
 @Module({
   imports: [
     JwtModule.register({
-      secret: "Yassir_SecretKey",
+      secret: process.env.SECRET_KEY || "Yassir_SecretKey",
       signOptions: { expiresIn: "1h" },
     }),
     PrismaModule,

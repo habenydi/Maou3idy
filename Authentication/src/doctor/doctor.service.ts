@@ -17,8 +17,24 @@ export class DoctorService {
     });
   }
 
-  findAll() {
-    return this.prisma.doctor.findMany();
+  async findAll() {
+    return await this.prisma.doctor.findMany({
+      where: {
+        verified: true,
+      },
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        Service: true,
+      },
+    });
   }
 
   findById(id: number) {
