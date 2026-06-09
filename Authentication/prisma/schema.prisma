@@ -36,6 +36,8 @@ model Doctor {
   id             Int            @id @default(autoincrement())
   user_id        Int            @unique()
   user           User           @relation(fields: [user_id], references: [id])
+  location       String       @default("")
+  experience     Int          @default(0)
   working_hours  WorkingHours[]
   slots          Slots[]
   speciality     String

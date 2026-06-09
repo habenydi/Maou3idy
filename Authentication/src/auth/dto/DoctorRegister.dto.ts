@@ -16,6 +16,8 @@ export class DoctorRegisterDto {
     },
   )
   password: string;
+  location: string;
+  experience: number;
   @IsNotEmpty({ message: "speciality is required" })
   speciality: string;
   @IsNotEmpty({ message: "License number is required" })

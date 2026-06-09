@@ -14,6 +14,17 @@ import { CreateDoctorDto } from "./dto/createDoctor.dto";
 export class DoctorController {
   constructor(private doctorService: DoctorService) {}
 
+  @Get("featured")
+  findFeatured() {
+    return this.doctorService.findFeatured();
+  }
+  @Get("search")
+  search(
+    @Param("specialty") specialty: string,
+    @Param("location") location: string,
+  ) {
+    return this.doctorService.search(specialty, location);
+  }
   @Post()
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {
     return this.doctorService.create(body, Number(id));

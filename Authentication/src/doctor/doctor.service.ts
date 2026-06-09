@@ -51,4 +51,44 @@ export class DoctorService {
   remove(id: number) {
     return this.prisma.doctor.delete({ where: { id } });
   }
+
+  search(specialty: string, location: string) {
+    return this.prisma.doctor.findMany({
+      where: {
+        speciality: specialty,
+        location: location,
+        verified: true,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        Service: true,
+      },
+    });
+  }
+
+  findFeatured() {
+    return this.prisma.doctor.findMany({
+      where: {
+        verified: true,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        Service: true,
+      },
+    });
+  }
 }
