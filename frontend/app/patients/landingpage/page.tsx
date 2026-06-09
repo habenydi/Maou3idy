@@ -1,9 +1,13 @@
 'use client';
 import Img from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getLandingPageData } from '@/services/landingPageService';
+import { Doctor, LandingPageData } from '@/types';
 
 function NavbarActions() {
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+	const router = useRouter();
 
 	useEffect(() => {
 		const token = localStorage.getItem("access_token");
@@ -11,17 +15,16 @@ function NavbarActions() {
 		setIsLoggedIn(Boolean(token));
 	}, []);
 
-	if (isLoggedIn === null) return null;
-
+    if (isLoggedIn === null) return null;
 	return (
 		<>
 			{!isLoggedIn && (
 				<div className="flex items-center gap-4">
-					<button className="px-4 py-2 font-semibold text-slate-600 hover:text-blue-700 transition-all active:scale-95 duration-200">
+					<button onClick={() => router.push('/login')} className="px-4 py-2 font-semibold text-slate-600 hover:text-blue-700 transition-all active:scale-95 duration-200">
 						Sign In
 					</button>
 
-					<button className="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-sm hover:opacity-90 transition-all active:scale-95 duration-200">
+					<button onClick={() => router.push('/doctor-signup')} className="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-sm hover:opacity-90 transition-all active:scale-95 duration-200">
 						Join as Doctor
 					</button>
 				</div>
@@ -31,16 +34,41 @@ function NavbarActions() {
 }
 
 const LandingPage = () => {
+  const [landingData, setLandingData] = useState<LandingPageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getLandingPageData();
+        setLandingData(data);
+      } catch (error) {
+        console.error('Error loading landing page:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  const doctors = landingData?.featuredDoctors || [];
+
   return (
     <div className="bg-surface text-on-surface antialiased">
       <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
         <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-8">
-            <span className="text-xl font-bold tracking-tighter text-slate-900">MedReserve</span>
+            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer">MedReserve</span>
             <nav className="hidden md:flex gap-6">
-              <a className="font-manrope tracking-tight font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors" href="#">Find Doctors</a>
-              <a className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors" href="#">Specialties</a>
-              <a className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors" href="#">About Us</a>
+              <a onClick={() => router.push('/doctors')} className="font-manrope tracking-tight font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors cursor-pointer">Find Doctors</a>
+              <a onClick={() => router.push('/specialties')} className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors cursor-pointer">Specialties</a>
+              <a className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors cursor-pointer">About Us</a>
             </nav>
           </div>
             <div className="flex items-center gap-4">
@@ -74,7 +102,7 @@ const LandingPage = () => {
                   <span className="material-symbols-outlined text-primary">location_on</span>
                   <input className="w-full py-3 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline/60" placeholder="Location" type="text" />
                 </div>
-                <button className="w-full md:w-auto px-8 py-4 bg-primary text-on-primary font-bold rounded-xl transition-transform active:scale-95">Search</button>
+                <button onClick={() => router.push('/doctors')} className="w-full md:w-auto px-8 py-4 bg-primary text-on-primary font-bold rounded-xl transition-transform active:scale-95">Search</button>
               </div>
 
               <div className="mt-8 flex items-center gap-4">
@@ -91,7 +119,7 @@ const LandingPage = () => {
               <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-secondary/5 rounded-full blur-3xl"></div>
               <div className="relative rounded-2xl overflow-hidden aspect-4/5 shadow-2xl">
-                <Img width={500} height={500} className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDu91gZQrxbXr9grN30AUxmG2QMGq6G-oupfmOFWO-sD4szJP0A5uM2V9UxEMWFVbblKPyFMRjylnMhw0nNIPi7iSOTsLFNWxLXufBuBPzGh5OoZ0ATOSQSJa41ChC0GAfOPNDzdF3lHMl1Cn-v4DGEFImeFIo3xB7zHeL2qtuUgrr6M-1dfOqK07EZidGenHvVWypqsgUgesLcl65Eo3dfNm8wsfYcgyQ91SlaDirv57ev3A_E9Dw7qlQqo1aMG4qOZPHKjCQDCU" alt="clinic" />
+                <Img width={500} height={500} className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDu91gZQrxbXr9grN30AUxmG2QMGq6G-oupfmOFWO-sD4szJP0A5uM2V9UxEMWFVbblKPyFMRjylnMhw0nNIPi7iSOTsLFNWxLXufBuBPzGh5OoZ0ATOSQSJa41ChC0GAfOPNDzdF3lHMl1Cn-v4DGEFImeFIo3xB7zHeL2qtuUgrr6M-1dfOqK07EZidGenHvVWypqsgUgesLcl65Eo3dfNm8wsfYcgyQ91SlaDirv57ev3A_E9Dw7qlQqo1aMG4qOZPHKjCQDCU" alt="clinic" loading='eager' />
                 <div className="absolute bottom-6 left-6 right-6 p-6 bg-surface/90 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
@@ -116,71 +144,27 @@ const LandingPage = () => {
                 <h2 className="text-4xl font-bold tracking-tight mb-4">Our Top-Rated Specialists</h2>
                 <p className="text-on-surface-variant">Qualified professionals across multiple disciplines.</p>
               </div>
-              <button className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
+              <button onClick={() => router.push('/doctors')} className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
                 View all specialties <span className="material-symbols-outlined">arrow_forward</span>
               </button>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Doctor Card 1 */}
-              <div className="bg-surface-container-lowest p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl group">
-                <div className="relative mb-4 rounded-xl overflow-hidden aspect-square">
-                  <Img width={500} height={500} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJnQ0hCKaeNWKWVYi0W4LN_5OcPkDPs96t1tpykep2UKyd0jTujQD7SUg3TdYd9TfQFmpYBj4SCq57Lh59f5j8MdGRrqpswrXlezc2telszHtpR5vwvio5sdjtBUbH_YOPPC6VUhRkw8GStjM3yIMfTGdL27SszoDjcMTORvaVbPGQR3udDJzrInUroBaeB6kZ38k1GE7sVsnMD_zB_6NerDzt_tmnMY5-e3re_8LHxGA3ZAFf4jb3kA_H11WYznpMDlBxxKKX1eo" alt="doctor" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.9
+              {doctors.map((doctor: Doctor) => (
+                <div key={doctor.id} className="bg-surface-container-lowest p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl group">
+                  <div className="relative mb-4 rounded-xl overflow-hidden aspect-square">
+                    <Img width={500} height={500} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" src={doctor.profileImage} alt={`${doctor.firstName} ${doctor.lastName}`} />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
+                      <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> {doctor.rating}
+                    </div>
                   </div>
-                </div>
-                <h3 className="font-bold text-lg mb-1">Dr. Michael Chen</h3>
-                <p className="text-primary text-sm font-semibold mb-4">Cardiologist</p>
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
-                  <span className="material-symbols-outlined text-sm">location_on</span> San Francisco, CA
-                </div>
-                <button className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors">Book Appointment</button>
-              </div>
-              {/* Doctor Card 2 */}
-              <div className="bg-surface-container-lowest p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl group">
-                <div className="relative mb-4 rounded-xl overflow-hidden aspect-square">
-                  <Img width={500} height={500} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB84X6bdCMXmLNGU8SxTcoxlTvW4BCS9U7pufBtIOgqbWs-5A938Dig3s0WfGnSHG4wwxi0DIHtY33mPICmp-jxrdVHyBMfxTrf3ZZkBGne_kKeDfz3xdjZsyl2uohPAAlAP-IbwGSfzD0DnXr_F2-_zz5fZvYKpWhb8jlbDVtI7KEAT_dpWT35bFiDOGuXhxBIm8ICd-eR4_ubQN5THC1wFwNQqtMfl8VK8TpTdI02rUpKLndMBwLy1U0Bun29oLb9rrWX9TVvrEU" alt="doctor" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.8
+                  <h3 className="font-bold text-lg mb-1">Dr. {doctor.firstName} {doctor.lastName}</h3>
+                  <p className="text-primary text-sm font-semibold mb-4">{doctor.specialty}</p>
+                  <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
+                    <span className="material-symbols-outlined text-sm">location_on</span> {doctor.location}
                   </div>
+                  <button onClick={() => router.push(`/doctors/${doctor.id}`)} className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors">Book Appointment</button>
                 </div>
-                <h3 className="font-bold text-lg mb-1">Dr. Sarah Johnson</h3>
-                <p className="text-primary text-sm font-semibold mb-4">Neurologist</p>
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
-                  <span className="material-symbols-outlined text-sm">location_on</span> New York, NY
-                </div>
-                <button className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors">Book Appointment</button>
-              </div>
-              {/* Doctor Card 3 */}
-              <div className="bg-surface-container-lowest p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl group">
-                <div className="relative mb-4 rounded-xl overflow-hidden aspect-square">
-                  <Img width={500} height={500} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQU9AIwklR8KSrtaM_AmCdBd0gjQmQt_J4Y3afU1m8_cbA_uaM34-tb-kZrDy75P793UTXX25NB4mTDJguy_oCkA7vE5r-pUg4RXujsWktrK7dmi_GBe1MaqnJw0c7oP72KIcqxQHQX8BQfEl9tTvBF9qgESHsa3Kn78TqkzNHGiEEgqQhvmquTPgRYEwVEi-gMF9rW51AdBczfHnoxBdsuGdKUs8ZMVQrbgwBsh1AZJBUoct64TYpZFD0sFukHxuPHr8inIUxUTQ" alt="doctor" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 5.0
-                  </div>
-                </div>
-                <h3 className="font-bold text-lg mb-1">Dr. David Wilson</h3>
-                <p className="text-primary text-sm font-semibold mb-4">Dermatologist</p>
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
-                  <span className="material-symbols-outlined text-sm">location_on</span> Austin, TX
-                </div>
-                <button className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors">Book Appointment</button>
-              </div>
-              {/* Doctor Card 4 */}
-              <div className="bg-surface-container-lowest p-5 rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl group">
-                <div className="relative mb-4 rounded-xl overflow-hidden aspect-square">
-                  <Img width={500} height={500} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOOxjqmqSCaPeasSvjvv1skFCbXMe8M7iwxsROszjacbfj_0ZTHyzFpUfRNS2FkcpCrpTkdlcngeZFM6_IsatcbTUgQeSRP9iGIejeBJ7nOvWXc9xZJ-GnQlJ_duZXi-XnT8CfIFkHJpfDkJ60Ma2w6xcxnlKe7tXjKSO8NcbpgUnKapmsJodZ_eyfJM1jP5QAREVariIXZgCqUsFSubwHrayRvg-lYmtHamFj6Sm98q-ZqdVsGn9T_YKBiJ1v1Dlaxb7PSL1mKEc" alt="doctor" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.9
-                  </div>
-                </div>
-                <h3 className="font-bold text-lg mb-1">Dr. Elena Rodriguez</h3>
-                <p className="text-primary text-sm font-semibold mb-4">Pediatrician</p>
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
-                  <span className="material-symbols-outlined text-sm">location_on</span> Miami, FL
-                </div>
-                <button className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors">Book Appointment</button>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -246,8 +230,8 @@ const LandingPage = () => {
               <div>
                 <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-8">Ready to prioritize your health?</h2>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <button className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
-                  <button className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
+                  <button onClick={() => router.push('/signup')} className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
+                  <button onClick={() => router.push('/doctor-signup')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
                 </div>
               </div>
               <div className="hidden lg:flex justify-center">
@@ -277,21 +261,21 @@ const LandingPage = () => {
       <footer className="w-full border-t border-slate-200 bg-slate-50">
         <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
           <div className="flex flex-col gap-4 text-center md:text-left">
-            <span className="text-xl font-bold tracking-tighter text-slate-900">MedReserve</span>
+            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer">MedReserve</span>
             <p className="font-inter text-xs text-slate-500 max-w-xs">
               © 2024 MedReserve Clinical Systems. All rights reserved.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-8">
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Privacy Policy</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Terms of Service</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Contact Support</a>
+            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Privacy Policy</a>
+            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Terms of Service</a>
+            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Contact Support</a>
           </div>
           <div className="flex gap-4">
-            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors" href="#">
+            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors cursor-pointer">
               <span className="material-symbols-outlined text-sm">language</span>
             </a>
-            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors" href="#">
+            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors cursor-pointer">
               <span className="material-symbols-outlined text-sm">share</span>
             </a>
           </div>

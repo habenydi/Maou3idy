@@ -1,0 +1,74 @@
+export interface Doctor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  specialty: string;
+  yearsOfExperience?: number;
+  profileImage: string;
+  isVerified?: boolean;
+  location?: string;
+  rating: number;
+  reviewCount: number;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  price: number;
+  insuranceAccepted: boolean;
+}
+
+export interface Location {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  mapImageUrl: string;
+  isActive: boolean;
+}
+
+export interface TimeSlot {
+  time: string;
+  isAvailable: boolean;
+  locationId: string;
+}
+
+export interface AvailabilitySlot {
+  date: string;
+  dayOfWeek: string;
+  slots: TimeSlot[];
+}
+
+export interface Review {
+  id: string;
+  authorImage: string;
+  rating: number;
+  text: string;
+}
+
+export interface DoctorDetailResponse {
+  doctor: Doctor;
+  services: Service[];
+  locations: Location[];
+  availability: AvailabilitySlot[];
+  reviews: Review[];
+  bio: string;
+  publications: number;
+}
+
+export interface LandingPageStats {
+  totalDoctors: number;
+  totalPatients: number;
+  totalSpecializedClinicians: number;
+}
+
+export interface LandingPageData {
+  featuredDoctors: Doctor[];
+  stats: LandingPageStats;
+  specialties: string[];
+  locations: string[];
+}

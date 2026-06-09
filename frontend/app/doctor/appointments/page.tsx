@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 
@@ -30,6 +31,7 @@ const STATUS_COLORS = {
 };
 
 const Appointments = () => {
+  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: 'RE-2931',

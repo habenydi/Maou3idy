@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import Img from 'next/image';
@@ -21,6 +22,7 @@ type ScheduleItem = {
 };
 
 const Dashboard = () => {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,10 +250,10 @@ const Dashboard = () => {
             © 2024 MedReserve Clinical Systems. All rights reserved.
           </div>
           <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Privacy Policy</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Terms of Service</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Contact Support</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Healthcare Partners</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Contact Support</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Healthcare Partners</a>
           </div>
         </div>
       </footer>

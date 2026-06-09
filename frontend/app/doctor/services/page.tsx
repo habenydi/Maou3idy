@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 
 const Services = () => {
+  const router = useRouter();
   const [services] = useState([
     { id: 1, name: 'Cardiac Consultation', duration: 45, price: 150.0, status: 'active', icon: 'ecg' },
     { id: 2, name: 'Echocardiogram (ECG)', duration: 30, price: 280.0, status: 'active', icon: 'monitor_heart' },
@@ -108,9 +110,9 @@ const Services = () => {
         <footer className="mt-8 flex flex-col md:flex-row justify-between items-center px-4 py-6 border-t border-slate-200 gap-4">
           <span className="font-inter text-xs text-slate-500">© 2024 MedReserve Clinical Systems. All rights reserved.</span>
           <div className="flex gap-6">
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Privacy Policy</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Terms of Service</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30" href="#">Contact Support</a>
+            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Privacy Policy</a>
+            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Terms of Service</a>
+            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Contact Support</a>
           </div>
         </footer>
 

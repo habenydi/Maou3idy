@@ -68,8 +68,8 @@ export default function Login() {
 	return (
 	<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
 			<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-				<div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[120px]" style={{backgroundColor: "rgba(0, 87, 205, 0.05)"}}></div>
-				<div className="absolute -bottom-[10%] -right-[10%] w-[35%] h-[35%] rounded-full blur-[100px]" style={{backgroundColor: "rgba(66, 92, 155, 0.05)"}}></div>
+				<div className="absolute top-[10%] left-[10%] w-[40%] h-[40%] rounded-full blur-[120px]" style={{backgroundColor: "rgba(0, 87, 205, 0.05)"}}></div>
+				<div className="absolute bottom-[10%] right-[10%] w-[35%] h-[35%] rounded-full blur-[100px]" style={{backgroundColor: "rgba(66, 92, 155, 0.05)"}}></div>
 				<div className="absolute top-[20%] right-[15%] w-25 h-25 rounded-full blur-[60px] opacity-20" style={{backgroundColor: "#ffdbce"}}></div>
 			</div>
 
@@ -225,8 +225,10 @@ export default function Login() {
 				<Img 
 					alt="Clinical environment"
 					fill
-					data-alt="Modern high-tech medical clinic interior with clean white surfaces and soft blue ambient lighting in a professional setting" 
+					data-alt="Modern high-tech medical clinic interior with clean white surfaces and soft blue ambient lighting in a professional setting"
 					src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkHqkkpwr0eOnMgQc0OIf1L61TFcolCMTHxPm6BOqSKDRiZcSBj5i0SSx5YDrAaRtArjRlEEHUaSO-JlNGidngNLDvErm3f5oeqkg1OzfboKqwUC-o41oEq7TrP5w_f5_Lt9qOBSQgwipkNsgr4WGewltB2UuyVvXBEInZ_1wKX4tfdXTHXcysVLmGXmgFc_3PXZR-w0MjOE1pmCAFP5ZNg4Scl11cIBqnBVqLdjq-xpAgysxmGbsDU-fYCERKJBXnoXv8DACFh5w" 
+					sizes='50vw'
+					loading='eager'
 				/>
 			</div>
 		</div>

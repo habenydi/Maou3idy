@@ -1,23 +1,26 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 const DoctorPage = () => {
+  const router = useRouter();
+
   return (
     <div className="bg-surface text-on-surface">
       <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
         <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-8">
-            <span className="text-xl font-bold tracking-tighter text-slate-900 brand-font">MedReserve</span>
+            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 brand-font cursor-pointer">MedReserve</span>
             <nav className="hidden md:flex items-center gap-6 font-manrope tracking-tight font-semibold">
-              <a className="text-blue-600 border-b-2 border-blue-600 transition-colors" href="#">Find Doctors</a>
-              <a className="text-slate-600 hover:text-blue-700 transition-colors" href="#">Specialties</a>
-              <a className="text-slate-600 hover:text-blue-700 transition-colors" href="#">About Us</a>
+              <a onClick={() => router.push('/patients/doctor')} className="text-blue-600 border-b-2 border-blue-600 transition-colors cursor-pointer" href="#">Find Doctors</a>
+              <a onClick={() => router.push('/specialties')} className="text-slate-600 hover:text-blue-700 transition-colors cursor-pointer" href="#">Specialties</a>
+              <a className="text-slate-600 hover:text-blue-700 transition-colors cursor-pointer" href="#">About Us</a>
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200">Sign In</button>
-            <button className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:shadow-md active:scale-95 duration-200 transition-all">Join as Doctor</button>
+            <button onClick={() => router.push('/login')} className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200">Sign In</button>
+            <button onClick={() => router.push('/doctor-signup')} className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:shadow-md active:scale-95 duration-200 transition-all">Join as Doctor</button>
           </div>
         </div>
         <div className="bg-slate-200/50 h-[1px]"></div>
@@ -140,7 +143,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-success/10 text-emerald-700 text-xs font-medium px-3 py-1 rounded-full">Available Today</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=1')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
               {/* Doctor Card 2 */}
@@ -163,7 +166,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-secondary-container/20 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Telehealth Available</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=2')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
               {/* Doctor Card 3 */}
@@ -186,7 +189,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-success/10 text-emerald-700 text-xs font-medium px-3 py-1 rounded-full">Top Rated</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=3')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
               {/* Doctor Card 4 */}
@@ -209,7 +212,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-secondary-container/20 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Hospital Visits</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=4')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
               {/* Doctor Card 5 */}
@@ -232,7 +235,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-success/10 text-emerald-700 text-xs font-medium px-3 py-1 rounded-full">Available Today</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=5')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
               {/* Doctor Card 6 */}
@@ -255,7 +258,7 @@ const DoctorPage = () => {
                     </span>
                     <span className="bg-secondary-container/20 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Hospital Visits</span>
                   </div>
-                  <button className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
+                  <button onClick={() => router.push('/patients/booking?doctorId=6')} className="w-full bg-surface-container-highest text-on-surface font-bold py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all active:scale-95">View Profile</button>
                 </div>
               </div>
             </div>
@@ -281,10 +284,10 @@ const DoctorPage = () => {
         <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
           <div className="text-xs text-slate-500 font-inter">© 2024 MedReserve Clinical Systems. All rights reserved.</div>
           <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Privacy Policy</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Terms of Service</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Contact Support</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors" href="#">Healthcare Partners</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer" href="#">Privacy Policy</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer" href="#">Terms of Service</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer" href="#">Contact Support</a>
+            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer" href="#">Healthcare Partners</a>
           </div>
         </div>
       </footer>

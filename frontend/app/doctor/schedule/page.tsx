@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 const Schedule = () => {
+  const router = useRouter();
   const calendarGridStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: '80px repeat(7, 1fr)',
@@ -10,35 +12,34 @@ const Schedule = () => {
 
   return (
     <div className="bg-surface font-body text-on-surface antialiased overflow-hidden">
-      {/* ...existing code... */}
       <aside className="w-64 fixed left-0 top-0 border-r-0 bg-slate-50 flex flex-col h-screen p-4 gap-2 z-50">
         <div className="flex items-center gap-3 px-2 mb-8">
           <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg">
             <span className="material-symbols-outlined">clinical_notes</span>
           </div>
           <div>
-            <h1 className="font-headline font-bold text-xl text-slate-900 leading-none">MedReserve</h1>
+            <h1 className="font-headline font-bold text-xl text-slate-900 leading-none cursor-pointer" onClick={() => router.push('/')}>MedReserve</h1>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-1">Clinical Admin</p>
           </div>
         </div>
         <nav className="flex-1 flex flex-col gap-1">
-          <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+          <a onClick={() => router.push('/doctor/dashboard')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
             <span className="material-symbols-outlined">dashboard</span>
             <span className="font-['Inter'] font-medium text-sm">Dashboard</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-sm group" href="#">
+          <a onClick={() => router.push('/doctor/schedule')} className="flex items-center gap-3 px-4 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-sm group cursor-pointer">
             <span className="material-symbols-outlined">calendar_month</span>
             <span className="font-['Inter'] font-medium text-sm">Schedules</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+          <a onClick={() => router.push('/doctor/patients')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
             <span className="material-symbols-outlined">group</span>
             <span className="font-['Inter'] font-medium text-sm">Patients</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+          <a onClick={() => router.push('/doctor/applications')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
             <span className="material-symbols-outlined">bio</span>
             <span className="font-['Inter'] font-medium text-sm">Applications</span>
           </a>
-          <a className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group" href="#">
+          <a onClick={() => router.push('/doctor/services')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
             <span className="material-symbols-outlined">category</span>
             <span className="font-['Inter'] font-medium text-sm">Categories</span>
           </a>
@@ -49,7 +50,7 @@ const Schedule = () => {
             <p className="text-xs font-bold text-slate-900 truncate">Dr. Sarah Smith</p>
             <p className="text-[10px] text-slate-500 truncate">Cardiologist</p>
           </div>
-          <button className="ml-auto text-slate-400 hover:text-slate-900">
+          <button onClick={() => router.push('/login')} className="ml-auto text-slate-400 hover:text-slate-900">
             <span className="material-symbols-outlined text-lg">logout</span>
           </button>
         </div>
@@ -60,8 +61,8 @@ const Schedule = () => {
           <div className="flex items-center gap-8">
             <h2 className="font-headline font-extrabold text-blue-700 text-lg">Schedule &amp; Slot Management</h2>
             <nav className="hidden lg:flex items-center gap-6">
-              <a className="text-blue-600 border-b-2 border-blue-600 pb-1 font-headline font-semibold text-base transition-all" href="#">Weekly View</a>
-              <a className="text-slate-500 hover:text-blue-500 font-headline font-semibold text-base transition-all" href="#">List View</a>
+              <a onClick={() => router.push('/doctor/schedule')} className="text-blue-600 border-b-2 border-blue-600 pb-1 font-headline font-semibold text-base transition-all cursor-pointer">Weekly View</a>
+              <a onClick={() => router.push('/doctor/schedule?view=list')} className="text-slate-500 hover:text-blue-500 font-headline font-semibold text-base transition-all cursor-pointer">List View</a>
             </nav>
           </div>
           <div className="flex items-center gap-4">
