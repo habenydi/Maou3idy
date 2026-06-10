@@ -17,6 +17,7 @@ import { ForgetPasswordDto } from "./dto/forget_password.dto";
 import { ChangePasswordDto } from "./dto/ChangePassword.dto";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { Role } from "@prisma/client";
+import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
 interface UserAuth {
   sub: number;
   email: string;
@@ -28,6 +29,15 @@ interface RequestWithUser extends Request {
 @Controller("auth")
 export class AuthController {
   constructor(private Authservice: AuthService) {}
+
+  @Get("google")
+  @UseGuards(AuthGuard("google"))
+  async googleAuth() {}
+  @Get("google/callback")
+  @UseGuards(AuthGuard("google"))
+  googleCallback(@Req() req: RequestWithUser) {
+    return req.user;
+  }
   @Post("register")
   register(@Body() body: RegisterDto) {
     return this.Authservice.register(body);

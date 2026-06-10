@@ -38,6 +38,11 @@ model Doctor {
   user           User           @relation(fields: [user_id], references: [id])
   location       String       @default("")
   experience     Int          @default(0)
+  TotalPatients Int          @default(0)
+  Languages      String        @default("")
+  rating         Float        @default(0)
+  reviewCount    Int          @default(0)
+  profileImage   String        @default("")
   working_hours  WorkingHours[]
   slots          Slots[]
   speciality     String

@@ -7,6 +7,7 @@ import { JwtGuard } from "./guards/jwt.guard";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { DoctorModule } from "src/doctor/doctor.module";
 import { RolesGuard } from "./guards/roles.guard";
+import { GoogleStrategy } from "./google.strategy";
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { RolesGuard } from "./guards/roles.guard";
     forwardRef(() => DoctorModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtGuard, RolesGuard],
+  providers: [AuthService, UsersService, JwtGuard, RolesGuard, GoogleStrategy],
   exports: [JwtModule, JwtGuard, RolesGuard],
 })
 export class AuthModule {}
