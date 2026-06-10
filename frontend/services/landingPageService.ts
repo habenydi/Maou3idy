@@ -1,3 +1,4 @@
+'use client';
 import api from './api';
 import { LandingPageData, Doctor } from '@/types';
 
