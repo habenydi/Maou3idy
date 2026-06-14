@@ -264,4 +264,32 @@ export class AuthService {
       },
     };
   }
+
+  async validateGoogleUser(profile: any) {
+    const email = this.normalizeEmail((profile.emails as any[])[0].value);
+    let user = await this.UserService.findByEmail(email);
+
+    if (!user) {
+      user = await this.UserService.create({
+        email,
+        name: (profile.displayName as string) || "User",
+        password: await this.hashPassword(Math.random().toString(36)),
+        verified: true,
+      });
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.signToken(payload, "1d");
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: String(user.role),
+        verified: user.verified,
+      },
+    };
+  }
 }

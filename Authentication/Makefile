@@ -2,17 +2,20 @@
 COMPOSE = docker compose
 APP = npm run start:dev
 
-up:
-	$(COMPOSE) up -d
-	@echo "PostgreSQL is running..."
-	npx prisma migrate dev --name init
-	$(APP)
+all: build
 
 ins:
 	touch .env
 	cp .env.example .env
 	npm i
 	npx prisma generate
+
+build: ins
+	$(COMPOSE) up -d
+	@echo "PostgreSQL is running..."
+	npx prisma migrate dev --name init
+	$(APP)
+
 down:
 	$(COMPOSE) down
 
@@ -24,6 +27,3 @@ logs:
 clean:
 	npx prisma migrate reset
 	$(COMPOSE) down -v
-
-build:
-	$(COMPOSE) up -d --build
