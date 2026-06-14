@@ -2,29 +2,14 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Navbar from '@/components/Navbar';
 
 const DoctorPage = () => {
   const router = useRouter();
 
   return (
     <div className="bg-surface text-on-surface">
-      <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
-        <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-8">
-            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 brand-font cursor-pointer">MedReserve</span>
-            <nav className="hidden md:flex items-center gap-6 font-manrope tracking-tight font-semibold">
-              <a onClick={() => router.push('/patients/doctor')} className="text-blue-600 border-b-2 border-blue-600 transition-colors cursor-pointer" href="#">Find Doctors</a>
-              <a onClick={() => router.push('/specialties')} className="text-slate-600 hover:text-blue-700 transition-colors cursor-pointer" href="#">Specialties</a>
-              <a className="text-slate-600 hover:text-blue-700 transition-colors cursor-pointer" href="#">About Us</a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/login')} className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200">Sign In</button>
-            <button onClick={() => router.push('/doctor-signup')} className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:shadow-md active:scale-95 duration-200 transition-all">Join as Doctor</button>
-          </div>
-        </div>
-        <div className="bg-slate-200/50 h-[1px]"></div>
-      </header>
+      <Navbar activeLink="doctors" />
 
       <main className="pt-24 pb-12 max-w-screen-2xl mx-auto px-6">
         <section className="mb-12">

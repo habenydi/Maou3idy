@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getLandingPageData } from '@/services/landingPageService';
 import { Doctor, LandingPageData } from '@/types';
+import Navbar from '@/components/Navbar';
 
 function NavbarActions() {
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -61,23 +62,7 @@ const LandingPage = () => {
 
   return (
     <div className="bg-surface text-on-surface antialiased">
-      <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
-        <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-8">
-            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer">MedReserve</span>
-            <nav className="hidden md:flex gap-6">
-              <a onClick={() => router.push('/doctors')} className="font-manrope tracking-tight font-semibold text-blue-600 border-b-2 border-blue-600 transition-colors cursor-pointer">Find Doctors</a>
-              <a onClick={() => router.push('/specialties')} className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors cursor-pointer">Specialties</a>
-              <a className="font-manrope tracking-tight font-semibold text-slate-600 hover:text-blue-700 transition-colors cursor-pointer">About Us</a>
-            </nav>
-          </div>
-            <div className="flex items-center gap-4">
-              <NavbarActions />
-            </div>
-        </div>
-        <div className="bg-slate-200/50 h-0.5"></div>
-      </header>
-
+      <Navbar />
       <main className="pt-20">
         {/* Hero Section */}
         <section className="relative px-6 py-20 lg:py-32 overflow-hidden">

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 function RegisterDoctor() {
   const [isLoading, setIsLoading] = useState(false);
@@ -150,42 +151,7 @@ function RegisterDoctor() {
         "\n        body { font-family: 'Inter', sans-serif; }\n        h1, h2, h3 { font-family: 'Manrope', sans-serif; }\n        .material-symbols-outlined {\n            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;\n        }\n        .glass-panel {\n            background: rgba(255, 255, 255, 0.7);\n            backdrop-filter: blur(12px);\n        }\n    "
     }}
   />
-  <nav className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
-    <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
-      <div className="text-xl font-bold tracking-tighter text-slate-900 font-manrope">
-        MedReserve
-      </div>
-      <div className="hidden md:flex items-center gap-8">
-        <a
-          className="text-slate-600 font-manrope tracking-tight font-semibold hover:text-blue-700 transition-colors"
-          href="#"
-        >
-          Find Doctors
-        </a>
-        <a
-          className="text-slate-600 font-manrope tracking-tight font-semibold hover:text-blue-700 transition-colors"
-          href="#"
-        >
-          Specialties
-        </a>
-        <a
-          className="text-slate-600 font-manrope tracking-tight font-semibold hover:text-blue-700 transition-colors"
-          href="#"
-        >
-          About Us
-        </a>
-      </div>
-      <div className="flex items-center gap-4">
-        <button className="text-slate-600 font-manrope tracking-tight font-semibold px-4 py-2 active:scale-95 duration-200">
-          Sign In
-        </button>
-        <button className="bg-primary text-on-primary font-manrope tracking-tight font-semibold px-6 py-2 rounded-xl bg-linear-to-r from-primary to-primary-container shadow-md active:scale-95 duration-200">
-          Join as Doctor
-        </button>
-      </div>
-    </div>
-    <div className="bg-slate-200/50 h-px" />
-  </nav>
+  <Navbar activeLink="doctors" showAuthButtons={true} />
   <main className="pt-24 pb-20 px-4 md:px-8 max-w-6xl mx-auto">
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <section className="lg:col-span-5 space-y-8 pt-12">

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getDoctorDetail } from '@/services/bookingService';
 import { DoctorDetailResponse } from '@/types';
 import { useSearchParams } from 'next/navigation';
+import Navbar from '@/components/Navbar';
 
 function Booking() {
   const router = useRouter();
@@ -68,35 +69,7 @@ function Booking() {
         }}
       />
       {/* TopNavBar */}
-      <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
-        <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-8">
-            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer">
-              MedReserve
-            </span>
-            <nav className="hidden md:flex gap-6">
-              <a onClick={() => router.push('/patients/doctor')} className="text-blue-600 border-b-2 border-blue-600 font-manrope tracking-tight font-semibold py-1 cursor-pointer">
-                Find Doctors
-              </a>
-              <a onClick={() => router.push('/specialties')} className="text-slate-600 hover:text-blue-700 transition-colors font-manrope tracking-tight font-semibold py-1 cursor-pointer">
-                Specialties
-              </a>
-              <a className="text-slate-600 hover:text-blue-700 transition-colors font-manrope tracking-tight font-semibold py-1 cursor-pointer">
-                About Us
-              </a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/login')} className="text-blue-600 font-manrope tracking-tight font-semibold active:scale-95 duration-200">
-              Sign In
-            </button>
-            <button onClick={() => router.push('/doctor-signup')} className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-xl font-manrope tracking-tight font-semibold active:scale-95 duration-200 shadow-sm">
-              Join as Doctor
-            </button>
-          </div>
-        </div>
-        <div className="bg-slate-200/50 h-1px" />
-      </header>
+      <Navbar activeLink="doctors" />
       <main className="pt-24 pb-20 max-w-screen-2xl mx-auto px-6">
         {/* Hero Section */}
         <section className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">

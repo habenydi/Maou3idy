@@ -51,7 +51,7 @@ export default function Login() {
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
 			localStorage.setItem("remember_me", rememberMe ? "true" : "false");
 			localStorage.setItem("user_role", data.user.role);
-			router.push( data.user.role === "DOCTOR" ? "/doctor/dashboard" : "/success" );
+			router.push( data.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
 
 		} catch (err) {
 			console.error(err);

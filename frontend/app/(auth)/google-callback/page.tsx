@@ -12,10 +12,10 @@ export default function GoogleCallback() {
     const userId = searchParams.get("id");
 
     if (token) {
-      localStorage.setItem("access_token", token);
+      localStorage.setItem("token", token);
       localStorage.setItem("user_id", userId || "");
-      toast.success("Login successful!");
-      router.push("/success");
+      toast.success("Login successful! merhba bik");
+      router.push("/patients/landingpage");
     } else {
       toast.error("Login failed");
       router.push("/register");
