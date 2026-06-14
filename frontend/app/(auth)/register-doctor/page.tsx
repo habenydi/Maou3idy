@@ -100,7 +100,7 @@ function RegisterDoctor() {
       payload.append("medical_license", medical_license);
 
 			const { data } = await axios.post(
-				"http://127.0.0.1:1337/auth/doctor-register",
+				"http://localhost:1337/auth/doctor-register",
         payload,
 				{
 					headers: {

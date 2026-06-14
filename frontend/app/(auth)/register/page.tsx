@@ -49,6 +49,16 @@ export default function Register() {
 		}));
 	};
 
+	const handleGoogleLogin = async () => {
+		try {
+			// Redirect to Google OAuth endpoint - Google will handle authentication
+			window.location.href = "http://localhost:1337/auth/google";
+		} catch (error) {
+			console.error("Error occurred while fetching Google login URL:", error);
+			toast.error("an error " + error);
+		}
+	};
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsLoading(true);
@@ -62,7 +72,7 @@ export default function Register() {
 			}
 
 			const { data } = await axios.post(
-				"http://127.0.0.1:1337/auth/register",
+				"http://localhost:1337/auth/register",
 				{
 					name: formData.name,
 					email: formData.email,
@@ -133,7 +143,7 @@ export default function Register() {
 
 						{/* Social Login Section */}
 						<div className="flex flex-col gap-4 mb-8">
-							<button className="flex items-center justify-center gap-3 w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-200 active:scale-95" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#edeef1"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f3f3f7"}>
+							<button onClick={handleGoogleLogin} className="flex items-center justify-center gap-3 w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-200 active:scale-95" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#edeef1"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f3f3f7"}>
 								<Img alt="Google Logo" width={20} height={20} src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7sekk05ih7WxToSvBqVjBRIZ_sW2fr6DiucmVZvGhZmof4OkP2XJGGUTQIW7tAodaGdD7l4r0riWG05JO2Nnd8AiczWbQsbNEiywjHdF59_aXtElHddBdqHRVE6VtV-TvFhjgCk9ecyKmCUZZre7DxDHk-ktv44cUTS0X-pbfpNHQ2lRicHyQ-dkZUmZKaJrTpv9OZmQEy2m0kJqq1pm63_bOtCR73jugDvilnd2W0Ylj3xPuDFJ-IYJxHcpsz2vnO-33ui5xpTQ" />
 								Continue with Google
 							</button>

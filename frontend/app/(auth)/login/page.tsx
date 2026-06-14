@@ -36,7 +36,7 @@ export default function Login() {
 
 		try {
 			const { data } = await axios.post(
-				"http://127.0.0.1:1337/auth/login",
+				"http://localhost:1337/auth/login",
 				{ email, password },
 				{
 					headers: {

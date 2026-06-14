@@ -40,7 +40,7 @@ export default function ForgotPassword() {
 
 		try {
 			const response = await axios.post(
-				"http://127.0.0.1:1337/auth/forgot-password",
+				"http://localhost:1337/auth/forgot-password",
 				{ email },
 				{
 					headers: {
