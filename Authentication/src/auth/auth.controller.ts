@@ -50,23 +50,32 @@ export class AuthController {
   @Get("google/callback")
   @UseGuards(AuthGuard("google"))
   googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
-    const token = req.user.token;
-    const user = {
-      id: req.user.id,
-      email: req.user.email,
-      name: req.user.name,
-      role: req.user.role,
-      verified: req.user.verified,
-      token: req.user.token,
-    };
-
-    // Encode data for URL
+    const user = req.user;
+    const token = this.Authservice.generateTokenForGoogleUser(user);
     const encodedUser = Buffer.from(JSON.stringify(user)).toString("base64");
-
-    // Redirect to frontend callback page with encoded data
     res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:3000"}/auth/callback?token=${token}&user=${encodedUser}`,
+      `http://localhost:3000/google-callback?token=${token}&user=${encodedUser}`,
     );
+  }
+
+  @Get("verify/:token")
+  verifyToken(@Param("token") token: string) {
+    const isValid = this.Authservice.verifyJwtToken(token);
+    if (isValid) {
+      return { valid: true };
+    } else {
+      return { valid: false };
+    }
+  }
+
+  @Get("verify_email/token=:token")
+  async verifyEmail(@Param("token") token: string, @Res() res: Response) {
+    const isValid = await this.Authservice.verify_email(token);
+    if (isValid) {
+      res.redirect(`http://localhost:3000/login?verified=true`);
+    } else {
+      res.redirect(`http://localhost:3000/login?verified=false`);
+    }
   }
   @Post("register")
   register(@Body() body: RegisterDto) {

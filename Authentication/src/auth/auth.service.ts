@@ -30,7 +30,7 @@ export class AuthService {
   ) {}
 
   private get frontendBaseUrl() {
-    return process.env.FRONTEND_URL ?? "http://localhost:3000";
+    return process.env.FRONTEND_URL ?? "http://127.0.0.1:3000";
   }
 
   private signToken(
@@ -291,5 +291,44 @@ export class AuthService {
         verified: user.verified,
       },
     };
+  }
+  generateTokenForGoogleUser(user: { id: number; email: string; role: Role }) {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.signToken(payload, "1d");
+    return token;
+  }
+  async validateToken(token: string) {
+    try {
+      const decoded = this.jwtService.verify<JwtPayload>(token);
+      const user = await this.UserService.findByEmail(decoded.email);
+      if (!user) {
+        throw new BadRequestException("User not found");
+      }
+      return {
+        statusCode: 200,
+        message: "Token is valid",
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          role: String(user.role),
+          verified: user.verified,
+        },
+      };
+    } catch (error) {
+      console.error("Error validating token:", error);
+      throw new ForbiddenException("Invalid or expired token");
+    }
+  }
+
+  verifyJwtToken(token: string): boolean {
+    try {
+      this.jwtService.verify<JwtPayload>(token);
+      return true;
+    } catch (error) {
+      console.error("Error verifying JWT token:", error);
+      return false;
+    }
   }
 }
