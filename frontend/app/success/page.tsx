@@ -18,8 +18,8 @@ export default function Success() {
 				headers: {
 					"Content-Type": "application/json",
 					"Accept": "application/json",
-					"Authorization": `Bearer ${localStorage.getItem("token")}`,
 				},
+				withCredentials: true,
 			});
 			console.log(data);
 			toast.success("Admin access successful! Check console for user data.");
@@ -54,11 +54,22 @@ export default function Success() {
 		}
 		setIsLoading(false);
 	}, [router]);
-	const handleLogout = () => {
-		setIsLoading(true);
-		localStorage.removeItem("token");
-		localStorage.removeItem("auth_user");
-		router.push("/");
+	const handleLogout = async () => {
+		try {
+			const {	 data } = await axios.post("http://localhost:1337/auth/logout", {}, {
+				headers: {
+					"Content-Type": "application/json",
+					"Accept": "application/json",
+				},
+				withCredentials: true,
+			});
+			console.log(data);
+			toast.success("Logout successful! Redirecting to login page...");
+			router.push("/");
+		} catch (error) {
+			console.error("Error during logout:", error);
+			toast.error("Logout failed. Please try again.");
+		}
 	};
 
 	const handleReset = () => {

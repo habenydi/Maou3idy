@@ -41,14 +41,6 @@ export default function VerificationCodePage() {
 			setLoading(false);
 			return;
 		}
-
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setErrorMessage("You must be logged in to verify your email.");
-			toast.error(errorMessage + " Please try again.");
-			setLoading(false);
-			return;
-        }
 		try {
 			const response = await axios.post(
 				"http://localhost:1337/auth/verify-code",
@@ -57,8 +49,8 @@ export default function VerificationCodePage() {
 					headers: {
 						"Content-Type": "application/json",
 						"Accept": "application/json",
-						"Authorization": `Bearer ${token}`,
 					},
+					withCredentials: true,
 				}
 			);
 			const storedUser = localStorage.getItem('auth_user');

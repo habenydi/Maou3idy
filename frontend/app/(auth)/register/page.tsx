@@ -63,6 +63,7 @@ export default function Register() {
 		e.preventDefault();
 		setIsLoading(true);
 		try {
+			console.log("Submitting registration form with data:", formData);
 			const parseResult = registerSchema.safeParse(formData);
 			if (!parseResult.success) {
 				const message = parseResult.error.issues[0]?.message || "Invalid input";
@@ -86,7 +87,6 @@ export default function Register() {
 					},
 				}
 			);
-			localStorage.setItem("token", data.token);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
 			toast.success("Registration successful! Redirecting...");
 			router.push("/success");
@@ -117,7 +117,7 @@ export default function Register() {
 					</nav>
 					<div className="flex items-center gap-4">
 						<a className="font-headline tracking-tight font-semibold transition-colors" href="/login" style={{color: "#0057cd"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"} onMouseLeave={(e) => e.currentTarget.style.color = "#0057cd"}>Sign In</a>
-						<button className="px-6 py-2 rounded-xl font-headline font-bold text-sm active:scale-95 duration-200" style={{backgroundColor: "#0d6efd", color: "#ffffff"}} onClick={() => router.push("/login")}>Join as Doctor</button>
+						<button className="px-6 py-2 rounded-xl font-headline font-bold text-sm active:scale-95 duration-200" style={{backgroundColor: "#0d6efd", color: "#ffffff"}} onClick={() => router.push("/register-doctor")}>Join as Doctor</button>
 					</div>
 				</div>
 				<div className="h-px" style={{backgroundColor: "rgba(194, 198, 216, 0.5)"}}></div>

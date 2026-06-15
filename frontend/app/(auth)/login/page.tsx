@@ -46,7 +46,6 @@ export default function Login() {
 				}
 			);
 			toast.success("Login successful! Redirecting...");
-			localStorage.setItem("token", data.token);
 			localStorage.setItem("name", data.user.name);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));
 			localStorage.setItem("remember_me", rememberMe ? "true" : "false");

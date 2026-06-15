@@ -12,7 +12,6 @@ export default function GoogleCallback() {
     const userId = searchParams.get("id");
 
     if (token) {
-      localStorage.setItem("token", token);
       localStorage.setItem("user_id", userId || "");
       toast.success("Login successful! merhba bik");
       router.push("/patients/landingpage");
