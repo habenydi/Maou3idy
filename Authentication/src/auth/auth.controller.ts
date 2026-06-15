@@ -20,6 +20,7 @@ import { ChangePasswordDto } from "./dto/ChangePassword.dto";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { Role } from "@prisma/client";
 import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
+
 interface UserAuth {
   sub: number;
   id: number;
@@ -53,6 +54,11 @@ export class AuthController {
     const user = req.user;
     const token = this.Authservice.generateTokenForGoogleUser(user);
     const encodedUser = Buffer.from(JSON.stringify(user)).toString("base64");
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
     res.redirect(
       `http://localhost:3000/google-callback?token=${token}&user=${encodedUser}`,
     );
@@ -78,12 +84,36 @@ export class AuthController {
     }
   }
   @Post("register")
-  register(@Body() body: RegisterDto) {
-    return this.Authservice.register(body);
+  async register(
+    @Body() body: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    console.log("Registering user with email:", body.email);
+    const result = await this.Authservice.register(body);
+    res.cookie("access_token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+    return { user: result.user };
   }
   @Post("login")
-  login(@Body() body: LoginDto) {
-    return this.Authservice.login(body);
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.Authservice.login(body);
+
+    res.cookie("access_token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      user: result.user,
+    };
   }
   @Post("forgot-password")
   forget(@Body() body: ForgetPasswordDto) {
@@ -118,5 +148,13 @@ export class AuthController {
   @Post("doctor-register")
   doctor_register(@Body() body: DoctorRegisterDto) {
     return this.Authservice.doctor_register(body);
+  }
+  @Post("logout")
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie("access_token");
+
+    return {
+      success: true,
+    };
   }
 }
