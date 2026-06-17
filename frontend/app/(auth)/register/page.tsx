@@ -85,6 +85,7 @@ export default function Register() {
 						"Content-Type": "application/json",
 						"Accept": "application/json",
 					},
+					withCredentials: true,
 				}
 			);
 			localStorage.setItem("auth_user", JSON.stringify(data.user));

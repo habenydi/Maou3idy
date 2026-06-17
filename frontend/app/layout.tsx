@@ -1,12 +1,51 @@
-import type { Metadata } from "next";
+"use client";
+// import type { Metadata } from "next";
 import "./globals.css";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import { useState, useEffect, createContext, useContext} from "react";
+import axios from "axios";
 
-export const metadata: Metadata = {
-  title: "MedReserve - Clinical Appointment System",
-  bio: "Schedule and manage your medical appointments with MedReserve",
-};
+
+
+const AuthContext = createContext<any>(null);
+
+export function AuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:1337/auth/me", {
+        withCredentials: true,
+      })
+      .then((res) => setUser(res.data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        setUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => useContext(AuthContext);
+// export const metadata: Metadata = {
+//   title: "MedReserve - Clinical Appointment System",
+//   bio: "Schedule and manage your medical appointments with MedReserve",
+// };
 
 export default function RootLayout({
   children,
@@ -34,7 +73,9 @@ export default function RootLayout({
         `}</style>
       </head>
       <body>
+        <AuthProvider>
         {children}
+        </AuthProvider>
         <ToastContainer 
         position="top-right"
         autoClose={5000}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Img from 'next/image';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useAuth } from '../layout';
 
 export default function Success() {
 	const router = useRouter();
@@ -11,6 +12,7 @@ export default function Success() {
 	const [isAthenticated, setIsAuthenticated] = useState(false);
 	const [userEmail, setUserEmail] = useState('');
 	const [isVerified, setIsVerified] = useState<boolean | null>(null);
+	const { user, loading } = useAuth();
 
 	const handleAdmin = async () => {
 		try {
@@ -35,12 +37,12 @@ export default function Success() {
 		}
 	};
 	useEffect(() => {
-		const token = localStorage.getItem('token');
-		const storedUser = localStorage.getItem('auth_user');
-		if (!token) {
+		// if (loading) return; // Wait for the auth state to finish loading
+		if (!user) {
 			router.push("/login");
 			return;
 		}
+		const storedUser = localStorage.getItem('auth_user');
 		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setIsAuthenticated(true);
 		if (storedUser) {
