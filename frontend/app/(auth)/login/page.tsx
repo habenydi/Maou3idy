@@ -5,39 +5,34 @@ import Img from 'next/image';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const loginSchema = z.object({
+	email: z.string()
+		.email("Enter a valid email address")
+		.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+	rememberMe: z.boolean().optional(),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+		resolver: zodResolver(loginSchema),
+		defaultValues: { rememberMe: false },
+	});
 	const [showPassword, setShowPassword] = useState(false);
-	const [rememberMe, setRememberMe] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
-	const loginSchema = z.object({
-		email: z.string()
-			.email("Enter a valid email address")
-			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-	});
-
-	const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-
-		if (!email.includes("@")) {
-			toast.error("Please enter a valid email address. It should contain '@'.");
-			return;
-		}
-		const parseResult = loginSchema.safeParse({ email, password });
-		if (!parseResult.success) {
-			const message = parseResult.error.issues[0]?.message || "Invalid input";
-			toast.error(message + " Please try again.");
-			return;
-		}
-
+	const onSubmit = async (data: LoginForm) => {
+		setIsLoading(true);
 		try {
-			const { data } = await axios.post(
+			const { data: responseData } = await axios.post(
 				"http://localhost:1337/auth/login",
-				{ email, password },
+				{ email: data.email, password: data.password },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -46,11 +41,11 @@ export default function Login() {
 				}
 			);
 			toast.success("Login successful! Redirecting...");
-			localStorage.setItem("name", data.user.name);
-			localStorage.setItem("auth_user", JSON.stringify(data.user));
-			localStorage.setItem("remember_me", rememberMe ? "true" : "false");
-			localStorage.setItem("user_role", data.user.role);
-			router.push( data.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
+			localStorage.setItem("name", responseData.user.name);
+			localStorage.setItem("auth_user", JSON.stringify(responseData.user));
+			localStorage.setItem("remember_me", data.rememberMe ? "true" : "false");
+			localStorage.setItem("user_role", responseData.user.role);
+			router.push( responseData.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
 
 		} catch (err) {
 			console.error(err);
@@ -61,6 +56,8 @@ export default function Login() {
 						? err.message
 						: "An unknown error occurred.";
 			toast.error(message + " Please try again.");
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -91,7 +88,7 @@ export default function Login() {
 						<p className="text-sm font-medium" style={{color: "#424655"}}>Please enter your credentials to access your clinical dashboard.</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleLogin}>
+					<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 						{/* Email Field */}
 						<div className="space-y-2">
 							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="email" style={{color: "#191c1e"}}>Email Address</label>
@@ -105,12 +102,11 @@ export default function Login() {
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="email" 
-									name="email" 
 									placeholder="dr.wilson@medreserve.com" 
-									value={email} 
-									onChange={(e) => setEmail(e.target.value)} 
+									{...register('email')}
 								/>
 							</div>
+							{errors.email && <p className="text-xs" style={{color: "#dc2626"}}>{errors.email.message}</p>}
 						</div>
 
 						{/* Password Field */}
@@ -137,11 +133,9 @@ export default function Login() {
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="password" 
-									name="password" 
 									placeholder="••••••••" 
 									type={showPassword ? "text" : "password"} 
-									value={password} 
-									onChange={(e) => setPassword(e.target.value)} 
+									{...register('password')}
 								/>
 								<button 
 									className="absolute inset-y-0 right-4 flex items-center transition-colors" 
@@ -154,6 +148,7 @@ export default function Login() {
 									<span className="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
 								</button>
 							</div>
+							{errors.password && <p className="text-xs" style={{color: "#dc2626"}}>{errors.password.message}</p>}
 						</div>
 
 						{/* Options */}
@@ -161,24 +156,23 @@ export default function Login() {
 							<input 
 								className="w-4 h-4 rounded" 
 								style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}}
-								id="remember" 
-								name="remember" 
-								type="checkbox" 
-								checked={rememberMe} 
-								onChange={(e) => setRememberMe(e.target.checked)} 
+								id="rememberMe" 
+								type="checkbox"
+								{...register('rememberMe')}
 							/>
-							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="remember" style={{color: "#424655"}}>Remember me for 30 days</label>
+							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="rememberMe" style={{color: "#424655"}}>Remember me for 30 days</label>
 						</div>
 
 						{/* Action Button */}
 						<button 
-							className="w-full py-4 px-6 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]" 
+							className="w-full py-4 px-6 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" 
 							style={{background: "linear-gradient(to right, #0057cd, #0d6efd)", color: "#ffffff", boxShadow: "0 8px 16px rgba(0, 87, 205, 0.2)", borderRadius: "24px"}}
-							onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 12px 24px rgba(0, 87, 205, 0.3)"}
-							onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 87, 205, 0.2)"}
+							onMouseEnter={(e) => !isLoading && (e.currentTarget.style.boxShadow = "0 12px 24px rgba(0, 87, 205, 0.3)")}
+							onMouseLeave={(e) => !isLoading && (e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 87, 205, 0.2)")}
 							type="submit"
+							disabled={isLoading}
 						>
-							Sign In
+							{isLoading ? "Signing In..." : "Sign In"}
 							<span className="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
 						</button>
 					</form>

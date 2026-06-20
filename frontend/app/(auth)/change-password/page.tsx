@@ -4,36 +4,30 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const changeSchema = z.object({
+	currentPassword: z.string().trim().min(8, "Current password is required"),
+	newPassword: z.string().trim().min(8, "New password must be at least 8 characters"),
+	confirmPassword: z.string().trim().min(8, "Confirm password is required"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+	path: ["confirmPassword"],
+	message: "New passwords do not match",
+});
+
+type ChangeForm = z.infer<typeof changeSchema>;
 
 export default function ChangePassword() {
-	const [currentPassword, setCurrentPassword] = useState("");
-	const [newPassword, setNewPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+	const { register, handleSubmit, formState: { errors } } = useForm<ChangeForm>({
+		resolver: zodResolver(changeSchema),
+	});
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
-	const changeSchema = z.object({
-		currentPassword: z.string().trim().min(8, "Current password is required"),
-		newPassword: z.string().trim().min(8, "New password must be at least 8 characters"),
-		confirmPassword: z.string().trim().min(8, "Confirm password is required"),
-	}).refine((data) => data.newPassword === data.confirmPassword, {
-		path: ["confirmPassword"],
-		message: "New passwords do not match",
-	});
-
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: ChangeForm) => {
 		setLoading(true);
-
-		const parseResult = changeSchema.safeParse({ currentPassword, newPassword, confirmPassword });
-		if (!parseResult.success) {
-			const message = parseResult.error.issues[0]?.message || "Invalid input";
-			toast.error(message + " Please try again.");
-			setLoading(false);
-			return;
-		}
-
 		try {
 			const token = localStorage.getItem('token');
 			if (!token) {
@@ -44,7 +38,7 @@ export default function ChangePassword() {
 			}
 			await axios.patch(
 				"http://localhost:1337/auth/change-password",
-				{ old_password: currentPassword, new_password: newPassword, new_password_confirmation: confirmPassword },
+				{ old_password: data.currentPassword, new_password: data.newPassword, new_password_confirmation: data.confirmPassword },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -85,22 +79,20 @@ export default function ChangePassword() {
 						<p className="text-sm font-medium" style={{color: "#424655"}}>Update your account password</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleSubmit}>
+					<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 						<div className="space-y-2">
 							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="currentPassword" style={{color: "#191c1e"}}>Current Password</label>
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="currentPassword"
-								name="currentPassword"
 								autoComplete="current-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={currentPassword}
-								onChange={(e) => setCurrentPassword(e.target.value)}
-								required
+								{...register('currentPassword')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.currentPassword && <p className="text-xs" style={{color: "#dc2626"}}>{errors.currentPassword.message}</p>}
 						</div>
 
 						<div className="space-y-2">
@@ -108,16 +100,14 @@ export default function ChangePassword() {
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="newPassword"
-								name="newPassword"
 								autoComplete="new-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={newPassword}
-								onChange={(e) => setNewPassword(e.target.value)}
-								required
+								{...register('newPassword')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.newPassword && <p className="text-xs" style={{color: "#dc2626"}}>{errors.newPassword.message}</p>}
 						</div>
 
 						<div className="space-y-2">
@@ -125,16 +115,14 @@ export default function ChangePassword() {
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="confirmPassword"
-								name="confirmPassword"
 								autoComplete="new-password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								required
+								{...register('confirmPassword')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.confirmPassword && <p className="text-xs" style={{color: "#dc2626"}}>{errors.confirmPassword.message}</p>}
 						</div>
 
 						<div className="flex items-center">

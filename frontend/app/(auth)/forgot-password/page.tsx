@@ -4,44 +4,30 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const forgotSchema = z.object({
+	email: z.string()
+		.email("Enter a valid email address")
+		.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
+});
+
+type ForgotForm = z.infer<typeof forgotSchema>;
 
 export default function ForgotPassword() {
-	const [email, setEmail] = useState("");
+	const { register, handleSubmit, formState: { errors } } = useForm<ForgotForm>({
+		resolver: zodResolver(forgotSchema),
+	});
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const forgotSchema = z.object({
-		email: z.string()
-			.email("Enter a valid email address")
-			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
-	});
-
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: ForgotForm) => {
 		setLoading(true);
-		setErrorMessage(null);
-
-		if (!email.includes("@")) {
-			const message = "Please enter a valid email address. It should contain '@'.";
-			setErrorMessage(message);
-			toast.error(message + " Please try again.");
-			setLoading(false);
-			return;
-		}
-		const parseResult = forgotSchema.safeParse({ email });
-		if (!parseResult.success) {
-			const message = parseResult.error.issues[0]?.message || "Invalid input";
-			setErrorMessage(message);
-			toast.error(message + " Please try again.");
-			setLoading(false);
-			return;
-		}
-
 		try {
 			const response = await axios.post(
 				"http://localhost:1337/auth/forgot-password",
-				{ email },
+				{ email: data.email },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -50,8 +36,7 @@ export default function ForgotPassword() {
 				}
 			);
 
-			const data = await response.data;
-			const message = data.message || "Password reset email sent successfully";
+			const message = response.data?.message || "Password reset email sent successfully";
 			toast.success(message);
 			router.push("/login");
 
@@ -62,7 +47,6 @@ export default function ForgotPassword() {
 				: err instanceof Error
 						? err.message
 						: "An unknown error occurred.";
-			setErrorMessage(message);
 			toast.error(message + " Please try again.");
 		} finally {
 			setLoading(false);
@@ -84,27 +68,19 @@ export default function ForgotPassword() {
 						<p className="text-sm font-medium" style={{color: "#424655"}}>Enter your email to receive a password reset link</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleSubmit}>
+					<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 						<div className="space-y-2">
 							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="email" style={{color: "#191c1e"}}>Email Address</label>
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="email"
-								name="email"
 								placeholder="your@email.com"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								required
+								{...register('email')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.email && <p className="text-xs" style={{color: "#dc2626"}}>{errors.email.message}</p>}
 						</div>
-
-						{errorMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
-								{errorMessage}
-							</div>
-						)}
 
 						<button
 							type="submit"

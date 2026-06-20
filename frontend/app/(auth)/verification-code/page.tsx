@@ -4,47 +4,31 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const verificationSchema = z.object({
+	email: z.string()
+		.email("Enter a valid email address")
+		.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
+	code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
+});
+
+type VerificationForm = z.infer<typeof verificationSchema>;
 
 export default function VerificationCodePage() {
-	const [email, setEmail] = useState("");
-	const [code, setCode] = useState("");
+	const { register, handleSubmit, formState: { errors } } = useForm<VerificationForm>({
+		resolver: zodResolver(verificationSchema),
+	});
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-	const verificationSchema = z.object({
-		email: z.string()
-			.email("Enter a valid email address")
-			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
-		code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
-	});
-
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: VerificationForm) => {
 		setLoading(true);
-		setErrorMessage(null);
-		setSuccessMessage(null);
-		if (!email.includes("@")) {
-			const message = "Please enter a valid email address. It should contain '@'.";
-			setErrorMessage(message);
-			toast.error(message + " Please try again.");
-			setLoading(false);
-			return;
-		}
-
-		const parseResult = verificationSchema.safeParse({ email, code });
-		if (!parseResult.success) {
-			const message = parseResult.error.issues[0]?.message || "Invalid input";
-			setErrorMessage(message);
-			toast.error(message + " Please try again.");
-			setLoading(false);
-			return;
-		}
 		try {
 			const response = await axios.post(
 				"http://localhost:1337/auth/verify-code",
-				{ email, code },
+				{ email: data.email, code: data.code },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -69,7 +53,6 @@ export default function VerificationCodePage() {
 			}
 			const message = response.data?.message || "Email verified successfully";
 			toast.success(message);
-            setSuccessMessage(message);
 			router.push("/success");
 
 		} catch (err) {
@@ -79,9 +62,7 @@ export default function VerificationCodePage() {
 				: err instanceof Error
 						? err.message
 						: "An unknown error occurred.";
-			setErrorMessage(message);
 			toast.error(message + " Please try again.");
-			setSuccessMessage(null);
 			router.push("/verification-email");
 		} finally {
 			setLoading(false);
@@ -103,7 +84,7 @@ export default function VerificationCodePage() {
 						<p className="text-sm font-medium" style={{color: "#424655"}}>Enter the verification code sent to your email address</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleSubmit}>
+					<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 						<div className="space-y-2">
 							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="email" style={{color: "#191c1e"}}>Email Address</label>
 							<div className="relative">
@@ -116,13 +97,11 @@ export default function VerificationCodePage() {
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="email" 
-									name="email" 
 									placeholder="your@email.com"
-									value={email} 
-									onChange={(e) => setEmail(e.target.value)} 
-									required
+									{...register('email')}
 								/>
 							</div>
+							{errors.email && <p className="text-xs" style={{color: "#dc2626"}}>{errors.email.message}</p>}
 						</div>
 
 						<div className="space-y-2">
@@ -137,27 +116,14 @@ export default function VerificationCodePage() {
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="code" 
-									name="code" 
 									placeholder="Enter 6-digit code" 
 									type="text" 
-									value={code} 
-									onChange={(e) => setCode(e.target.value)} 
 									maxLength={6}
-									required
+									{...register('code')}
 								/>
 							</div>
+							{errors.code && <p className="text-xs" style={{color: "#dc2626"}}>{errors.code.message}</p>}
 						</div>
-
-						{errorMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
-								{errorMessage}
-							</div>
-						)}
-						{successMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#e6fff1", color: "#0f7a3d" }} role="status" aria-live="polite">
-								{successMessage}
-							</div>
-						)}
 
 						<button
 							type="submit"

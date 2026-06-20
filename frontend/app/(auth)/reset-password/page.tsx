@@ -4,50 +4,41 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const resetSchema = z.object({
+	password: z.string().min(8, "Password must be at least 8 characters"),
+	confirmPassword: z.string().min(8, "Confirm password is required"),
+}).refine((data) => data.password === data.confirmPassword, {
+	path: ["confirmPassword"],
+	message: "Passwords do not match",
+});
+
+type ResetForm = z.infer<typeof resetSchema>;
 
 export default function ResetPassword() {
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+	const { register, handleSubmit, formState: { errors } } = useForm<ResetForm>({
+		resolver: zodResolver(resetSchema),
+	});
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const token = searchParams.get('token');
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-	const resetSchema = z.object({
-		token: z.string().trim().min(1, "Reset token is missing. Please request a new password reset link."),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-		confirmPassword: z.string().min(8, "Confirm password is required"),
-	}).refine((data) => data.password === data.confirmPassword, {
-		path: ["confirmPassword"],
-		message: "Passwords do not match",
-	});
-
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		setLoading(true);
-		setErrorMessage(null);
-		setSuccessMessage(null);
-
-		const parseResult = resetSchema.safeParse({
-			token: token ?? "",
-			password,
-			confirmPassword,
-		});
-		if (!parseResult.success) {
-			const message = parseResult.error.issues[0]?.message || "Invalid input";
-			setErrorMessage(message);
-			toast.error(message + " Please try again.");
-			setLoading(false);
+	const onSubmit = async (data: ResetForm) => {
+		if (!token) {
+			const message = "Reset token is missing. Please request a new password reset link.";
+			toast.error(message);
 			return;
 		}
 
+		setLoading(true);
 		try {
 			const response = await axios.patch(
 				`http://localhost:1337/auth/reset-password/token=${token}`,
-				{ new_password: password },
+				{ new_password: data.password },
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -55,9 +46,7 @@ export default function ResetPassword() {
 					},
 				}
 			);
-			setErrorMessage(null);
 			const message = response.data?.message || "Password has been reset successfully";
-			setSuccessMessage(message);
 			toast.success(message);
 			router.push("/success");
 
@@ -68,7 +57,6 @@ export default function ResetPassword() {
 				: err instanceof Error
 						? err.message
 						: "An unknown error occurred.";
-			setErrorMessage(message);
 			toast.error(message + " Please try again.");
 		} finally {
 			setLoading(false);
@@ -90,21 +78,19 @@ export default function ResetPassword() {
 						<p className="text-sm font-medium" style={{color: "#424655"}}>Enter your new password</p>
 					</header>
 
-					<form className="space-y-6" onSubmit={handleSubmit}>
+					<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 						<div className="space-y-2">
 							<label className="block text-xs font-semibold uppercase tracking-wider" htmlFor="password" style={{color: "#191c1e"}}>New Password</label>
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="password"
-								name="password"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required
+								{...register('password')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.password && <p className="text-xs" style={{color: "#dc2626"}}>{errors.password.message}</p>}
 						</div>
 
 						<div className="space-y-2">
@@ -112,15 +98,13 @@ export default function ResetPassword() {
 							<input
 								className="w-full px-4 py-4 border-none rounded-xl outline-none font-medium" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 								id="confirmPassword"
-								name="confirmPassword"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								required
+								{...register('confirmPassword')}
 								onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
 								onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 							/>
+							{errors.confirmPassword && <p className="text-xs" style={{color: "#dc2626"}}>{errors.confirmPassword.message}</p>}
 						</div>
 
 						<div className="flex items-center">
@@ -133,17 +117,6 @@ export default function ResetPassword() {
 							/>
 							<label className="ml-2 text-sm font-medium cursor-pointer select-none" htmlFor="showPassword" style={{color: "#424655"}}>Show password</label>
 						</div>
-
-						{errorMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#ffe6e6", color: "#8b0000" }} role="alert">
-								{errorMessage}
-							</div>
-						)}
-						{successMessage && (
-							<div className="rounded-lg px-4 py-3 text-sm font-medium" style={{ backgroundColor: "#e6fff1", color: "#0f7a3d" }} role="status" aria-live="polite">
-								{successMessage}
-							</div>
-						)}
 
 						<button
 							type="submit"

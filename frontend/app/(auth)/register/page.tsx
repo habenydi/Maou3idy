@@ -4,50 +4,42 @@ import { useRouter } from 'next/navigation';
 import Img  from 'next/image';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { z } from 'zod';
+import { set, z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const registerSchema = z
+	.object({
+			name: z.string().min(2, "Name must be at least 2 characters"),
+			email: z.string()
+				.trim()
+				.email("Enter a valid email address")
+				.refine((value) => value.includes("@"), "Please enter a valid email address. It should contain '@'.")
+				.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
+			phone: z.string().optional().or(z.literal("")).refine(
+				(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
+				{ message: "Enter a valid phone number" }
+			),
+			password: z.string().min(8, "Password must be at least 8 characters"),
+			confirm_password: z.string().min(8, "Confirm password is required"),
+			terms: z.boolean(),
+		}).refine((data) => data.terms, {
+			path: ["terms"],
+			message: "Please accept the Terms of Service and Privacy Policy",
+		}).refine((data) => data.password === data.confirm_password, {
+			path: ["confirm_password"],
+			message: "Passwords do not match",
+		});
+
+type registerForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
-	const  [showPassword, setShowPassword] = useState(false);
-	const [formData, setFormData] = useState({
-		name: "",
-		email: "",
-		phone: "",
-		password: "",
-		confirm_password: "",
-		terms: false,
+	const { register, handleSubmit, formState: { errors } } = useForm<registerForm>({
+		resolver: zodResolver(registerSchema),
 	});
+	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-
-	const registerSchema = z.object({
-		name: z.string().min(2, "Name must be at least 2 characters"),
-		email: z.string()
-			.trim()
-			.email("Enter a valid email address")
-			.refine((value) => value.includes("@"), "Please enter a valid email address. It should contain '@'.")
-			.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
-		phone: z.string().optional().or(z.literal("")).refine(
-			(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
-			{ message: "Enter a valid phone number" }
-		),
-		password: z.string().min(8, "Password must be at least 8 characters"),
-		confirm_password: z.string().min(8, "Confirm password is required"),
-		terms: z.boolean(),
-	}).refine((data) => data.terms, {
-		path: ["terms"],
-		message: "Please accept the Terms of Service and Privacy Policy",
-	}).refine((data) => data.password === data.confirm_password, {
-		path: ["confirm_password"],
-		message: "Passwords do not match",
-	});
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value, type, checked } = e.target;
-		setFormData(prev => ({
-			...prev,
-			[name]: type === 'checkbox' ? checked : value
-		}));
-	};
 
 	const handleGoogleLogin = async () => {
 		try {
@@ -59,50 +51,33 @@ export default function Register() {
 		}
 	};
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onSubmit = async (data: registerForm) => {
+	try {
+		console.log(data);
 		setIsLoading(true);
-		try {
-			console.log("Submitting registration form with data:", formData);
-			const parseResult = registerSchema.safeParse(formData);
-			if (!parseResult.success) {
-				const message = parseResult.error.issues[0]?.message || "Invalid input";
-				toast.error(message + " Please try again.");
-				setIsLoading(false);
-				return;
-			}
+		const parseResult = registerSchema.safeParse(data);
 
-			const { data } = await axios.post(
-				"http://localhost:1337/auth/register",
-				{
-					name: formData.name,
-					email: formData.email,
-					phone: formData.phone,
-					password: formData.password,
-				},
-				{
-					headers: {
-						"Content-Type": "application/json",
-						"Accept": "application/json",
-					},
-					withCredentials: true,
-				}
-			);
-			localStorage.setItem("auth_user", JSON.stringify(data.user));
-			toast.success("Registration successful! Redirecting...");
-			router.push("/success");
-		} catch (err) {
-			console.error(err);
-			const message =
-				axios.isAxiosError(err)
-					? (err.response?.data as { message?: string })?.message || "Registration failed"
-					: err instanceof Error
-						? err.message
-						: "An unknown error occurred.";
-			toast.error(message + " Please try again.");
-		} finally {
-			setIsLoading(false);
+		if (!parseResult.success) {
+		toast.error(parseResult.error.issues[0]?.message);
+		return;
 		}
+
+		const response = await axios.post(
+		"http://localhost:1337/auth/register",
+		{
+			name: data.name,
+			email: data.email,
+			phone: data.phone,
+			password: data.password,
+		}
+		);
+
+		toast.success("Registration successful!");
+		router.push("/success");
+	} catch (error) {
+		console.error(error);
+		toast.error("An error occurred during registration.");
+	}
 	};
 
 	return (
@@ -156,13 +131,14 @@ export default function Register() {
 						</div>
 
 						{/* Registration Form */}
-						<form className="space-y-6" onSubmit={handleSubmit}>
+						<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
 							{/* Full Name */}
 							<div className="space-y-2">
 								<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="name" style={{color: "#5f6368"}}>Full Name</label>
 								<div className="relative">
 									<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="person" style={{color: "#727787"}}>person</span>
-									<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e", boxShadow: "none"}} id="name" name="name" placeholder="John Doe" type="text" value={formData.name} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+									<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e", boxShadow: "none"}} id="name" placeholder="John Doe" type="text" {...register('name')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+									{errors.name && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.name.message}</p>}
 								</div>
 							</div>
 
@@ -172,14 +148,16 @@ export default function Register() {
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="email" style={{color: "#5f6368"}}>Email</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="mail" style={{color: "#727787"}}>mail</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="email" name="email" placeholder="john@example.com"value={formData.email} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="email" placeholder="john@example.com" {...register('email')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										{errors.email && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.email.message}</p>}
 									</div>
 								</div>
 								<div className="space-y-2">
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="phone" style={{color: "#5f6368"}}>Phone</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="call" style={{color: "#727787"}}>call</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="phone" name="phone" placeholder="+1 (555) 000-0000" type="tel" value={formData.phone} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="phone" placeholder="+1 (555) 000-0000" type="tel" {...register('phone')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										{errors.phone && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.phone.message}</p>}
 									</div>
 								</div>
 							</div>
@@ -190,14 +168,16 @@ export default function Register() {
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="password" style={{color: "#5f6368"}}>Password</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="lock" style={{color: "#727787"}}>lock</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="password" name="password" placeholder="••••••••" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...register('password')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										{errors.password && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.password.message}</p>}
 									</div>
 								</div>
 								<div className="space-y-2">
 									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="confirm_password" style={{color: "#5f6368"}}>Confirm Password</label>
 									<div className="relative">
 										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="verified_user" style={{color: "#727787"}}>verified_user</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="confirm_password" name="confirm_password" placeholder="••••••••" type={showPassword ? "text" : "password"} value={formData.confirm_password} onChange={handleChange} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="confirm_password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...register('confirm_password')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
+										{errors.confirm_password && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.confirm_password.message}</p>}
 									</div>
 								</div>
 							</div>
@@ -210,7 +190,8 @@ export default function Register() {
 									</label>
 								</div>
 								<div className="flex gap-2">
-									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" name="terms" type="checkbox" checked={formData.terms} onChange={handleChange} />
+									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" type="checkbox" {...register('terms')} />
+									{errors.terms && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.terms.message}</p>}
 									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="terms">
 										I agree to the <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Terms of Service</a> and <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Privacy Policy</a>.
 									</label>
