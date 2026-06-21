@@ -1,6 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { useAuth } from '@/app/layout';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -13,15 +15,24 @@ export default function Navbar({
   showAuthButtons = true,
   logoText = 'MedReserve'
 }: NavbarProps) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const router = useRouter();
+  const { user, loading, setUser } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    setIsLoggedIn(Boolean(token));
-  }, []);
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:1337/auth/logout", {}, {
+        withCredentials: true,
+      });
+      setUser(null);
+      toast.success("Logged out successfully");
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed");
+    }
+  };
 
-  if (isLoggedIn === null) return null;
+  if (loading) return null;
 
   return (
     <header className="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm">
@@ -68,7 +79,7 @@ export default function Navbar({
 
         {showAuthButtons && (
           <div className="flex items-center gap-4">
-            {!isLoggedIn ? (
+            {!user ? (
               <>
                 <button 
                   onClick={() => router.push('/login')}
@@ -92,11 +103,7 @@ export default function Navbar({
                   Dashboard
                 </button>
                 <button 
-                  onClick={() => {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('user_id');
-                    router.push('/login');
-                  }}
+                  onClick={handleLogout}
                   className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                 >
                   Logout

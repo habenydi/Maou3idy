@@ -37,20 +37,6 @@ export default function VerificationCodePage() {
 					withCredentials: true,
 				}
 			);
-			const storedUser = localStorage.getItem('auth_user');
-			if (storedUser) {
-				try {
-					const parsedUser = JSON.parse(storedUser) as { verified?: boolean };
-					localStorage.setItem('auth_user', JSON.stringify({
-						...parsedUser,
-						verified: true,
-					}));
-					toast.success("Email verified successfully");
-				} catch {
-					localStorage.setItem('auth_user', JSON.stringify({ verified: true }));
-					toast.error("Failed to update user verification status");
-				}
-			}
 			const message = response.data?.message || "Email verified successfully";
 			toast.success(message);
 			router.push("/success");

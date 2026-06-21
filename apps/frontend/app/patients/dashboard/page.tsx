@@ -1,23 +1,19 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import { useAuth } from '@/app/layout';
 
 export default function PatientDashboard() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    setIsLoggedIn(true);
-  }, [router]);
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
-  if (!isLoggedIn) {
-    return <div>Redirecting...</div>;
+  if (!user) {
+    router.push('/login');
+    return null;
   }
 
   return (

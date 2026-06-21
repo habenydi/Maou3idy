@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/app/layout';
 
 const changeSchema = z.object({
 	currentPassword: z.string().trim().min(8, "Current password is required"),
@@ -25,17 +26,20 @@ export default function ChangePassword() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
+	const { user, loading: authLoading } = useAuth();
+
+	if (authLoading) {
+		return <div className="flex items-center justify-center h-screen">Loading...</div>;
+	}
+
+	if (!user) {
+		router.push("/login");
+		return null;
+	}
 
 	const onSubmit = async (data: ChangeForm) => {
 		setLoading(true);
 		try {
-			const token = localStorage.getItem('token');
-			if (!token) {
-				const message = "You must be logged in to change your password.";
-				toast.error(message + " Please try again.");
-				router.push("/login");
-				return;
-			}
 			await axios.patch(
 				"http://localhost:1337/auth/change-password",
 				{ old_password: data.currentPassword, new_password: data.newPassword, new_password_confirmation: data.confirmPassword },

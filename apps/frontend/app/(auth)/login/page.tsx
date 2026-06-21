@@ -7,6 +7,7 @@ import axios from 'axios';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/app/layout';
 
 const loginSchema = z.object({
 	email: z.string()
@@ -26,6 +27,7 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
+	const { setUser } = useAuth();
 
 	const onSubmit = async (data: LoginForm) => {
 		setIsLoading(true);
@@ -38,13 +40,12 @@ export default function Login() {
 						"Content-Type": "application/json",
 						"Accept": "application/json",
 					},
+					withCredentials: true,
 				}
 			);
+			// Update auth context with user data from response
+			setUser(responseData.user);
 			toast.success("Login successful! Redirecting...");
-			localStorage.setItem("name", responseData.user.name);
-			localStorage.setItem("auth_user", JSON.stringify(responseData.user));
-			localStorage.setItem("remember_me", data.rememberMe ? "true" : "false");
-			localStorage.setItem("user_role", responseData.user.role);
 			router.push( responseData.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
 
 		} catch (err) {

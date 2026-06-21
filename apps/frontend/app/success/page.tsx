@@ -9,10 +9,17 @@ import { useAuth } from '../layout';
 export default function Success() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
-	const [isAthenticated, setIsAuthenticated] = useState(false);
-	const [userEmail, setUserEmail] = useState('');
-	const [isVerified, setIsVerified] = useState<boolean | null>(null);
-	const { user, loading } = useAuth();
+	const { user, loading, setUser } = useAuth();
+
+	useEffect(() => {
+		if (!loading && !user) {
+			router.push("/login");
+		}
+	}, [loading, user, router]);
+
+	if (loading || !user) {
+		return null;
+	}
 
 	const handleAdmin = async () => {
 		try {
@@ -36,36 +43,17 @@ export default function Success() {
 			}
 		}
 	};
-	useEffect(() => {
-		// if (loading) return; // Wait for the auth state to finish loading
-		if (!user) {
-			router.push("/login");
-			return;
-		}
-		const storedUser = localStorage.getItem('auth_user');
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsAuthenticated(true);
-		if (storedUser) {
-			try {
-				const parsedUser = JSON.parse(storedUser) as { email?: string; verified?: boolean };
-				setUserEmail(parsedUser.email ?? '');
-				setIsVerified(typeof parsedUser.verified === 'boolean' ? parsedUser.verified : null);
-			} catch {
-				setIsVerified(null);
-			}
-		}
-		setIsLoading(false);
-	}, [router]);
+
 	const handleLogout = async () => {
 		try {
-			const {	 data } = await axios.post("http://localhost:1337/auth/logout", {}, {
+			await axios.post("http://localhost:1337/auth/logout", {}, {
 				headers: {
 					"Content-Type": "application/json",
 					"Accept": "application/json",
 				},
 				withCredentials: true,
 			});
-			console.log(data);
+			setUser(null);
 			toast.success("Logout successful! Redirecting to login page...");
 			router.push("/");
 		} catch (error) {
@@ -77,9 +65,7 @@ export default function Success() {
 	const handleReset = () => {
         router.push("/change-password");
 	};
-	
-	if (isLoading || !isAthenticated)
-		return null;
+
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{backgroundColor: "#f9f9fd", color: "#191c1e"}}>
 			{/* Ambient Background Decorations */}
@@ -121,15 +107,15 @@ export default function Success() {
 					<div className="rounded-xl border p-6 mb-8" style={{backgroundColor: "#ffffff", borderColor: "#e5e7eb"}}>
 						<div className="flex items-center justify-between gap-4 mb-3">
 							<div>
-								<p className="text-sm font-semibold uppercase tracking-wider" style={{color: "#424655"}}>Email Verification</p>
-								<p className="text-sm mt-1" style={{color: "#727787"}}>{userEmail ? `Account: ${userEmail}` : 'Account verification status'}</p>
+								<p className="text-sm font-semibold uppercase tracking-wider" style={{color: "#424655"}}>Email</p>
+								<p className="text-sm mt-1" style={{color: "#727787"}}>{user?.email || 'Account email'}</p>
 							</div>
-							<div className="px-3 py-1 rounded-full text-xs font-bold" style={{backgroundColor: isVerified === true ? 'rgba(34, 197, 94, 0.12)' : isVerified === false ? 'rgba(239, 68, 68, 0.12)' : 'rgba(0, 87, 205, 0.12)', color: isVerified === true ? '#16a34a' : isVerified === false ? '#dc2626' : '#0057cd'}}>
-								{isVerified === true ? 'Verified' : isVerified === false ? 'Not verified' : 'Unknown'}
+							<div className="px-3 py-1 rounded-full text-xs font-bold" style={{backgroundColor: user?.verified ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)', color: user?.verified ? '#16a34a' : '#dc2626'}}>
+								{user?.verified ? 'Verified' : 'Not verified'}
 							</div>
 						</div>
 						<p className="text-sm" style={{color: "#424655"}}>
-							{isVerified === true
+							{user?.verified
 								? 'Your email has been verified successfully.'
 								: 'Please check your email inbox and click the verification link to activate your account.'}
 						</p>

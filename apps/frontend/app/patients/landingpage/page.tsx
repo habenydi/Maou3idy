@@ -6,34 +6,6 @@ import { getLandingPageData } from '@/services/landingPageService';
 import { Doctor, LandingPageData } from '@/types';
 import Navbar from '@/components/Navbar';
 
-function NavbarActions() {
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-	const router = useRouter();
-
-	useEffect(() => {
-		const token = localStorage.getItem("access_token");
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setIsLoggedIn(Boolean(token));
-	}, []);
-
-    if (isLoggedIn === null) return null;
-	return (
-		<>
-			{!isLoggedIn && (
-				<div className="flex items-center gap-4">
-					<button onClick={() => router.push('/login')} className="px-4 py-2 font-semibold text-slate-600 hover:text-blue-700 transition-all active:scale-95 duration-200">
-						Sign In
-					</button>
-
-					<button onClick={() => router.push('/doctor-signup')} className="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-sm hover:opacity-90 transition-all active:scale-95 duration-200">
-						Join as Doctor
-					</button>
-				</div>
-			)}
-		</>
-	);
-}
-
 const LandingPage = () => {
   const [landingData, setLandingData] = useState<LandingPageData | null>(null);
   const [loading, setLoading] = useState(true);
