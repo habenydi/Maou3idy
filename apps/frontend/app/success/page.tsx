@@ -9,20 +9,25 @@ import { useAuth } from '../layout';
 export default function Success() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
-	const { user, loading, setUser } = useAuth();
+	const { user, loading } = useAuth();
 
+	console.log("User data in Success page:", user);
+	
 	useEffect(() => {
-		if (!loading && !user) {
+		if (loading) {
+			return;
+		}
+		if (!user) {
 			router.push("/login");
 		}
-	}, [loading, user, router]);
-
+	}, [user, loading, router]);
 	if (loading || !user) {
 		return null;
 	}
 
 	const handleAdmin = async () => {
 		try {
+			setIsLoading(true);
 			const { data } = await axios.get("http://localhost:1337/users", {
 				headers: {
 					"Content-Type": "application/json",
@@ -46,6 +51,7 @@ export default function Success() {
 
 	const handleLogout = async () => {
 		try {
+			setIsLoading(true);
 			await axios.post("http://localhost:1337/auth/logout", {}, {
 				headers: {
 					"Content-Type": "application/json",
@@ -53,11 +59,12 @@ export default function Success() {
 				},
 				withCredentials: true,
 			});
-			setUser(null);
+			setIsLoading(false);
 			toast.success("Logout successful! Redirecting to login page...");
-			router.push("/");
+			router.push("/login");
 		} catch (error) {
 			console.error("Error during logout:", error);
+			setIsLoading(false);
 			toast.error("Logout failed. Please try again.");
 		}
 	};

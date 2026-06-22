@@ -46,7 +46,8 @@ export default function Login() {
 			// Update auth context with user data from response
 			setUser(responseData.user);
 			toast.success("Login successful! Redirecting...");
-			router.push( responseData.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
+			router.push("/success");
+			// router.push( responseData.user.role === "DOCTOR" ? "/doctor/dashboard" : "/patients/landingpage" );
 
 		} catch (err) {
 			console.error(err);

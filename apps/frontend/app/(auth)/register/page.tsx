@@ -75,8 +75,12 @@ export default function Register() {
 		toast.success("Registration successful!");
 		router.push("/success");
 	} catch (error) {
-		console.error(error);
-		toast.error("An error occurred during registration.");
+		if (axios.isAxiosError(error)) {
+			toast.error(error.response?.data?.message || error.message || "Registration failed");
+			setIsLoading(false);
+		} else {
+			toast.error("An unknown error occurred.");
+		}
 	}
 	};
 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useAuth } from '@/app/layout';
 
 export default function VerificationEmail() {
 	const searchParams = useSearchParams();
