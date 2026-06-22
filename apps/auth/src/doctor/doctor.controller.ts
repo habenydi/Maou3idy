@@ -6,9 +6,13 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from "@nestjs/common";
 import { DoctorService } from "./doctor.service";
 import { CreateDoctorDto } from "./dto/createDoctor.dto";
+import { Role } from "@prisma/client";
+import { RolesGuard } from "src/auth/guards/roles.guard";
+import { Roles } from "src/auth/decorator/roles.decorator";
 
 @Controller("doctors")
 export class DoctorController {
@@ -37,10 +41,14 @@ export class DoctorController {
   findById(@Param("id") id: string) {
     return this.doctorService.findById(Number(id));
   }
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @Put(":id")
   Update(@Param(":id") id: string, @Body() body: Partial<CreateDoctorDto>) {
     return this.doctorService.update(Number(id), body);
   }
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete(":id")
   remove(@Param(":id") id: string) {
     return this.doctorService.remove(Number(id));

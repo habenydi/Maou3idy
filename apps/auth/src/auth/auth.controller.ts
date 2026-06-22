@@ -9,8 +9,7 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
-import { Request } from "express";
-import type { Response } from "express";
+import type { Response, Request } from "express";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
@@ -25,9 +24,9 @@ interface UserAuth {
   sub: number;
   id: number;
   email: string;
+  verified: boolean;
   name: string;
   role: Role;
-  verified: boolean;
   token: string;
 }
 export interface UserGoogleAuth {
@@ -74,15 +73,15 @@ export class AuthController {
     }
   }
 
-  @Get("verify_email/token=:token")
-  async verifyEmail(@Param("token") token: string, @Res() res: Response) {
-    const isValid = await this.Authservice.verify_email(token);
-    if (isValid) {
-      res.redirect(`http://localhost:3000/login?verified=true`);
-    } else {
-      res.redirect(`http://localhost:3000/login?verified=false`);
-    }
-  }
+  // @Get("verify_email/token=:token")
+  // async verifyEmail(@Param("token") token: string, @Res() res: Response) {
+  //   const isValid = await this.Authservice.verify_email(token);
+  //   if (isValid) {
+  //     res.redirect(`http://localhost:3000/login?verified=true`);
+  //   } else {
+  //     res.redirect(`http://localhost:3000/login?verified=false`);
+  //   }
+  // }
   @Post("register")
   async register(
     @Body() body: RegisterDto,
@@ -95,6 +94,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     });
+    console.log("User registered successfully:", result.user);
     return { user: result.user };
   }
   @Post("login")
@@ -121,6 +121,7 @@ export class AuthController {
   }
   @Get("verify_email/token=:token")
   verify_email(@Param("token") token: string) {
+    console.log("Verifying email with token:", token);
     return this.Authservice.verify_email(token);
   }
   @Patch("reset-password/token=:token")
@@ -143,6 +144,7 @@ export class AuthController {
   @UseGuards(JwtGuard)
   @Get("me")
   getMe(@Req() req: RequestWithUser): UserAuth {
+    console.log("Authenticated user info:", req.user);
     return req.user;
   }
   @Post("doctor-register")

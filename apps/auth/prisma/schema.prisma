@@ -16,6 +16,7 @@ enum Role {
   DOCTOR
   ADMIN
   PENDING_DOCTOR
+  BANNED
 }
 
 model User {

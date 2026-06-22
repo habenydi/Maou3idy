@@ -14,11 +14,7 @@ import { MailerService } from "@nestjs-modules/mailer";
 import { Role } from "@prisma/client";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { DoctorService } from "src/doctor/doctor.service";
-
-interface JwtPayload {
-  sub: number;
-  email: string;
-}
+import { JwtPayload } from "./guards/jwt.guard";
 
 @Injectable()
 export class AuthService {
@@ -33,10 +29,7 @@ export class AuthService {
     return process.env.FRONTEND_URL ?? "http://127.0.0.1:3000";
   }
 
-  private signToken(
-    payload: { sub: number; email: string; role: Role },
-    expiresIn: string,
-  ) {
+  private signToken(payload: JwtPayload, expiresIn: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.jwtService.sign(payload, { expiresIn } as any);
   }
@@ -69,10 +62,12 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const payload = {
-      sub: user.id,
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
       email: user.email,
       role: user.role,
+      verified: user.verified,
     };
     const token = this.signToken(payload, "15m");
     const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
@@ -106,8 +101,14 @@ export class AuthService {
     if (!isMatched) {
       throw new UnauthorizedException("Wrong password");
     }
-    const playload = { sub: user.id, email: user.email, role: user.role };
-    const token = this.signToken(playload, "1d");
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
+    const token = this.signToken(payload, "1d");
     return {
       statusCode: 200,
       Message: "Login success",
@@ -132,10 +133,14 @@ export class AuthService {
           "If an account exists, a reset link has been sent to your email",
       };
     }
-    const token = this.signToken(
-      { sub: user.id, email: user.email, role: user.role },
-      "15m",
-    );
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
+    const token = this.signToken(payload, "15m");
     const url = `${this.frontendBaseUrl}/reset-password/?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
       to: email,
@@ -278,7 +283,13 @@ export class AuthService {
       });
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
     const token = this.signToken(payload, "1d");
 
     return {
@@ -292,8 +303,19 @@ export class AuthService {
       },
     };
   }
-  generateTokenForGoogleUser(user: { id: number; email: string; role: Role }) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+  generateTokenForGoogleUser(user: {
+    id: number;
+    name: string;
+    email: string;
+    role: Role;
+  }) {
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: true,
+    };
     const token = this.signToken(payload, "1d");
     return token;
   }
