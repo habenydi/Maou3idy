@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Img  from 'next/image';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { set, z } from 'zod';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
