@@ -26,7 +26,6 @@ export class JwtGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-
     const token = request.cookies?.access_token;
 
     if (!token) {
@@ -35,7 +34,6 @@ export class JwtGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-
       if (!payload?.sub || !payload?.email) {
         throw new UnauthorizedException("Invalid token payload");
       }

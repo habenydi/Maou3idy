@@ -52,15 +52,16 @@ export class AuthController {
   googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     const user = req.user;
     const token = this.Authservice.generateTokenForGoogleUser(user);
-    const encodedUser = Buffer.from(JSON.stringify(user)).toString("base64");
     res.cookie("access_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
-    res.redirect(
-      `http://localhost:3000/google-callback?token=${token}&user=${encodedUser}`,
-    );
+    console.log("Google OAuth callback user:", user);
+    console.log("Generated JWT token for Google user:", token);
+    console.log("this is the getted token", res.getHeader("Set-Cookie"));
+    res.redirect(`http://localhost:3000/google-callback`);
   }
 
   @Get("verify/:token")
@@ -93,6 +94,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
     console.log("User registered successfully:", result.user);
     return { user: result.user };

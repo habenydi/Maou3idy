@@ -39,7 +39,6 @@ export class AuthService {
       throw new BadRequestException("Password must be at least 8 characters");
     }
   }
-
   async hashPassword(password: string) {
     return await bcrypt.hash(password, 10);
   }
