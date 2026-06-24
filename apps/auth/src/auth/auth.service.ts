@@ -68,7 +68,7 @@ export class AuthService {
       role: user.role,
       verified: user.verified,
     };
-    const token = this.signToken(payload, "15m");
+    const token = this.signToken(payload, "1d");
     const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
       to: email,
@@ -139,7 +139,7 @@ export class AuthService {
       role: user.role,
       verified: user.verified,
     };
-    const token = this.signToken(payload, "15m");
+    const token = this.signToken(payload, "1d");
     const url = `${this.frontendBaseUrl}/reset-password/?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
       to: email,

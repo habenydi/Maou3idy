@@ -28,8 +28,12 @@ export class JwtGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const token = request.cookies?.access_token;
 
+    if (request.cookies) {
+      console.log(request.cookies);
+      // throw new UnauthorizedException("Unauthorized!");
+    }
     if (!token) {
-      throw new UnauthorizedException("Unauthorized!");
+      throw new UnauthorizedException("Unauthorized! sdfnur askdn");
     }
 
     try {

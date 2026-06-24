@@ -58,9 +58,7 @@ export class AuthController {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
-    console.log("Google OAuth callback user:", user);
-    console.log("Generated JWT token for Google user:", token);
-    console.log("this is the getted token", res.getHeader("Set-Cookie"));
+    console.log(res.getHeader("Set-Cookie"));
     res.redirect(`http://localhost:3000/google-callback`);
   }
 
@@ -96,7 +94,6 @@ export class AuthController {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
-    console.log("User registered successfully:", result.user);
     return { user: result.user };
   }
   @Post("login")
