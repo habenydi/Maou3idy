@@ -26,7 +26,7 @@ const registerDoctorSchema = z.object({
     ),
   speciality: z.string().min(1, "Specialty is required"),
   license_number: z.string().min(1, "License number is required"),
-  years_of_experience: z.coerce.number().min(0),
+  years_of_experience: z.number().min(0),
   bio: z.string().min(1, "Brief bio is required"),
   phone: z.string().min(1, "Phone number is required"),
 });
@@ -52,7 +52,7 @@ function RegisterDoctor() {
     }
 
     const validTypes = ["application/pdf", "image/png", "image/jpeg"];
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       setMedicalLicenseError("File must be PDF, PNG, or JPG");
@@ -69,7 +69,8 @@ function RegisterDoctor() {
     setMedicalLicense(file);
   };
 
-  const onSubmit = async (data: RegisterDoctorForm) => {
+const onSubmit = async (data: RegisterDoctorForm) => {
+  console.log(data);
     if (!medicalLicense) {
       setMedicalLicenseError("Medical license file is required");
       return;
@@ -88,45 +89,43 @@ function RegisterDoctor() {
       payload.append("phone", data.phone);
       payload.append("medical_license", medicalLicense);
 
+      for (const [key, value] of payload.entries()) {
+        console.log(key, value);
+      }
+
       const { data: responseData } = await axios.post(
         "http://localhost:1337/auth/doctor-register",
         payload,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
           },
           withCredentials: true,
         }
       );
-
-      toast.success(responseData.message || "Registration successful! Please check your email to verify your account.");
+      toast.success("Registration successful! we will contact you shortly.");
       setMedicalLicense(null);
-      router.push("/doctor/dashboard");
+      router.push("/patients/landingpage");
     } catch (error) {
-      const message =
-        axios.isAxiosError(error)
-          ? error.response?.data?.message || "Registration failed"
-          : error instanceof Error
-            ? error.message
-            : "An unexpected error occurred";
-      console.error("Registration error:", error);
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
+        if (axios.isAxiosError(error)) {
+          const backendMessage = error.response?.data?.message;
+
+          toast.error(
+            Array.isArray(backendMessage)
+              ? backendMessage.join(", ")
+              : backendMessage || "Request failed"
+          );
+        } else {
+          toast.error("An unexpected error occurred");
+        }
+
+  setIsLoading(false);
+  }
   };
 
   return (
     <>
-      <meta charSet="utf-8" />
-      <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-      <title>Join MedReserve | Professional Registration</title>
-      <style
-        dangerouslySetInnerHTML={{
-          __html:
-            "\n        body { font-family: 'Inter', sans-serif; }\n        h1, h2, h3 { font-family: 'Manrope', sans-serif; }\n        .material-symbols-outlined {\n            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;\n        }\n        .glass-panel {\n            background: rgba(255, 255, 255, 0.7);\n            backdrop-filter: blur(12px);\n        }\n    "
-        }}
-      />
       <Navbar activeLink="doctors" showAuthButtons={true} />
       <main className="pt-24 pb-20 px-4 md:px-8 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Img from 'next/image';
 import { toast } from 'react-toastify';
@@ -27,8 +27,14 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-	const { setUser } = useAuth();
+	const { user , setUser } = useAuth();
 
+	useEffect(() => {
+		if (user) {
+			toast.info("You are already logged in. Redirecting...");
+			router.push(user.role === "DOCTOR" || user.role === "ADMIN" ? "/doctor/dashboard" : "/patients/landingpage");
+		}
+	}, [user, router]);
 	const onSubmit = async (data: LoginForm) => {
 		setIsLoading(true);
 		try {

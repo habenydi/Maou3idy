@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAuth } from "@/app/layout";
 
@@ -8,6 +8,7 @@ export default function GoogleCallback() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
+  console.log(user);
   useEffect(() => {
     if (loading) return;
 

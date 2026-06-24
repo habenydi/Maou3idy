@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useAuth } from '@/app/layout';
+import { AuthProvider, useAuth } from '@/app/layout';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -97,10 +97,10 @@ export default function Navbar({
             ) : (
               <>
                 <button 
-                  onClick={() => router.push('/patients/dashboard')}
+                  onClick={() => router.push('/register-doctor')}
                   className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
                 >
-                  Dashboard
+                  Register as a doctor
                 </button>
                 <button 
                   onClick={handleLogout}

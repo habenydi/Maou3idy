@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Img  from 'next/image';
 import { toast } from 'react-toastify';
@@ -7,6 +7,7 @@ import axios from 'axios';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/app/layout';
 
 const registerSchema = z
 	.object({
@@ -40,6 +41,7 @@ export default function Register() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
+	const { user , loading} = useAuth();
 
 	const handleGoogleLogin = async () => {
 		try {
@@ -51,6 +53,13 @@ export default function Register() {
 		}
 	};
 
+	useEffect(() => {
+		if (loading) return; // Wait until loading is false
+		if (user) {
+			toast.info("You are already logged in. Redirecting...");
+			router.push(user.role === "DOCTOR" || user.role === "ADMIN" ? "/doctor/dashboard" : "/patients/landingpage");
+		}
+	}, [user, loading, router]);
 	const onSubmit = async (data: registerForm) => {
 	try {
 		console.log(data);
@@ -69,11 +78,15 @@ export default function Register() {
 			email: data.email,
 			phone: data.phone,
 			password: data.password,
-		}
-		);
+		}, { headers: {
+			"Content-Type": "application/json",
+			"Accept": "application/json",
+		},
+			withCredentials: true,
+		});
 
 		toast.success("Registration successful!");
-		router.push("/success");
+		router.push("/patients/landingpage");
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			toast.error(error.response?.data?.message || error.message || "Registration failed");
