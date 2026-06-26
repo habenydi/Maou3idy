@@ -33,6 +33,8 @@ export class DoctorController {
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {
     return this.doctorService.create(body, Number(id));
   }
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @Get()
   async findAll() {
     return await this.doctorService.findAll();
@@ -52,5 +54,11 @@ export class DoctorController {
   @Delete(":id")
   remove(@Param(":id") id: string) {
     return this.doctorService.remove(Number(id));
+  }
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @Put(":id/approve")
+  approve(@Param(":id") id: string) {
+    return this.doctorService.approve(Number(id));
   }
 }

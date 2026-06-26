@@ -21,6 +21,6 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL || 'postgresql://yassir:123@127.0.0.1:5432/nest_db',
+    url: process.env.DATABASE_URL || 'postgresql://yassir:123@localhost:5432/nest_db',
   },
 });

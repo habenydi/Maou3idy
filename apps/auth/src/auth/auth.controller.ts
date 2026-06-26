@@ -28,6 +28,19 @@ interface UserAuth {
   name: string;
   role: Role;
   token: string;
+  doctor?: {
+    id: number;
+    specialty: string;
+    location: string;
+    experience: number;
+    bio: string;
+    rating: number;
+    totalPatients: number;
+    languages: string[];
+    reviewsCount: number;
+    profileImage: string;
+    speciality: string;
+  };
 }
 export interface UserGoogleAuth {
   id: number;
@@ -58,7 +71,6 @@ export class AuthController {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
-    console.log(res.getHeader("Set-Cookie"));
     res.redirect(`http://localhost:3000/google-callback`);
   }
 
@@ -86,7 +98,6 @@ export class AuthController {
     @Body() body: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log("Registering user with email:", body.email);
     const result = await this.Authservice.register(body);
     res.cookie("access_token", result.token, {
       httpOnly: true,
@@ -120,7 +131,6 @@ export class AuthController {
   }
   @Get("verify_email/token=:token")
   verify_email(@Param("token") token: string) {
-    console.log("Verifying email with token:", token);
     return this.Authservice.verify_email(token);
   }
   @Patch("reset-password/token=:token")
@@ -143,7 +153,6 @@ export class AuthController {
   @UseGuards(JwtGuard)
   @Get("me")
   getMe(@Req() req: RequestWithUser): UserAuth {
-    console.log("Authenticated user info:", req.user);
     return req.user;
   }
   @Post("doctor-register")

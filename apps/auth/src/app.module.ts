@@ -6,6 +6,7 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config";
 import { DoctorModule } from "./doctor/doctor.module";
+import { AdminModule } from "./admin/admin.module";
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DoctorModule } from "./doctor/doctor.module";
       }),
     }),
     DoctorModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

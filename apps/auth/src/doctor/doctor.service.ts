@@ -113,4 +113,10 @@ export class DoctorService {
       locations: ["New York, NY"],
     };
   }
+  approve(id: number) {
+    return this.prisma.doctor.update({
+      where: { id },
+      data: { verified: true },
+    });
+  }
 }

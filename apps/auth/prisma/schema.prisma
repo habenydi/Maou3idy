@@ -56,6 +56,13 @@ model Doctor {
   updatedAt      DateTime       @updatedAt
 }
 
+model Auditlog {
+  id        Int      @id @default(autoincrement())
+  user_id   Int
+  action    String
+  timestamp DateTime @default(now())
+}
+
 model Category {
   id        Int       @id @default(autoincrement())
   name      String
