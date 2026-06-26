@@ -101,7 +101,7 @@ const LandingPage = () => {
                 <h2 className="text-4xl font-bold tracking-tight mb-4">Our Top-Rated Specialists</h2>
                 <p className="text-on-surface-variant">Qualified professionals across multiple disciplines.</p>
               </div>
-              <button onClick={() => router.push('/doctors')} className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
+              <button onClick={() => router.push('/patients/doctor')} className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
                 View all specialties <span className="material-symbols-outlined">arrow_forward</span>
               </button>
             </div>
@@ -187,8 +187,8 @@ const LandingPage = () => {
               <div>
                 <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-8">Ready to prioritize your health?</h2>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <button onClick={() => router.push('/signup')} className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
-                  <button onClick={() => router.push('/doctor-signup')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
+                  <button onClick={() => router.push('/register')} className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
+                  <button onClick={() => router.push('/register-doctor')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
                 </div>
               </div>
               <div className="hidden lg:flex justify-center">

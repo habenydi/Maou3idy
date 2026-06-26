@@ -8,7 +8,6 @@ export default function GoogleCallback() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  console.log(user);
   useEffect(() => {
     if (loading) return;
 

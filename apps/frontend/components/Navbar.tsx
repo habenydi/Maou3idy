@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { AuthProvider, useAuth } from '@/app/layout';
+import { useAuth } from '@/app/layout';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -39,14 +39,14 @@ export default function Navbar({
       <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-8">
           <span 
-            onClick={() => router.push('/')} 
+            onClick={() => router.push('/patients/landingpage')} 
             className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer"
           >
             {logoText}
           </span>
           <nav className="hidden md:flex items-center gap-6 font-manrope tracking-tight font-semibold">
             <a 
-              onClick={() => router.push('/patients/doctor')}
+              onClick={() => router.push('/patients/landingpage')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'doctors' 
                   ? 'text-blue-600 border-b-2 border-blue-600' 
@@ -56,7 +56,7 @@ export default function Navbar({
               Find Doctors
             </a>
             <a 
-              onClick={() => router.push('/specialties')}
+              onClick={() => router.push('/patients/doctor')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'specialties' 
                   ? 'text-blue-600 border-b-2 border-blue-600' 
@@ -66,6 +66,7 @@ export default function Navbar({
               Specialties
             </a>
             <a 
+              onClick={() => router.push('/about-us')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'about' 
                   ? 'text-blue-600 border-b-2 border-blue-600' 
@@ -100,7 +101,7 @@ export default function Navbar({
                   onClick={() => router.push('/register-doctor')}
                   className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
                 >
-                  Register as a doctor
+                  Join as doctor
                 </button>
                 <button 
                   onClick={handleLogout}

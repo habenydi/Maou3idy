@@ -9,7 +9,7 @@ const DoctorPage = () => {
 
   return (
     <div className="bg-surface text-on-surface">
-      <Navbar activeLink="doctors" />
+      <Navbar activeLink="specialties" />
 
       <main className="pt-24 pb-12 max-w-screen-2xl mx-auto px-6">
         <section className="mb-12">

@@ -10,8 +10,6 @@ export default function Success() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const { user, loading } = useAuth();
-
-	console.log("User data in Success page:", user);
 	
 	useEffect(() => {
 		if (loading) {
@@ -35,7 +33,6 @@ export default function Success() {
 				},
 				withCredentials: true,
 			});
-			console.log(data);
 			toast.success("Admin access successful! Check console for user data.");
 		} catch (error) {
 			console.error("Error fetching users:", error);

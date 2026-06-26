@@ -9,7 +9,6 @@ export default async function DoctorLayout({
   children: React.ReactNode;
 }) {
   const token = (await cookies()).get("access_token")?.value;
-  console.log("DoctorLayout token:", token);
 
   if (!token) {
     redirect("/login");

@@ -62,7 +62,6 @@ export default function Register() {
 	}, [user, loading, router]);
 	const onSubmit = async (data: registerForm) => {
 	try {
-		console.log(data);
 		setIsLoading(true);
 		const parseResult = registerSchema.safeParse(data);
 

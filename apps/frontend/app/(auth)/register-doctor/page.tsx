@@ -70,7 +70,6 @@ function RegisterDoctor() {
   };
 
 const onSubmit = async (data: RegisterDoctorForm) => {
-  console.log(data);
     if (!medicalLicense) {
       setMedicalLicenseError("Medical license file is required");
       return;
@@ -88,10 +87,6 @@ const onSubmit = async (data: RegisterDoctorForm) => {
       payload.append("bio", data.bio);
       payload.append("phone", data.phone);
       payload.append("medical_license", medicalLicense);
-
-      for (const [key, value] of payload.entries()) {
-        console.log(key, value);
-      }
 
       const { data: responseData } = await axios.post(
         "http://localhost:1337/auth/doctor-register",
