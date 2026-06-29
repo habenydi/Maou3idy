@@ -1,84 +1,174 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import axios from 'axios';
 
-type RequestOptions = RequestInit & { json?: unknown };
+// ✅ Points to port 4000 where NestJS is running
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+});
 
-class ApiService {
-  private baseURL: string;
+// ─── Request Interceptor: attach JWT token ────────────────────────────────
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
-  constructor(baseURL: string) {
-    this.baseURL = baseURL;
-  }
+// ─── Response Interceptor: normalize errors ───────────────────────────────
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      'Something went wrong';
 
-  private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { json, headers, ...rest } = options;
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-      },
-      body: json ? JSON.stringify(json) : undefined,
-      ...rest,
-    });
-
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || `Request failed: ${response.status}`);
+    // Redirect to login on 401
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
     }
 
-    return response.json() as Promise<T>;
+    return Promise.reject(new Error(Array.isArray(message) ? message.join(', ') : message));
+  },
+);
+
+// ─── Types ────────────────────────────────────────────────────────────────
+export type CreateServicePayload = {
+  name: string;
+  categoryId: number;
+  price: number;
+  duration: number;
+  description?: string;
+};
+
+export type UpdateServicePayload = Partial<CreateServicePayload>;
+
+export type CreateWorkHourPayload = {
+  dayOfWeek: string;
+  startTime: string; // HH:MM
+  endTime: string;   // HH:MM
+};
+
+export type UpdateWorkHourPayload = Partial<CreateWorkHourPayload>;
+
+// ─── API Service ──────────────────────────────────────────────────────────
+class ApiService {
+  // ── Services (/api/services) ────────────────────────────────────────────
+
+  /** GET /api/services/doctor/:doctorId */
+  getDoctorServices<T>(doctorId: string | number) {
+    return axiosInstance.get<T>(`/services/doctor/${doctorId}`).then((r) => r.data);
   }
 
-  // Appointments
+  /** GET /api/services/category/:categoryId */
+  getServicesByCategory<T>(categoryId: string | number) {
+    return axiosInstance.get<T>(`/services/category/${categoryId}`).then((r) => r.data);
+  }
+
+  /** GET /api/services/:id */
+  getService<T>(serviceId: string | number) {
+    return axiosInstance.get<T>(`/services/${serviceId}`).then((r) => r.data);
+  }
+
+  /** POST /api/services */
+  createService<T>(serviceData: CreateServicePayload) {
+    return axiosInstance.post<T>('/services', serviceData).then((r) => r.data);
+  }
+
+  /** PUT /api/services/:id */
+  updateService<T>(serviceId: string | number, serviceData: UpdateServicePayload) {
+    return axiosInstance.put<T>(`/services/${serviceId}`, serviceData).then((r) => r.data);
+  }
+
+  /** DELETE /api/services/:id */
+  deleteService<T>(serviceId: string | number) {
+    return axiosInstance.delete<T>(`/services/${serviceId}`).then((r) => r.data);
+  }
+
+  // ── Work Hours (/api/work-hours) ────────────────────────────────────────
+
+  /** POST /api/work-hours */
+  addWorkHour<T>(data: CreateWorkHourPayload) {
+    return axiosInstance.post<T>('/work-hours', data).then((r) => r.data);
+  }
+
+  /** GET /api/work-hours/doctor/:doctorId */
+  getWorkHoursByDoctor<T>(doctorId: string | number) {
+    return axiosInstance.get<T>(`/work-hours/doctor/${doctorId}`).then((r) => r.data);
+  }
+
+  /** PUT /api/work-hours/:id */
+  updateWorkHour<T>(workHourId: string | number, data: UpdateWorkHourPayload) {
+    return axiosInstance.put<T>(`/work-hours/${workHourId}`, data).then((r) => r.data);
+  }
+
+  /** DELETE /api/work-hours/:id */
+  deleteWorkHour<T>(workHourId: string | number) {
+    return axiosInstance.delete<T>(`/work-hours/${workHourId}`).then((r) => r.data);
+  }
+
+  /** GET /api/work-hours/check-availability */
+  checkAvailability<T>(doctorId: number, dayOfWeek: string, time: string) {
+    return axiosInstance
+      .get<T>('/work-hours/check-availability', {
+        params: { doctorId, dayOfWeek, time },
+      })
+      .then((r) => r.data);
+  }
+
+  // ── Appointments (/api/appointments) ────────────────────────────────────
+
   getAppointments<T>() {
-    return this.request<T>('/appointments');
+    return axiosInstance.get<T>('/appointments').then((r) => r.data);
   }
 
   acceptAppointment<T>(appointmentId: string) {
-    return this.request<T>(`/appointments/${appointmentId}/accept`, { method: 'POST' });
+    return axiosInstance
+      .post<T>(`/appointments/${appointmentId}/accept`)
+      .then((r) => r.data);
   }
 
   rejectAppointment<T>(appointmentId: string) {
-    return this.request<T>(`/appointments/${appointmentId}/reject`, { method: 'POST' });
+    return axiosInstance
+      .post<T>(`/appointments/${appointmentId}/reject`)
+      .then((r) => r.data);
   }
 
-  // Dashboard
+  // ── Dashboard (/api/dashboard) ───────────────────────────────────────────
+
   getDashboardStats<T>() {
-    return this.request<T>('/dashboard/stats');
+    return axiosInstance.get<T>('/dashboard/stats').then((r) => r.data);
   }
 
   getTodaySchedule<T>() {
-    return this.request<T>('/schedule/today');
+    return axiosInstance.get<T>('/schedule/today').then((r) => r.data);
   }
 
-  // Schedule
+  // ── Schedule (/api/schedule) ─────────────────────────────────────────────
+
   getWeeklySchedule<T>(startDate: string) {
-    return this.request<T>(`/schedule/weekly?date=${encodeURIComponent(startDate)}`);
+    return axiosInstance
+      .get<T>('/schedule/weekly', { params: { date: startDate } })
+      .then((r) => r.data);
   }
 
   addSlot<T>(slotData: unknown) {
-    return this.request<T>('/schedule/slots', { method: 'POST', json: slotData });
+    return axiosInstance.post<T>('/schedule/slots', slotData).then((r) => r.data);
   }
 
   deleteSlot<T>(slotId: string) {
-    return this.request<T>(`/schedule/slots/${slotId}`, { method: 'DELETE' });
-  }
-
-  // Services
-  getServices<T>() {
-    return this.request<T>('/services');
-  }
-
-  createService<T>(serviceData: unknown) {
-    return this.request<T>('/services', { method: 'POST', json: serviceData });
-  }
-
-  updateService<T>(serviceId: string, serviceData: unknown) {
-    return this.request<T>(`/services/${serviceId}`, { method: 'PUT', json: serviceData });
-  }
-
-  deleteService<T>(serviceId: string) {
-    return this.request<T>(`/services/${serviceId}`, { method: 'DELETE' });
+    return axiosInstance.delete<T>(`/schedule/slots/${slotId}`).then((r) => r.data);
   }
 }
 
-export const api = new ApiService(API_BASE_URL);
+export const api = new ApiService();
