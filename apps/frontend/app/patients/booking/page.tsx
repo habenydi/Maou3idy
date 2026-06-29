@@ -7,6 +7,7 @@ import { getDoctorDetail } from '@/services/bookingService';
 import { DoctorDetailResponse } from '@/types';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import InformationFooter from '@/components/InformationFooter';
 
 function Booking() {
   const router = useRouter();
@@ -42,33 +43,6 @@ function Booking() {
 
   return (
     <>
-      <meta charSet="utf-8" />
-      <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-      <title>Doctor Profile - MedReserve</title>
-      {/* Fonts */}
-      <link href="https://fonts.googleapis.com" rel="preconnect" />
-      <link crossOrigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-      <Link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
-        rel="stylesheet"
-      />
-      {/* Material Symbols */}
-      <Link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet"
-      />
-      <Link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet"
-      />
-      {/* Tailwind CSS */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html:
-            '\n        .material-symbols-outlined {\n            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;\n        }\n        .material-fill {\n            font-variation-settings: "FILL" 1;\n        }\n    ',
-        }}
-      />
-      {/* TopNavBar */}
       <Navbar activeLink="doctors" />
       <main className="pt-24 pb-20 max-w-screen-2xl mx-auto px-6">
         {/* Hero Section */}
@@ -378,17 +352,7 @@ function Booking() {
         </div>
       </main>
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-slate-50">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
-          <div className="text-xs text-slate-500 font-inter">© 2024 MedReserve Clinical Systems. All rights reserved.</div>
-          <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Contact Support</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Healthcare Partners</a>
-          </div>
-        </div>
-      </footer>
+      <InformationFooter />
     </>
   );
 }

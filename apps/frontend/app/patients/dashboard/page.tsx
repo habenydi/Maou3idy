@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/app/layout';
+import InformationFooter from '@/components/InformationFooter';
 
 export default function PatientDashboard() {
   const router = useRouter();
@@ -97,16 +98,7 @@ export default function PatientDashboard() {
         </section>
       </main>
 
-      <footer className="w-full border-t border-slate-200 bg-slate-50">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
-          <div className="text-xs text-slate-500 font-inter">© 2024 MedReserve Clinical Systems. All rights reserved.</div>
-          <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
-            <a className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</a>
-            <a className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Contact Support</a>
-          </div>
-        </div>
-      </footer>
+      <InformationFooter />
     </div>
   );
 }

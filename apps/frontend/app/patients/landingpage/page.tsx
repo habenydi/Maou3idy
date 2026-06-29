@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getLandingPageData } from '@/services/landingPageService';
 import { Doctor, LandingPageData } from '@/types';
 import Navbar from '@/components/Navbar';
+import InformationFooter from '@/components/InformationFooter';
 
 const LandingPage = () => {
   const [landingData, setLandingData] = useState<LandingPageData | null>(null);
@@ -215,29 +216,7 @@ const LandingPage = () => {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-200 bg-slate-50">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
-          <div className="flex flex-col gap-4 text-center md:text-left">
-            <span onClick={() => router.push('/')} className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer">MedReserve</span>
-            <p className="font-inter text-xs text-slate-500 max-w-xs">
-              © 2024 MedReserve Clinical Systems. All rights reserved.
-            </p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-8">
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Privacy Policy</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Terms of Service</a>
-            <a className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Contact Support</a>
-          </div>
-          <div className="flex gap-4">
-            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-sm">language</span>
-            </a>
-            <a className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-sm">share</span>
-            </a>
-          </div>
-        </div>
-      </footer>
+      <InformationFooter />
     </div>
   );
 };

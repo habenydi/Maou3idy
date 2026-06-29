@@ -1,140 +1,108 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { useAuth } from '@/app/layout';
 
-const menuItems = [
-  {
-    title: 'Dashboard',
-    href: '/admin',
-    icon: 'dashboard',
-  },
-  {
-    title: 'Doctors',
-    href: '/admin/doctors',
-    icon: 'medical_services',
-  },
-  {
-    title: 'Patients',
-    href: '/admin/patients',
-    icon: 'groups',
-  },
-  {
-    title: 'Appointments',
-    href: '/admin/appointments',
-    icon: 'event_available',
-  },
-  {
-    title: 'Specialties',
-    href: '/admin/specialties',
-    icon: 'category',
-  },
-  {
-    title: 'Reviews',
-    href: '/admin/reviews',
-    icon: 'reviews',
-  },
-  {
-    title: 'Reports',
-    href: '/admin/reports',
-    icon: 'analytics',
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: 'settings',
-  },
-];
+type AdminSidebarProps = {
+  activePage?: 'dashboard' | 'users' | 'doctors';
+};
 
-export default function AdminSidebar() {
-  const pathname = usePathname();
+export default function AdminSidebar({
+  activePage = 'dashboard',
+}: AdminSidebarProps) {
+  const navItems = [
+    {
+      name: 'Dashboard',
+      href: '/simo/dashboard',
+      icon: 'dashboard',
+      key: 'dashboard',
+    },
+    {
+      name: 'Users',
+      href: '/simo/users',
+      icon: 'group',
+      key: 'users',
+    },
+    {
+      name: 'Doctors',
+      href: '/simo/doctors',
+      icon: 'description',
+      key: 'doctors',
+    },
+  ];
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
-    <aside className="w-72 border-r border-slate-200 bg-white flex flex-col">
+    <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-slate-50 p-4">
       {/* Logo */}
-      <div className="h-20 flex items-center px-6 border-b border-slate-200">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">
-              admin_panel_settings
-            </span>
-          </div>
+      <div className="mb-8 flex items-center gap-3 px-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
+          <span className="material-symbols-outlined">
+            medical_services
+          </span>
+        </div>
 
-          <div>
-            <h1 className="font-bold text-lg font-manrope">
-              MedReserve
-            </h1>
+        <div>
+          <h2 className="font-['Manrope'] text-xl font-bold text-slate-900">
+            MedReserve
+          </h2>
 
-            <p className="text-xs text-slate-500">
-              Admin Panel
-            </p>
-          </div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            Clinical Admin
+          </p>
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 px-4 py-6">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 px-3">
-          Management
-        </p>
+      <nav className="flex-1 space-y-1">
+        {navItems.map((item) => {
+          const isActive = activePage === item.key;
 
-        <nav className="space-y-2">
-          {menuItems.map((item) => {
-            const active =
-              pathname === item.href ||
-              pathname.startsWith(`${item.href}/`);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                  active
-                    ? 'bg-primary text-white shadow-md'
-                    : 'text-slate-600 hover:bg-slate-100'
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all
+                ${
+                  isActive
+                    ? 'bg-white font-semibold text-blue-600 shadow-sm'
+                    : 'font-medium text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'
                 }`}
-              >
-                <span
-                  className={`material-symbols-outlined ${
-                    active
-                      ? 'text-white'
-                      : 'text-slate-400 group-hover:text-primary'
-                  }`}
-                >
-                  {item.icon}
-                </span>
+            >
+              <span className="material-symbols-outlined">
+                {item.icon}
+              </span>
 
-                <span className="font-medium">
-                  {item.title}
-                </span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* Admin Profile */}
-      <div className="border-t border-slate-200 p-4">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-          <div className="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center font-bold">
-            A
-          </div>
+      <div className="mt-auto rounded-xl bg-slate-100 p-4">
+        <div className="flex items-center gap-3">
+          <Image
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD81svyPA2q1S6VVGoKBKruqUMi6WgQIiCSP3YLFig9fRlJQn29pFZhMJhTYlpxvvHesozL1kyJoPO4u3SWXwOtyWtYCESYQehlKpV1jAS-5_nzkTAzW5eH_hbEK9DFYwdykj-FfPEZ-yGumnZbNu-rlPk_6Pi-mCts7MQnoRf4apUKMOxN8XTKxiGGQx1eCTuIJrafp2jnJfH8duLsvx-6krhTaRhLUb7uqsUS_t5YNvu8l79KuRTD2lu41b_mR884Rtty65RT_s"
+            alt="Admin"
+            width={40}
+            height={40}
+            className="rounded-lg object-cover"
+          />
 
-          <div className="flex-1">
-            <h3 className="font-semibold text-sm">
-              Administrator
-            </h3>
+          <div className="overflow-hidden">
+            <p className="truncate text-xs font-bold text-slate-900">
+              Mr. {user?.name || 'Admin'}
+            </p>
 
-            <p className="text-xs text-slate-500">
-              admin@medreserve.com
+            <p className="truncate text-[10px] text-slate-500">
+              Senior Admin
             </p>
           </div>
-
-          <button className="text-slate-400 hover:text-red-500 transition-colors">
-            <span className="material-symbols-outlined">
-              logout
-            </span>
-          </button>
         </div>
       </div>
     </aside>

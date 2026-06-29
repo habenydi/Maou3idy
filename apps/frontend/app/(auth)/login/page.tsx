@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/app/layout';
+import Link from 'next/link';
 
 const loginSchema = z.object({
 	email: z.string()
@@ -31,7 +32,6 @@ export default function Login() {
 
 	useEffect(() => {
 		if (user) {
-			toast.info("You are already logged in. Redirecting...");
 			router.push(user.role === "DOCTOR" || user.role === "ADMIN" ? "/doctor/dashboard" : "/patients/landingpage");
 		}
 	}, [user, router]);
@@ -108,7 +108,6 @@ export default function Login() {
 									className="w-full pl-12 pr-4 py-4 border-none rounded-xl placeholder:text-outline/60 transition-all duration-200 outline-none font-medium" 
 									style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
-									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="email" 
 									placeholder="dr.wilson@medreserve.com" 
 									{...register('email')}
@@ -139,7 +138,6 @@ export default function Login() {
 									className="w-full pl-12 pr-12 py-4 border-none rounded-xl placeholder:text-outline/60 transition-all duration-200 outline-none font-medium" 
 									style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
-									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="password" 
 									placeholder="••••••••" 
 									type={showPassword ? "text" : "password"} 
@@ -211,9 +209,8 @@ export default function Login() {
 				{/* Footer */}
 				<footer className="mt-12">
 					<div className="flex flex-wrap justify-center gap-6 mb-6">
-						<a className="text-xs font-medium transition-colors" href="#" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Privacy Policy</a>
-						<a className="text-xs font-medium transition-colors" href="#" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Terms of Service</a>
-						<a className="text-xs font-medium transition-colors" href="#" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Contact Support</a>
+						<Link className="text-xs font-medium transition-colors" href="/privacy-policy" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Privacy Policy</Link>
+						<Link className="text-xs font-medium transition-colors" href="/terms-of-service" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Terms of Service</Link>	
 					</div>
 					<p className="text-center text-[10px] font-medium tracking-wide uppercase" style={{color: "#727787"}}>
 						© 2024 MedReserve Clinical Systems. All rights reserved.

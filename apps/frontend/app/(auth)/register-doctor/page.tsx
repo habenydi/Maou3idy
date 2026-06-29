@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
+import InformationFooter from "@/components/InformationFooter";
 
 const registerDoctorSchema = z.object({
   name: z.string().min(1, "Full name is required"),
@@ -323,35 +325,59 @@ const onSubmit = async (data: RegisterDoctorForm) => {
                 </div>
                 <div className="space-y-4">
                   <label className="text-xs font-bold text-on-surface-variant tracking-wider uppercase ml-1">
-                    Upload Medical License &amp; Credentials
+                    Upload Medical License & Credentials
                   </label>
-                  <p className="text-xs text-on-surface-variant ml-1">
-                    {medicalLicense ? `Selected: ${medicalLicense.name}` : "No file selected."}
-                  </p>
-                  <div className="border-2 border-dashed border-outline-variant/50 rounded-2xl p-8 text-center hover:bg-surface-container-low transition-colors group">
-                    <input 
-                      className="hidden" 
-                      id="file-upload" 
-                      type="file" 
-                      accept=".pdf,.png,.jpg,.jpeg" 
-                      onChange={handleFileChange}
-                    />
-                    <label
-                      className="cursor-pointer flex flex-col items-center"
-                      htmlFor="file-upload"
-                    >
-                      <span className="material-symbols-outlined text-4xl text-outline mb-3 group-hover:text-primary transition-colors">
-                        cloud_upload
+
+                  <input
+                    className="hidden"
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={handleFileChange}
+                  />
+
+                  <label
+                    htmlFor="file-upload"
+                    className={`block cursor-pointer border-2 rounded-2xl p-8 text-center transition-all ${
+                      medicalLicense
+                        ? "border-green-500 bg-green-50"
+                        : "border-dashed border-outline-variant/50 hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={`material-symbols-outlined text-5xl mb-3 ${
+                          medicalLicense ? "text-green-600" : "text-outline"
+                        }`}
+                      >
+                        {medicalLicense ? "check_circle" : "cloud_upload"}
                       </span>
+
                       <p className="font-bold text-on-surface">
-                        Click to upload or drag and drop
+                        {medicalLicense
+                          ? "Medical License Uploaded Successfully"
+                          : "Click to upload or drag and drop"}
                       </p>
-                      <p className="text-xs text-on-surface-variant mt-1">
-                        PDF, PNG or JPG (max. 10MB)
+
+                      <p className="text-xs text-on-surface-variant mt-2">
+                        {medicalLicense
+                          ? medicalLicense.name
+                          : "PDF, PNG or JPG (max. 10MB)"}
                       </p>
-                    </label>
-                  </div>
-                  {medicalLicenseError && <p className="text-xs" style={{color: "#dc2626"}}>{medicalLicenseError}</p>}
+
+                      {medicalLicense && (
+                        <p className="text-green-600 text-sm font-medium mt-3">
+                          ✓ File is ready to be submitted
+                        </p>
+                      )}
+                    </div>
+                  </label>
+
+                  {medicalLicenseError && (
+                    <p className="text-xs text-red-600">
+                      {medicalLicenseError}
+                    </p>
+                  )}
                 </div>
                 <div className="pt-4">
                   <button
@@ -364,13 +390,14 @@ const onSubmit = async (data: RegisterDoctorForm) => {
                   </button>
                   <p className="text-center text-xs text-on-surface-variant mt-6">
                     By applying, you agree to our{" "}
-                    <a className="text-primary font-semibold" href="#">
+                    <Link className="text-primary font-semibold" href="/terms-of-service">
                       Verification Terms
-                    </a>{" "}
+                    </Link>
+                    {" "}
                     and{" "}
-                    <a className="text-primary font-semibold" href="#">
+                    <Link className="text-primary font-semibold" href="/privacy-policy">
                       Privacy Policy
-                    </a>
+                    </Link>
                     .
                   </p>
                 </div>
@@ -379,39 +406,7 @@ const onSubmit = async (data: RegisterDoctorForm) => {
           </section>
         </div>
       </main>
-      <footer className="bg-slate-50 w-full border-t border-slate-200">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
-          <div className="text-xs text-slate-500 font-inter">
-            © 2024 MedReserve Clinical Systems. All rights reserved.
-          </div>
-          <div className="flex flex-wrap justify-center gap-8">
-            <a
-              className="text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30"
-              href="#"
-            >
-              Privacy Policy
-            </a>
-            <a
-              className="text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30"
-              href="#"
-            >
-              Terms of Service
-            </a>
-            <a
-              className="text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30"
-              href="#"
-            >
-              Contact Support
-            </a>
-            <a
-              className="text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30"
-              href="#"
-            >
-              Healthcare Partners
-            </a>
-          </div>
-        </div>
-      </footer>
+      <InformationFooter />
     </>
   );
 }

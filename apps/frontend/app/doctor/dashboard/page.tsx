@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import Img from 'next/image';
+import InformationFooter from '@/components/InformationFooter';
 
 type Stats = {
   totalAppointments: number;
@@ -243,20 +244,7 @@ const Dashboard = () => {
           )}
         </main>
       </div>
-
-      <footer className="bg-slate-50 w-full border-t border-slate-200">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto">
-          <div className="font-inter text-xs text-slate-500">
-            © 2024 MedReserve Clinical Systems. All rights reserved.
-          </div>
-          <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Contact Support</a>
-            <a onClick={() => router.push('#')} className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Healthcare Partners</a>
-          </div>
-        </div>
-      </footer>
+      <InformationFooter />
     </div>
   );
 };

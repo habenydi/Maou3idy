@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Img  from 'next/image';
 import { toast } from 'react-toastify';
@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/app/layout';
+import Link from 'next/link';
+import InformationFooter from '@/components/InformationFooter';
 
 const registerSchema = z
 	.object({
@@ -56,7 +58,6 @@ export default function Register() {
 	useEffect(() => {
 		if (loading) return; // Wait until loading is false
 		if (user) {
-			toast.info("You are already logged in. Redirecting...");
 			router.push(user.role === "DOCTOR" || user.role === "ADMIN" ? "/doctor/dashboard" : "/patients/landingpage");
 		}
 	}, [user, loading, router]);
@@ -136,7 +137,6 @@ export default function Register() {
 						{/* Social Login Section */}
 						<div className="flex flex-col gap-4 mb-8">
 							<button onClick={handleGoogleLogin} className="flex items-center justify-center gap-3 w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-200 active:scale-95" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#edeef1"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f3f3f7"}>
-								<Img alt="Google Logo" width={20} height={20} src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7sekk05ih7WxToSvBqVjBRIZ_sW2fr6DiucmVZvGhZmof4OkP2XJGGUTQIW7tAodaGdD7l4r0riWG05JO2Nnd8AiczWbQsbNEiywjHdF59_aXtElHddBdqHRVE6VtV-TvFhjgCk9ecyKmCUZZre7DxDHk-ktv44cUTS0X-pbfpNHQ2lRicHyQ-dkZUmZKaJrTpv9OZmQEy2m0kJqq1pm63_bOtCR73jugDvilnd2W0Ylj3xPuDFJ-IYJxHcpsz2vnO-33ui5xpTQ" />
 								Continue with Google
 							</button>
 							<div className="flex items-center gap-4 py-2">
@@ -209,7 +209,7 @@ export default function Register() {
 									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" type="checkbox" {...register('terms')} />
 									{errors.terms && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.terms.message}</p>}
 									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="terms">
-										I agree to the <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Terms of Service</a> and <a className="font-semibold hover:underline" href="#" style={{color: "#0057cd"}}>Privacy Policy</a>.
+										I agree to the <Link className="font-semibold hover:underline" href="/terms-of-service" style={{color: "#0057cd"}}>Terms of Service</Link> and <Link className="font-semibold hover:underline" href="/privacy-policy" style={{color: "#0057cd"}}>Privacy Policy</Link>.
 									</label>
 								</div>
 							</div>
@@ -245,17 +245,7 @@ export default function Register() {
 			</main>
 
 			{/* Footer Component */}
-			<footer className="w-full border-t" style={{borderColor: "#e2e2e6", backgroundColor: "#f3f3f7"}}>
-				<div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 gap-6 max-w-screen-2xl mx-auto w-full">
-					<p className="text-xs" style={{color: "#727787"}}>© 2024 MedReserve Clinical Systems. All rights reserved.</p>
-					<div className="flex flex-wrap justify-center gap-8">
-						<a className="text-xs hover:opacity-80 transition-opacity" href="#" style={{color: "#727787", textDecoration: "underline", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}>Privacy Policy</a>
-						<a className="text-xs hover:opacity-80 transition-opacity" href="#" style={{color: "#727787", textDecoration: "underline", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}>Terms of Service</a>
-						<a className="text-xs hover:opacity-80 transition-opacity" href="#" style={{color: "#727787", textDecoration: "underline", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}>Contact Support</a>
-						<a className="text-xs hover:opacity-80 transition-opacity" href="#" style={{color: "#727787", textDecoration: "underline", textDecorationColor: "rgba(0, 87, 205, 0.3)"}}>Healthcare Partners</a>
-					</div>
-				</div>
-			</footer>
+			<InformationFooter />
 		</div>
 	);
 }

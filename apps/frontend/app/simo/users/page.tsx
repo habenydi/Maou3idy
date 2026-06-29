@@ -1,150 +1,15 @@
+import AdminHeader from "@/components/AdminHeader";
+import AdminSidebar from "@/components/AdminSidebar";
+
 export default function DashboardPage() {
     return (
         <>
-  <meta charSet="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet"
-  />
-  <style
-    dangerouslySetInnerHTML={{
-      __html:
-        "\n        .material-symbols-outlined {\n            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;\n        }\n        body { font-family: 'Inter', sans-serif; }\n        h1, h2, h3, .headline { font-family: 'Manrope', sans-serif; }\n        .glass-panel {\n            background: rgba(255, 255, 255, 0.8);\n            backdrop-filter: blur(20px);\n        }\n    "
-    }}
-  />
   {/* SideNavBar Component */}
-  <aside className="h-full w-64 fixed left-0 top-0 border-r-0 bg-slate-5 flex flex-col h-full p-4 gap-2 z-50">
-    <div className="flex items-center gap-3 px-2 mb-8">
-      <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg shadow-primary/20">
-        <span
-          className="material-symbols-outlined"
-          style={{ fontVariationSettings: '"FILL" 1' }}
-        >
-          medical_services
-        </span>
-      </div>
-      <div>
-        <div className="font-['Manrope'] font-bold text-xl text-slate-900 ">
-          MedReserve
-        </div>
-        <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
-          Clinical Admin
-        </div>
-      </div>
-    </div>
-    <nav className="flex-1 space-y-1">
-      <a
-        className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-90 hover:bg-slate-200/50 transition-all font-['Inter'] font-medium text-sm rounded-lg group active:scale-90"
-        href="#"
-      >
-        <span className="material-symbols-outlined group-hover:text-primary transition-colors">
-          dashboard
-        </span>
-        Dashboard
-      </a>
-      <a
-        className="flex items-center gap-3 px-4 py-3 bg-white text-blue-60 font-semibold rounded-lg shadow-sm font-['Inter'] text-sm active:scale-90"
-        href="#"
-      >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontVariationSettings: '"FILL" 1' }}
-        >
-          group
-        </span>
-        Users
-      </a>
-      <a
-        className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all font-['Inter'] font-medium text-sm rounded-lg group active:scale-90"
-        href="#"
-      >
-        <span className="material-symbols-outlined group-hover:text-primary transition-colors">
-          description
-        </span>
-        Applications
-      </a>
-      <a
-        className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-all font-['Inter'] font-medium text-sm rounded-lg group active:scale-90"
-        href="#"
-      >
-        <span className="material-symbols-outlined group-hover:text-primary transition-colors">
-          category
-        </span>
-        Categories
-      </a>
-    </nav>
-    <div className="mt-auto p-4 bg-slate-100 rounded-xl flex items-center gap-3">
-      <img
-        alt="Dr. Smith Profile"
-        className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
-        data-alt="close-up portrait of a professional male doctor in his 40s wearing a white lab coat and stethoscope, smiling confidently in a modern bright medical clinic"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBk2ORFqjylhJc3K7IGnLF4xmiPHXfPoBWmqXa9J6iYg5ubzpU1aYFpSqxSjAxwmUPMriPQnwATQzPDJ3TjgYQ33sUnhqq2EfLTnUfd5rbpSC09rS-YbPRNDS40Xbh2l_fWG4EF6Z62bXcmUT63rjmsp0onKs7DgOW8DH5o1iuxiCJFQKYhSKil6q6a0C4IRJrom-RcbXHGbhx0zNlg5H3kuc-51FDkgJAUgtrnFwuTwoQa9rX7mQHj2pG2u5JGALvD9jdYQWWq67A"
-      />
-      <div className="overflow-hidden">
-        <p className="text-xs font-bold text-slate-900 truncate">
-          Dr. Smith
-        </p>
-        <p className="text-[10px] text-slate-500 truncate">
-          System Administrator
-        </p>
-      </div>
-    </div>
-  </aside>
+  <AdminSidebar activePage="users" />
   {/* Main Content Area */}
   <main className="ml-64 min-h-screen flex flex-col">
     {/* TopAppBar Component */}
-    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100  flex justify-between items-center px-8 shadow-sm">
-      <div className="flex items-center gap-6 flex-1">
-        <div className="relative w-full max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-            search
-          </span>
-          <input
-            className="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-            placeholder="Search patients or doctors..."
-            type="text"
-          />
-        </div>
-        <nav className="hidden md:flex gap-8">
-          <a
-            className="text-slate-500  hover:text-blue-500 transition-all font-['Manrope'] font-semibold text-base"
-            href="#"
-          >
-            Schedules
-          </a>
-          <a
-            className="text-slate-500  hover:text-blue-500 transition-all font-['Manrope'] font-semibold text-base"
-            href="#"
-          >
-            Patients
-          </a>
-          <a
-            className="text-slate-500  hover:text-blue-500 transition-all font-['Manrope'] font-semibold text-base"
-            href="#"
-          >
-            Analytics
-          </a>
-        </nav>
-      </div>
-      <div className="flex items-center gap-4">
-        <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors relative">
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
-        </button>
-        <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
-      </div>
-    </header>
+    <AdminHeader />
     {/* Canvas */}
     <section className="mt-16 p-8 flex-1">
       <div className="max-w-7xl mx-auto space-y-8">
