@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/Sidebar';
 
 const Schedule = () => {
   const router = useRouter();
@@ -11,52 +12,9 @@ const Schedule = () => {
   };
 
   return (
-    <div className="bg-surface font-body text-on-surface antialiased overflow-hidden">
-      <aside className="w-64 fixed left-0 top-0 border-r-0 bg-slate-50 flex flex-col h-screen p-4 gap-2 z-50">
-        <div className="flex items-center gap-3 px-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shadow-lg">
-            <span className="material-symbols-outlined">clinical_notes</span>
-          </div>
-          <div>
-            <h1 className="font-headline font-bold text-xl text-slate-900 leading-none cursor-pointer" onClick={() => router.push('/')}>MedReserve</h1>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mt-1">Clinical Admin</p>
-          </div>
-        </div>
-        <nav className="flex-1 flex flex-col gap-1">
-          <a onClick={() => router.push('/doctor/dashboard')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span className="font-['Inter'] font-medium text-sm">Dashboard</span>
-          </a>
-          <a onClick={() => router.push('/doctor/schedule')} className="flex items-center gap-3 px-4 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-sm group cursor-pointer">
-            <span className="material-symbols-outlined">calendar_month</span>
-            <span className="font-['Inter'] font-medium text-sm">Schedules</span>
-          </a>
-          <a onClick={() => router.push('/doctor/patients')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
-            <span className="material-symbols-outlined">group</span>
-            <span className="font-['Inter'] font-medium text-sm">Patients</span>
-          </a>
-          <a onClick={() => router.push('/doctor/applications')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
-            <span className="material-symbols-outlined">bio</span>
-            <span className="font-['Inter'] font-medium text-sm">Applications</span>
-          </a>
-          <a onClick={() => router.push('/doctor/services')} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 transition-colors rounded-lg group cursor-pointer">
-            <span className="material-symbols-outlined">category</span>
-            <span className="font-['Inter'] font-medium text-sm">Categories</span>
-          </a>
-        </nav>
-        <div className="mt-auto p-2 bg-slate-100 rounded-xl flex items-center gap-3">
-          <img alt="Dr. Smith Profile" className="w-10 h-10 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjgHhnNCLsCZO3QnKR2gzmInjDYMvtZug9OkfZ_b_Ymx9tIjN_HYLCxIL0abCUE50HHsoCJVC4cMEjbCOOUxkUbtOz3hr7v4gE_Uib6XpsE-p54H7DVEybAks_-5zX4ybodESuqYI6WohJ2qYXOTN1lGa5efIAqWmvsT7z8oTvj3NRaQ4Xsw47fG2obhMzdbUQk8U7hHm5G6vjhVa4CGXykchpGOlnBjCKH1Ablt4tnPRjzZQ9Nhf9Qo4VJHquRYAQTZeNiekn9pE" />
-          <div className="overflow-hidden">
-            <p className="text-xs font-bold text-slate-900 truncate">Dr. Sarah Smith</p>
-            <p className="text-[10px] text-slate-500 truncate">Cardiologist</p>
-          </div>
-          <button onClick={() => router.push('/login')} className="ml-auto text-slate-400 hover:text-slate-900">
-            <span className="material-symbols-outlined text-lg">logout</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="ml-64 min-h-screen flex flex-col">
+    <div className='flex min-h-screen'>
+      <Sidebar />
+      <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
         <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm flex justify-between items-center px-8">
           <div className="flex items-center gap-8">
             <h2 className="font-headline font-extrabold text-blue-700 text-lg">Schedule &amp; Slot Management</h2>

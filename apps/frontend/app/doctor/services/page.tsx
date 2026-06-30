@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Sidebar from '@/components/Sidebar';
+import Sidebar from '../components/SideBar';
 import TableSection from './components/tableSection';
 import AddServiceModal from './components/addServiceModal';
 
