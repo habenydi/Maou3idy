@@ -1,3 +1,5 @@
+'use client';
+import Img from 'next/image';
 type ApplicationRowProps = {
   name: string;
   email: string;
@@ -18,7 +20,7 @@ export default function ApplicationRow({
       <td className="px-6 py-5 rounded-l-2xl">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl overflow-hidden">
-            <img
+            <Img
               src={image}
               alt={name}
               className="w-full h-full object-cover"

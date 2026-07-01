@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { getDoctorDetail } from '@/services/bookingService';
 import { DoctorDetailResponse } from '@/types';
 import { useSearchParams } from 'next/navigation';

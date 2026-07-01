@@ -20,7 +20,7 @@ export default function ActivityItem({
   return (
     <div className="flex gap-4">
       {image ? (
-        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+        <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
           <Image
             src={image}
             alt={title}

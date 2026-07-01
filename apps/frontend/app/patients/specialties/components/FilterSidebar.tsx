@@ -1,6 +1,6 @@
 export default function FilterSidebar() {
   return (
-              <aside className="w-full lg:w-72 flex-shrink-0">
+              <aside className="w-full lg:w-72 shrink-0">
             <div className="bg-surface-container-low rounded-xl p-6 sticky top-28">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-bold text-lg">Filters</h2>
