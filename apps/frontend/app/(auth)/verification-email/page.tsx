@@ -75,7 +75,7 @@ export default function VerificationEmail() {
 						<span className="material-symbols-outlined text-2xl" data-icon="medical_services" style={{ color: '#ffffff' }}>medical_services</span>
 					</div>
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{ color: '#191c1e' }}>
-						MedReserve
+						Maou<span className="text-blue-500">3</span>idy
 					</h1>
 				</div>
 

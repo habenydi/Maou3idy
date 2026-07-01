@@ -68,7 +68,7 @@ export default function ResetPassword() {
 			<main className="w-full max-w-120">
 				<div className="flex flex-col items-center mb-10">
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{color: "#191c1e"}}>
-						MedReserve
+						Maou<span className="text-blue-500">3</span>idy
 					</h1>
 				</div>
 

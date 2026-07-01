@@ -43,8 +43,8 @@ export function AuthProvider({
 
 export const useAuth = () => useContext(AuthContext);
 // export const metadata: Metadata = {
-//   title: "MedReserve - Clinical Appointment System",
-//   bio: "Schedule and manage your medical appointments with MedReserve",
+//   title: "Maou<span className="text-blue-500">3</span>idy - Clinical Appointment System",
+//   bio: "Schedule and manage your medical appointments with Maou<span className="text-blue-500">3</span>idy",
 // };
 
 export default function RootLayout({

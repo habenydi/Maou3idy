@@ -56,7 +56,7 @@ const Services = () => {
         </div>
         {/* Pagination Footer */}
         <footer className="mt-8 flex flex-col md:flex-row justify-between items-center px-4 py-6 border-t border-slate-200 gap-4">
-          <span className="font-inter text-xs text-slate-500">© 2024 MedReserve Clinical Systems. All rights reserved.</span>
+          <span className="font-inter text-xs text-slate-500">© 2024 Maou<span className="text-blue-500">3</span>idy Clinical Systems. All rights reserved.</span>
           <div className="flex gap-6">
             <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Privacy Policy</a>
             <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Terms of Service</a>

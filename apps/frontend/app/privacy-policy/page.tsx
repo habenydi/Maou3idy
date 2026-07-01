@@ -3,7 +3,7 @@ export default function PrivacyPolicy() {
 <>
   <meta charSet="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy - MedReserve</title>
+  <title>Privacy Policy - Maou<span className="text-blue-500">3</span>idy</title>
   <main
     style={{
       maxWidth: 900,
@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
     </p>
     <h2>1. Introduction</h2>
     <p>
-      Welcome to MedReserve. We respect your privacy and are committed to
+      Welcome to Maou<span className="text-blue-500">3</span>idy. We respect your privacy and are committed to
       protecting your personal information. This Privacy Policy explains how we
       collect, use, and safeguard your information.
     </p>
@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
       <li>Ask how your information is used</li>
     </ul>
     <h2>8. Contact Us</h2>
-    <p>Email: support@medreserve.com</p>
+    <p>Email: support@Maou<span className="text-blue-500">3</span>idy.com</p>
   </main>
 </>
     );

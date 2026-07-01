@@ -15,7 +15,7 @@ export default function CTASection() {
                 <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-8">Ready to prioritize your health?</h2>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <button onClick={() => router.push('/register')} className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
-                  <button onClick={() => router.push('/register-doctor')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
+                  <button onClick={() => router.push('/doctor-register')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
                 </div>
               </div>
               <div className="hidden lg:flex justify-center">

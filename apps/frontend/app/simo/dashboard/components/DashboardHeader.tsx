@@ -6,7 +6,7 @@ export default function DashboardHeader() {
       </h1>
 
       <p className="text-on-surface-variant font-medium">
-        Overview of MedReserve ecosystem health and practitioner activity.
+        Overview of Maou<span className="text-blue-500">3</span>idy ecosystem health and practitioner activity.
       </p>
     </div>
   );

@@ -1,0 +1,72 @@
+"use client";
+
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { registerSchema } from "../../../schema/register";
+import { RegisterFormData } from "@/types/register";
+
+export function useRegister() {
+	const router = useRouter();
+
+	const handleGoogleLogin = () => {
+		window.location.href = "http://localhost:1337/auth/google";
+	};
+
+	const registerUser = async (
+		data: RegisterFormData,
+		setLoading: (loading: boolean) => void
+	) => {
+		try {
+			setLoading(true);
+
+			const parseResult = registerSchema.safeParse(data);
+
+			if (!parseResult.success) {
+				toast.error(parseResult.error.issues[0]?.message);
+				return;
+			}
+
+			const response = await axios.post(
+				"http://localhost:1337/auth/register",
+				{
+					name: data.name,
+					email: data.email,
+					phone: data.phone,
+					password: data.password,
+				},
+				{
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+					withCredentials: true,
+				}
+			);
+
+			toast.success(
+				response.data.message ||
+				"Registration successful! Please check your email to verify your account."
+			);
+
+			router.push("/");
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				toast.error(
+					error.response?.data?.message ||
+					error.message ||
+					"Registration failed"
+				);
+			} else {
+				toast.error("An unknown error occurred.");
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return {
+		registerUser,
+		handleGoogleLogin,
+	};
+}

@@ -48,7 +48,7 @@ export default function AdminSidebar({
 
         <div>
           <h2 className="font-['Manrope'] text-xl font-bold text-slate-900">
-            MedReserve
+            Maou<span className="text-blue-500">3</span>idy
           </h2>
 
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">

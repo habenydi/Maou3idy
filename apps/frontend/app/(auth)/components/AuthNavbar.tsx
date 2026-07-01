@@ -15,7 +15,7 @@ export default function AuthNavbar({ variant = 'default' }: AuthNavbarProps) {
           onClick={() => router.push('/')}
           className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer font-manrope hover:opacity-80 transition-opacity"
         >
-          MedReserve
+          Maou<span className="text-blue-500">3</span>idy
         </div>
 
         {variant === 'default' && (
@@ -40,7 +40,7 @@ export default function AuthNavbar({ variant = 'default' }: AuthNavbarProps) {
                 Sign In
               </button>
               <button 
-                onClick={() => router.push('/register-doctor')}
+                onClick={() => router.push('/doctor-register')}
                 className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all font-manrope"
               >
                 Join as Doctor

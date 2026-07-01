@@ -87,7 +87,7 @@ export default function Success() {
 						<span className="material-symbols-outlined text-2xl" data-icon="medical_services" style={{color: "#ffffff"}}>medical_services</span>
 					</div>
 					<h1 className="font-headline text-2xl font-extrabold tracking-tighter" style={{color: "#191c1e"}}>
-						MedReserve
+						Maou<span className="text-blue-500">3</span>idy
 					</h1>
 				</div>
 
@@ -103,7 +103,7 @@ export default function Success() {
 
 					{/* Welcome Message */}
 					<div className="bg-white/50 rounded-xl p-6 mb-8 text-center">
-						<p className="text-lg font-semibold mb-2" style={{color: "#191c1e"}}>Welcome to MedReserve</p>
+						<p className="text-lg font-semibold mb-2" style={{color: "#191c1e"}}>Welcome to Maou<span className="text-blue-500">3</span>idy</p>
 						<p className="text-sm" style={{color: "#727787"}}>Your account is now active and ready to use. You can manage your appointments, patient records, and clinic settings.</p>
 					</div>
 
@@ -180,7 +180,7 @@ export default function Success() {
 						<a className="text-xs font-medium transition-colors" href="#" style={{color: "#424655"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0057cd"} onMouseLeave={(e) => e.currentTarget.style.color = "#424655"}>Contact Support</a>
 					</div>
 					<p className="text-center text-[10px] font-medium tracking-wide uppercase" style={{color: "#727787"}}>
-						© 2024 MedReserve Clinical Systems. All rights reserved.
+						© 2024 Maou<span className="text-blue-500">3</span>idy Clinical Systems. All rights reserved.
 					</p>
 				</footer>
 			</main>

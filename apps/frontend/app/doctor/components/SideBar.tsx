@@ -21,7 +21,7 @@ function Sidebar() {
   return (
     <aside className="h-screen w-64 bg-slate-100 flex flex-col py-6 sticky top-0 font-inter text-sm font-medium border-r-0">
       <div className="text-lg font-black font-manrope text-blue-700 px-4 mb-8">
-        MedReserve
+        Maou<span className="text-blue-500">3</span>idy
       </div>
 
       <div className="px-4 mb-6">

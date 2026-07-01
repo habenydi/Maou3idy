@@ -12,7 +12,7 @@ export default function GoogleCallback() {
     if (loading) return;
 
     if (user) {
-      router.push("/patients/landingpage");
+      router.push("/");
     } else {
       toast.error("Login failed");
       router.push("/register");

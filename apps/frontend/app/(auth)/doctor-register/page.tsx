@@ -135,7 +135,7 @@ const onSubmit = async (data: RegisterDoctorForm) => {
                 Partner with clinical excellence.
               </h1>
               <p className="text-on-surface-variant text-lg leading-relaxed max-w-md">
-                Join over 12,000 board-certified specialists using MedReserve to
+                Join over 12,000 board-certified specialists using Maou<span className="text-blue-500">3</span>idy to
                 streamline their digital practice and connect with patients.
               </p>
             </div>
@@ -174,7 +174,7 @@ const onSubmit = async (data: RegisterDoctorForm) => {
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
                 <p className="text-white font-medium italic text-sm">
-                  &quot;MedReserve has transformed how I manage my cardiologist clinic in
+                  &quot;Maou<span className="text-blue-500">3</span>idy has transformed how I manage my cardiologist clinic in
                   Manhattan.&quot;
                 </p>
                 <p className="text-white/80 text-xs mt-2">— Dr. Elena Rossi</p>

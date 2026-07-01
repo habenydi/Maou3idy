@@ -13,7 +13,6 @@ interface NavbarProps {
 export default function Navbar({
   activeLink = 'doctors',
   showAuthButtons = true,
-  logoText = 'MedReserve'
 }: NavbarProps) {
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
@@ -39,14 +38,14 @@ export default function Navbar({
       <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-8">
           <span 
-            onClick={() => router.push('/patients/landingpage')} 
+            onClick={() => router.push('/')} 
             className="text-xl font-bold tracking-tighter text-slate-900 cursor-pointer"
           >
-            {logoText}
+            Maou<span className="text-blue-500">3</span>idy
           </span>
           <nav className="hidden md:flex items-center gap-6 font-manrope tracking-tight font-semibold">
             <a 
-              onClick={() => router.push('/patients/landingpage')}
+              onClick={() => router.push('/')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'doctors' 
                   ? 'text-blue-600 border-b-2 border-blue-600' 
@@ -89,7 +88,7 @@ export default function Navbar({
                   Sign In
                 </button>
                 <button 
-                  onClick={() => router.push('/register-doctor')}
+                  onClick={() => router.push('/doctor-register')}
                   className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                 >
                   Join as Doctor
@@ -98,7 +97,7 @@ export default function Navbar({
             ) : (
               <>
                 <button 
-                  onClick={() => router.push('/register-doctor')}
+                  onClick={() => router.push('/doctor-register')}
                   className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
                 >
                   Join as doctor

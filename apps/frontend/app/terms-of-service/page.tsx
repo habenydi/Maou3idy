@@ -3,7 +3,7 @@ export default function TermsOfService() {
 <>
   <meta charSet="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Terms of Service - MedReserve</title>
+  <title>Terms of Service - Maou<span className="text-blue-500">3</span>idy</title>
   <main
     style={{
       maxWidth: 900,
@@ -19,12 +19,12 @@ export default function TermsOfService() {
     </p>
     <h2>1. Acceptance of Terms</h2>
     <p>
-      By accessing or using MedReserve, you agree to comply with these Terms of
+      By accessing or using Maou<span className="text-blue-500">3</span>idy, you agree to comply with these Terms of
       Service.
     </p>
     <h2>2. Services Provided</h2>
     <p>
-      MedReserve provides an online platform that enables patients to search for
+      Maou<span className="text-blue-500">3</span>idy provides an online platform that enables patients to search for
       healthcare professionals and schedule appointments.
     </p>
     <h2>3. User Accounts</h2>
@@ -53,12 +53,12 @@ export default function TermsOfService() {
     </ul>
     <h2>7. Intellectual Property</h2>
     <p>
-      All platform content, branding, and software are owned by MedReserve and
+      All platform content, branding, and software are owned by Maou<span className="text-blue-500">3</span>idy and
       protected by applicable intellectual property laws.
     </p>
     <h2>8. Limitation of Liability</h2>
     <p>
-      MedReserve does not provide medical advice and is not responsible for
+      Maou<span className="text-blue-500">3</span>idy does not provide medical advice and is not responsible for
       medical outcomes resulting from healthcare services.
     </p>
     <h2>9. Account Suspension</h2>
@@ -67,7 +67,7 @@ export default function TermsOfService() {
       terms.
     </p>
     <h2>10. Contact Information</h2>
-    <p>Email: support@medreserve.com</p>
+    <p>Email: support@Maou<span className="text-blue-500">3</span>idy.com</p>
   </main>
 </>
   );

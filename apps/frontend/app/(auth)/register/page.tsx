@@ -1,250 +1,95 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
-import axios from 'axios';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/app/layout';
-import Link from 'next/link';
-import InformationFooter from '@/components/InformationFooter';
 
-const registerSchema = z
-	.object({
-			name: z.string().min(2, "Name must be at least 2 characters"),
-			email: z.string()
-				.trim()
-				.email("Enter a valid email address")
-				.refine((value) => value.includes("@"), "Please enter a valid email address. It should contain '@'.")
-				.refine((value) => /\.(com|ma)$/i.test(value), "Email must end with .com or .ma"),
-			phone: z.string().optional().or(z.literal("")).refine(
-				(value) => typeof value === "string" && (value === "" || /^[+0-9\s()-]{7,20}$/.test(value)),
-				{ message: "Enter a valid phone number" }
-			),
-			password: z.string().min(8, "Password must be at least 8 characters"),
-			confirm_password: z.string().min(8, "Confirm password is required"),
-			terms: z.boolean(),
-		}).refine((data) => data.terms, {
-			path: ["terms"],
-			message: "Please accept the Terms of Service and Privacy Policy",
-		}).refine((data) => data.password === data.confirm_password, {
-			path: ["confirm_password"],
-			message: "Passwords do not match",
-		});
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type registerForm = z.infer<typeof registerSchema>;
+import InformationFooter from "@/components/InformationFooter";
+import { useAuth } from "@/app/layout";
 
-export default function Register() {
-	const { register, handleSubmit, formState: { errors } } = useForm<registerForm>({
-		resolver: zodResolver(registerSchema),
-	});
+import { registerSchema } from "../../schema/register";
+import { RegisterFormData } from "@/types/register";
+import { useRegister } from "./hooks/useRegister";
+
+import TopNavigation from "./components/TopNavigation";
+import RegisterHeader from "./components/RegisterHeader";
+import RegisterForm from "./components/RegisterForm";
+import SocialLogin from "./components/SocialLogin";
+
+export default function RegisterPage() {
+	const router = useRouter();
+
+	const { user, loading } = useAuth();
+
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	const router = useRouter();
-	const { user , loading} = useAuth();
 
-	const handleGoogleLogin = async () => {
-		try {
-			// Redirect to Google OAuth endpoint - Google will handle authentication
-			window.location.href = "http://localhost:1337/auth/google";
-		} catch (error) {
-			console.error("Error occurred while fetching Google login URL:", error);
-			toast.error("an error " + error);
-		}
-	};
+	const { registerUser, handleGoogleLogin } =
+		useRegister();
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<RegisterFormData>({
+		resolver: zodResolver(registerSchema),
+	});
 
 	useEffect(() => {
-		if (loading) return; // Wait until loading is false
+		if (loading) return;
+
 		if (user) {
-			router.push(user.role === "DOCTOR" || user.role === "ADMIN" ? "/doctor/dashboard" : "/patients/landingpage");
+			router.push(
+				user.role === "DOCTOR" ||
+				user.role === "ADMIN"
+					? "/doctor/dashboard"
+					: "/"
+			);
 		}
 	}, [user, loading, router]);
-	const onSubmit = async (data: registerForm) => {
-	try {
-		setIsLoading(true);
-		const parseResult = registerSchema.safeParse(data);
-
-		if (!parseResult.success) {
-		toast.error(parseResult.error.issues[0]?.message);
-		return;
-		}
-
-		const response = await axios.post(
-		"http://localhost:1337/auth/register",
-		{
-			name: data.name,
-			email: data.email,
-			phone: data.phone,
-			password: data.password,
-		}, { headers: {
-			"Content-Type": "application/json",
-			"Accept": "application/json",
-		},
-			withCredentials: true,
-		});
-
-		toast.success(response.data.message || "Registration successful! Please check your email to verify your account.");
-		router.push("/patients/landingpage");
-	} catch (error) {
-		if (axios.isAxiosError(error)) {
-			toast.error(error.response?.data?.message || error.message || "Registration failed");
-			setIsLoading(false);
-		} else {
-			toast.error("An unknown error occurred.");
-			
-		}
-	}
-	};
 
 	return (
-		<div className="min-h-screen flex flex-col" style={{backgroundColor: "#f9f9fd"}}>
-			{/* Top Navigation */}
-			<header className="fixed top-0 w-full z-50 backdrop-blur-xl shadow-sm" style={{backgroundColor: "rgba(248, 248, 253, 0.8)"}}>
-				<div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto w-full">
-					<div className="text-xl font-bold tracking-tighter font-headline" style={{color: "#191c1e"}}>MedReserve</div>
-					<nav className="hidden md:flex gap-8">
-						<a className="font-headline tracking-tight font-semibold transition-colors" href="#" style={{color: "#5f6368"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"} onMouseLeave={(e) => e.currentTarget.style.color = "#5f6368"}>Find Doctors</a>
-						<a className="font-headline tracking-tight font-semibold transition-colors" href="#" style={{color: "#5f6368"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"} onMouseLeave={(e) => e.currentTarget.style.color = "#5f6368"}>Specialties</a>
-						<a className="font-headline tracking-tight font-semibold transition-colors" href="#" style={{color: "#5f6368"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"} onMouseLeave={(e) => e.currentTarget.style.color = "#5f6368"}>About Us</a>
-					</nav>
-					<div className="flex items-center gap-4">
-						<a className="font-headline tracking-tight font-semibold transition-colors" href="/login" style={{color: "#0057cd"}} onMouseEnter={(e) => e.currentTarget.style.color = "#0d6efd"} onMouseLeave={(e) => e.currentTarget.style.color = "#0057cd"}>Sign In</a>
-						<button className="px-6 py-2 rounded-xl font-headline font-bold text-sm active:scale-95 duration-200" style={{backgroundColor: "#0d6efd", color: "#ffffff"}} onClick={() => router.push("/register-doctor")}>Join as Doctor</button>
-					</div>
-				</div>
-				<div className="h-px" style={{backgroundColor: "rgba(194, 198, 216, 0.5)"}}></div>
-			</header>
+		<div
+			className="min-h-screen flex flex-col"
+			style={{ backgroundColor: "#f9f9fd" }}
+		>
+			<TopNavigation />
 
-			{/* Main Content Area */}
-			<main className="flex-1 flex items-center justify-center pt-24 pb-12 px-4 relative overflow-hidden">
-				{/* Abstract Background Shapes */}
-				<div className="absolute top-0 left-0 w-full h-full -z-10 opacity-30 pointer-events-none">
-					<div className="absolute -top-24 -left-24 w-96 h-96 rounded-full blur-[100px]" style={{backgroundColor: "rgba(160, 186, 255, 0.5)"}}></div>
-					<div className="absolute top-1/2 -right-48 w-125 h-125 rounded-full blur-[120px]" style={{backgroundColor: "rgba(218, 226, 255, 0.5)"}}></div>
-				</div>
+			<main className="flex-1 flex items-center justify-center pt-24 pb-12 px-4">
+				<div className="w-full max-w-xl">
+					<div
+						className="rounded-xl p-8 md:p-12 shadow-sm"
+						style={{ backgroundColor: "#ffffff" }}
+					>
+						<RegisterHeader />
 
-				{/* Registration Card Container */}
-				<div className="w-full max-w-xl relative z-10">
-					{/* Form Card */}
-					<div className="rounded-xl p-8 md:p-12 shadow-sm relative overflow-hidden" style={{backgroundColor: "#ffffff"}}>
-						{/* Card Header */}
-						<div className="mb-10">
-							<h1 className="text-3xl md:text-4xl font-headline font-extrabold tracking-tighter mb-3" style={{color: "#191c1e"}}>Create an Account</h1>
-							<p className="text-sm md:text-base leading-relaxed" style={{color: "#5f6368"}}>Join MedReserve to manage your healthcare appointments with clinical precision.</p>
-						</div>
+						<SocialLogin
+							handleGoogleLogin={
+								handleGoogleLogin
+							}
+						/>
 
-						{/* Social Login Section */}
-						<div className="flex flex-col gap-4 mb-8">
-							<button onClick={handleGoogleLogin} className="flex items-center justify-center gap-3 w-full py-3.5 px-6 rounded-xl font-medium text-sm transition-all duration-200 active:scale-95" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#edeef1"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f3f3f7"}>
-								Continue with Google
-							</button>
-							<div className="flex items-center gap-4 py-2">
-								<div className="h-px flex-1" style={{backgroundColor: "#e7e8eb"}}></div>
-								<span className="text-xs font-semibold tracking-widest uppercase" style={{color: "#727787"}}>OR</span>
-								<div className="h-px flex-1" style={{backgroundColor: "#e7e8eb"}}></div>
-							</div>
-						</div>
-
-						{/* Registration Form */}
-						<form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-							{/* Full Name */}
-							<div className="space-y-2">
-								<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="name" style={{color: "#5f6368"}}>Full Name</label>
-								<div className="relative">
-									<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="person" style={{color: "#727787"}}>person</span>
-									<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e", boxShadow: "none"}} id="name" placeholder="John Doe" type="text" {...register('name')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
-									{errors.name && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.name.message}</p>}
-								</div>
-							</div>
-
-							{/* Email & Phone Grid */}
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-2">
-									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="email" style={{color: "#5f6368"}}>Email</label>
-									<div className="relative">
-										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="mail" style={{color: "#727787"}}>mail</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="email" placeholder="john@example.com" {...register('email')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
-										{errors.email && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.email.message}</p>}
-									</div>
-								</div>
-								<div className="space-y-2">
-									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="phone" style={{color: "#5f6368"}}>Phone</label>
-									<div className="relative">
-										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="call" style={{color: "#727787"}}>call</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="phone" placeholder="+1 (555) 000-0000" type="tel" {...register('phone')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
-										{errors.phone && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.phone.message}</p>}
-									</div>
-								</div>
-							</div>
-
-							{/* Password Grid */}
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-2">
-									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="password" style={{color: "#5f6368"}}>Password</label>
-									<div className="relative">
-										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="lock" style={{color: "#727787"}}>lock</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...register('password')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
-										{errors.password && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.password.message}</p>}
-									</div>
-								</div>
-								<div className="space-y-2">
-									<label className="block text-xs font-bold tracking-wider uppercase pl-1" htmlFor="confirm_password" style={{color: "#5f6368"}}>Confirm Password</label>
-									<div className="relative">
-										<span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px]" data-icon="verified_user" style={{color: "#727787"}}>verified_user</span>
-										<input className="w-full pl-12 pr-4 py-3.5 border-none rounded-xl focus:ring-2 transition-all duration-200 placeholder:text-outline/60 text-sm outline-none" style={{backgroundColor: "#f3f3f7", color: "#191c1e"}} id="confirm_password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...register('confirm_password')} onFocus={(e) => {e.currentTarget.style.backgroundColor = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)";}} onBlur={(e) => {e.currentTarget.style.backgroundColor = "#f3f3f7"; e.currentTarget.style.boxShadow = "none";}} />
-										{errors.confirm_password && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.confirm_password.message}</p>}
-									</div>
-								</div>
-							</div>
-							{/* Terms Agreement */}
-							<div className="flex flex-col items-start gap-3">
-								<div className="flex gap-2">
-									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="show_password" name="show_password" type="checkbox" checked={showPassword} onChange={() => setShowPassword(prev => !prev)} />
-									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="show_password">
-										Show Password
-									</label>
-								</div>
-								<div className="flex gap-2">
-									<input className="mt-1 rounded cursor-pointer" style={{accentColor: "#0057cd", borderColor: "#c2c6d8", backgroundColor: "#f3f3f7"}} id="terms" type="checkbox" {...register('terms')} />
-									{errors.terms && <p className="text-xs mt-1" style={{color: "#e55353"}}>{errors.terms.message}</p>}
-									<label className="text-xs leading-relaxed cursor-pointer" style={{color: "#5f6368"}} htmlFor="terms">
-										I agree to the <Link className="font-semibold hover:underline" href="/terms-of-service" style={{color: "#0057cd"}}>Terms of Service</Link> and <Link className="font-semibold hover:underline" href="/privacy-policy" style={{color: "#0057cd"}}>Privacy Policy</Link>.
-									</label>
-								</div>
-							</div>
-
-							{/* Primary Action */}
-							<button className="w-full py-4 font-headline font-bold rounded-xl shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" style={{background: "linear-gradient(to right, #0057cd, #0d6efd)", color: "#ffffff", boxShadow: "0 8px 16px rgba(0, 87, 205, 0.2)"}} type="submit" disabled={isLoading} onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 12px 24px rgba(0, 87, 205, 0.3)"} onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 8px 16px rgba(0, 87, 205, 0.2)"}>
-								{isLoading ? "Registering..." : "Register"}
-							</button>
-						</form>
-
-						{/* Footer Link */}
-						<div className="mt-8 text-center">
-							<p className="text-sm" style={{color: "#5f6368"}}>
-								Already have an account? 
-								<a className="font-bold hover:opacity-80 ml-1 transition-opacity" href="/login" style={{color: "#0057cd"}}>Sign In</a>
-							</p>
-						</div>
-					</div>
-
-					{/* Accessibility Note / Trust Badge */}
-					<div className="mt-8 flex justify-center items-center gap-6" style={{color: "rgba(114, 119, 135, 0.6)"}}>
-						<div className="flex items-center gap-2">
-							<span className="material-symbols-outlined text-[20px]" data-icon="encrypted">encrypted</span>
-							<span className="text-[10px] font-bold tracking-widest uppercase">HIPAA Compliant</span>
-						</div>
-						<div className="w-1 h-1 rounded-full" style={{backgroundColor: "rgba(114, 119, 135, 0.2)"}}></div>
-						<div className="flex items-center gap-2">
-							<span className="material-symbols-outlined text-[20px]" data-icon="security">security</span>
-							<span className="text-[10px] font-bold tracking-widest uppercase">256-bit SSL</span>
-						</div>
+						<RegisterForm
+							register={register}
+							errors={errors}
+							showPassword={showPassword}
+							setShowPassword={
+								setShowPassword
+							}
+							isLoading={isLoading}
+							onSubmit={handleSubmit(
+								(data) =>
+									registerUser(
+										data,
+										setIsLoading
+									)
+							)}
+						/>
 					</div>
 				</div>
 			</main>
 
-			{/* Footer Component */}
 			<InformationFooter />
 		</div>
 	);
