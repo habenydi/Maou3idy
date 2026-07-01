@@ -56,7 +56,7 @@ export default function Navbar({
               Find Doctors
             </a>
             <a 
-              onClick={() => router.push('/patients/doctor')}
+              onClick={() => router.push('/patients/specialties')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'specialties' 
                   ? 'text-blue-600 border-b-2 border-blue-600' 

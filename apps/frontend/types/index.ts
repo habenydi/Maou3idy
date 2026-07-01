@@ -1,15 +1,4 @@
-export interface Doctor {
-  id: string;
-  firstName: string;
-  lastName: string;
-  specialty: string;
-  yearsOfExperience?: number;
-  profileImage: string;
-  isVerified?: boolean;
-  location?: string;
-  rating: number;
-  reviewCount: number;
-}
+import { Doctor } from './types';
 
 export interface Service {
   id: string;

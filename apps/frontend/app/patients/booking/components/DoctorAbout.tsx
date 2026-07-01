@@ -4,7 +4,7 @@ type Props = {
   doctor: DoctorDetailResponse['doctor'];
 };
 
-export default function DoctorHero({ doctor }: Props) {
+export default function DoctorAbout({ doctor }: Props) {
     return (
         <section>
               <h3 className="text-2xl font-headline font-bold mb-6 text-on-surface">
