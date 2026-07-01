@@ -101,7 +101,7 @@ const onSubmit = async (data: RegisterDoctorForm) => {
           withCredentials: true,
         }
       );
-      toast.success("Registration successful! we will contact you shortly.");
+      toast.success(responseData.message || "Registration successful! Please check your email to verify your account.");
       setMedicalLicense(null);
       router.push("/patients/landingpage");
     } catch (error) {

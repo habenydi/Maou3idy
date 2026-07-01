@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Img  from 'next/image';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { z } from 'zod';
@@ -85,7 +84,7 @@ export default function Register() {
 			withCredentials: true,
 		});
 
-		toast.success("Registration successful!");
+		toast.success(response.data.message || "Registration successful! Please check your email to verify your account.");
 		router.push("/patients/landingpage");
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
@@ -93,6 +92,7 @@ export default function Register() {
 			setIsLoading(false);
 		} else {
 			toast.error("An unknown error occurred.");
+			
 		}
 	}
 	};

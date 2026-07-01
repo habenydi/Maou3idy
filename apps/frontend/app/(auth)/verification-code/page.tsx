@@ -81,7 +81,6 @@ export default function VerificationCodePage() {
 									className="w-full pl-12 pr-4 py-4 border-none rounded-xl placeholder:text-outline/60 transition-all duration-200 outline-none font-medium" 
 									style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
-									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="email" 
 									placeholder="your@email.com"
 									{...register('email')}
@@ -100,7 +99,6 @@ export default function VerificationCodePage() {
 									className="w-full pl-12 pr-4 py-4 border-none rounded-xl placeholder:text-outline/60 transition-all duration-200 outline-none font-medium" 
 									style={{backgroundColor: "#f3f3f7", color: "#191c1e"}}
 									onFocus={(e) => {e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0, 87, 205, 0.2)"; e.currentTarget.style.backgroundColor = "#ffffff";}}
-									onBlur={(e) => {e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.backgroundColor = "#f3f3f7";}}
 									id="code" 
 									placeholder="Enter 6-digit code" 
 									type="text" 
