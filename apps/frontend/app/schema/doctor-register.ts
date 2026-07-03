@@ -25,20 +25,11 @@ export const registerDoctorSchema = z.object({
 
   speciality: z.string().min(1, "Specialty is required"),
 
-  license_number: z.string().min(
-    1,
-    "License number is required"
-  ),
+  license_number: z.string().min(1, "License number is required"),
 
   years_of_experience: z.number().min(0),
 
-  bio: z.string().min(
-    1,
-    "Brief bio is required"
-  ),
+  bio: z.string().min(1, "Brief bio is required"),
 
-  phone: z.string().min(
-    1,
-    "Phone number is required"
-  ),
+  phone: z.string().min(1, "Phone number is required"),
 });

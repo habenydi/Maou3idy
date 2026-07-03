@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Sidebar from '../components/SideBar';
 import TableSection from './components/tableSection';
 import AddServiceModal from './components/addServiceModal';
+import InformationFooter from '@/components/InformationFooter';
+// import InformationFooter from '@/components/InformationFooter';
 
 const Services = () => {
-  const router = useRouter();
   const [services] = useState([
     { id: 1, name: 'Cardiac Consultation', duration: 45, price: 150.0, status: 'active', icon: 'ecg' },
     { id: 2, name: 'Echocardiogram (ECG)', duration: 30, price: 280.0, status: 'active', icon: 'monitor_heart' },
@@ -55,14 +55,7 @@ const Services = () => {
           <TableSection services={services} />
         </div>
         {/* Pagination Footer */}
-        <footer className="mt-8 flex flex-col md:flex-row justify-between items-center px-4 py-6 border-t border-slate-200 gap-4">
-          <span className="font-inter text-xs text-slate-500">© 2024 Maou<span className="text-blue-500">3</span>idy Clinical Systems. All rights reserved.</span>
-          <div className="flex gap-6">
-            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Privacy Policy</a>
-            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Terms of Service</a>
-            <a onClick={() => router.push('#')} className="font-inter text-xs text-slate-500 hover:text-slate-900 underline decoration-blue-500/30 cursor-pointer">Contact Support</a>
-          </div>
-        </footer>
+        <InformationFooter />
 
         {/* Add Service Modal */}
         {showModal && (<AddServiceModal
