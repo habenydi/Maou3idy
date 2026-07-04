@@ -33,7 +33,7 @@ start:
 down:
 	$(COMPOSE) down
 
-restart: down up
+restart: down start
 
 logs:
 	$(COMPOSE) logs -f

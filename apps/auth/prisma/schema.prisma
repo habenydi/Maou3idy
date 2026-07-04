@@ -13,113 +13,169 @@ datasource db {
 
 enum Role {
   USER
-  DOCTOR
   ADMIN
+  DOCTOR
   PENDING_DOCTOR
+  REJECTED
   BANNED
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
+  id           String        @id @default(uuid())
   verified     Boolean       @default(false)
   email        String        @unique()
   name         String
   password     String        @default("")
   role         Role          @default(USER)
   phone        String        @default("")
+
   doctor       Doctor?
   appointments Appointment[]
+
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @default(now()) @updatedAt
 }
 
 model Doctor {
-  id             Int            @id @default(autoincrement())
-  user_id        Int            @unique()
-  user           User           @relation(fields: [user_id], references: [id])
-  location       String       @default("")
-  experience     Int          @default(0)
-  TotalPatients Int          @default(0)
-  Languages      String        @default("")
-  rating         Float        @default(0)
-  reviewCount    Int          @default(0)
-  profileImage   String        @default("")
-  working_hours  WorkingHours[]
-  slots          Slots[]
-  speciality     String
-  bio            String
-  license_number String
-  Service        Service[]
-  appointments   Appointment[]
-  verified       Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id              String          @id @default(uuid())
+
+  user_id         String          @unique()
+  user            User            @relation(fields: [user_id], references: [id])
+
+  location        String          @default("")
+  experience      Int             @default(0)
+  TotalPatients   Int             @default(0)
+  Languages       String          @default("")
+  rating          Float           @default(0)
+  reviewCount     Int             @default(0)
+  profileImage    String          @default("")
+
+  speciality      String
+  bio             String
+  license_number  String
+
+  working_hours   WorkingHours[]
+  slots           Slots[]
+  Service         Service[]
+  appointments    Appointment[]
+
+  verified        Boolean         @default(false)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model Auditlog {
-  id        Int      @id @default(autoincrement())
-  user_id   Int
-  action    String
-  timestamp DateTime @default(now())
+  id         String    @id @default(uuid())
+
+  user_id    String
+
+  action     String
+
+  timestamp  DateTime  @default(now())
+}
+
+model Stats {
+  id                    String @id @default(uuid())
+
+  TotalUsers            Int     @default(0)
+  TotalDoctors          Int     @default(0)
+  TotalAppointments     Int     @default(0)
+  ActiveDoctors         Int     @default(0)
+  PenddingAplications   Int     @default(0)
+
+  ServerUptime          Float   @default(0)
+  activeSessions        Int     @default(0)
+  apiResponseTime       Float   @default(0)
+
+  PendingDoctors        Int     @default(0)
+  MonthlyGrowth         Float   @default(0)
+  SystemHealth          Float   @default(0)
+  ResponceTime          Float   @default(0)
+
+  NewSubmissions        Int     @default(0)
+  verifiedRate          Float   @default(0)
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
+  id        String      @id @default(uuid())
+
   name      String
+
   Service   Service[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model Service {
-  id           Int           @id @default(autoincrement())
-  name         String
-  price        Float
-  duration     Int
-  category_id  Int
-  category     Category      @relation(fields: [category_id], references: [id])
-  doctor_id    Int
-  doctor       Doctor        @relation(fields: [doctor_id], references: [id])
-  appointments Appointment[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String         @id @default(uuid())
+
+  name          String
+  price         Float
+  duration      Int
+
+  category_id   String
+  category      Category       @relation(fields: [category_id], references: [id])
+
+  doctor_id     String
+  doctor        Doctor         @relation(fields: [doctor_id], references: [id])
+
+  appointments  Appointment[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model WorkingHours {
-  id          Int      @id @default(autoincrement())
-  doctor_id   Int
-  doctor      Doctor   @relation(fields: [doctor_id], references: [id])
-  day_of_week Int
-  start_time  String
-  end_time    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(uuid())
+
+  doctor_id    String
+  doctor       Doctor    @relation(fields: [doctor_id], references: [id])
+
+  day_of_week  Int
+  start_time   String
+  end_time     String
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Slots {
-  id          Int          @id @default(autoincrement())
-  doctor_id   Int
-  doctor      Doctor       @relation(fields: [doctor_id], references: [id])
-  date        DateTime
-  start_time  String
-  end_time    String
-  appointment Appointment?
-  is_booked   Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String         @id @default(uuid())
+
+  doctor_id     String
+  doctor        Doctor         @relation(fields: [doctor_id], references: [id])
+
+  date          DateTime
+  start_time    String
+  end_time      String
+
+  appointment   Appointment?
+
+  is_booked     Boolean        @default(false)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Appointment {
-  id         Int      @id @default(autoincrement())
-  user_id    Int
-  user       User     @relation(fields: [user_id], references: [id])
-  doctor_id  Int
-  doctor     Doctor   @relation(fields: [doctor_id], references: [id])
-  service_id Int
-  service    Service  @relation(fields: [service_id], references: [id])
-  slot_id    Int      @unique()
-  slot       Slots    @relation(fields: [slot_id], references: [id])
-  status     String   @default("scheduled")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String      @id @default(uuid())
+
+  user_id     String
+  user        User        @relation(fields: [user_id], references: [id])
+
+  doctor_id   String
+  doctor      Doctor      @relation(fields: [doctor_id], references: [id])
+
+  service_id  String
+  service     Service     @relation(fields: [service_id], references: [id])
+
+  slot_id     String      @unique()
+  slot        Slots       @relation(fields: [slot_id], references: [id])
+
+  status      String      @default("scheduled")
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }

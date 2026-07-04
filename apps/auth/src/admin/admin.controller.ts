@@ -14,8 +14,7 @@ export class AdminController {
   // doctor approval routes
   @Patch("docotor/:id/approve")
   approveDoctor(@Param("id") id: string) {
-    // Implement logic to approve the doctor with the given ID
-    return { message: `Doctor with ID ${id} approved.` };
+    return this.adminService.approveDoctor(id);
   }
 
   @Patch("docotor/:id/reject")
