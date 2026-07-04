@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Img from 'next/image';
+import axios from 'axios';
+import LogoutPage from '@/app/(auth)/logout/page';
 
 function Sidebar() {
   const pathname = usePathname();
@@ -73,20 +75,21 @@ function Sidebar() {
           <span>New Appointment</span>
         </Link>
         <div className="space-y-1">
-          <a
+          <Link
             className="flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-200/50 rounded-lg transition-all"
             href="/help"
           >
             <span className="material-symbols-outlined text-lg">help</span>
             <span>Help Center</span>
-          </a>
-          <a
+          </Link>
+          <Link
             className="flex items-center gap-3 text-error px-4 py-2 hover:bg-error-container/10 rounded-lg transition-all"
-            href="/logout"
+            onClick={LogoutPage}
+            href="/login"
           >
             <span className="material-symbols-outlined text-lg">logout</span>
             <span>Logout</span>
-          </a>
+          </Link>
         </div>
       </div>
     </aside>
