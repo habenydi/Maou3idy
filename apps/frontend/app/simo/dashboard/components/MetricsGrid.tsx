@@ -1,21 +1,24 @@
+import axios from 'axios';
 import MetricCard from './MetricGrid';
+
+const responce = await axios.get('http://localhost:1337/admin/dashboard');
 
 const metrics = [
   {
     title: 'Total Users',
-    value: '12,450',
+    value: responce.data.stats.TotalUsers,
     icon: 'person',
     badge: '+12%',
   },
   {
     title: 'Total Doctors',
-    value: '842',
+    value: responce.data.stats.TotalDoctors,
     icon: 'medical_information',
     badge: 'Active',
   },
   {
     title: 'Pending Applications',
-    value: '15',
+    value: responce.data.stats.PendingDoctorApprovals,
     icon: 'pending_actions',
     badge: 'Urgent',
     cardClassName: 'bg-tertiary-fixed',
@@ -24,7 +27,7 @@ const metrics = [
   },
   {
     title: 'Monthly Growth',
-    value: '+8%',
+    value: responce.data.stats.MonthlyGrowth,
     icon: 'trending_up',
     iconContainerClassName: 'bg-green-100',
     iconClassName: 'text-green-700',

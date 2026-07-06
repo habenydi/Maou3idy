@@ -1,4 +1,7 @@
+import axios from 'axios';
 import PulseCard from './PulseCard';
+
+const responce = await axios.get('http://localhost:1337/admin/dashboard');
 
 export default function PlatformPulse() {
   return (
@@ -10,7 +13,7 @@ export default function PlatformPulse() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <PulseCard
           title="API Response Time"
-          value="124"
+          value={responce.data.stats.ApiResponseTime}
           unit="ms"
           icon="bolt"
           bg="bg-primary-fixed-dim"
@@ -18,7 +21,7 @@ export default function PlatformPulse() {
 
         <PulseCard
           title="Active Sessions"
-          value="1.2k"
+          value={responce.data.stats.ActiveSessions}
           unit="Live"
           icon="sensor_occupied"
           bg="bg-surface-container-high"
@@ -26,7 +29,7 @@ export default function PlatformPulse() {
 
         <PulseCard
           title="Server Uptime"
-          value="99.9"
+          value={responce.data.stats.ServerUptime}
           unit="%"
           icon="cloud_done"
           bg="bg-surface-container-highest"
