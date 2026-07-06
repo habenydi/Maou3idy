@@ -12,58 +12,49 @@ export class AdminController {
   }
 
   // doctor approval routes
-  @Patch("docotor/:id/approve")
+  @Patch("doctor/:id/approve")
   approveDoctor(@Param("id") id: string) {
     return this.adminService.approveDoctor(id);
   }
 
-  @Patch("docotor/:id/reject")
+  @Patch("doctor/:id/reject")
   rejectDoctor(@Param("id") id: string) {
-    // Implement logic to reject the doctor with the given ID
-    return { message: `Doctor with ID ${id} rejected.` };
+    return this.adminService.rejectDoctor(id);
   }
-  @Get("docotors/:id/license")
+  @Get("doctor/:id/license")
   getDoctorLicense(@Param("id") id: string) {
-    // Implement logic to retrieve the doctor's license with the given ID
-    return { message: `License for doctor with ID ${id} retrieved.` };
+    return this.adminService.getDoctorLicense(id);
   }
-  @Patch("docotor/:id/suspend")
+  @Patch("doctor/:id/suspend")
   suspendDoctor(@Param("id") id: string) {
-    // Implement logic to suspend the doctor with the given ID
-    return { message: `Doctor with ID ${id} suspended.` };
+    return this.adminService.suspendDoctor(id);
   }
 
   // user management routes
-  @Get("admin/users")
+  @Get("users")
   getAllUsers() {
-    // Implement logic to retrieve all users
-    return { message: "All users retrieved." };
+    return this.adminService.getAllUsers();
   }
-  @Patch("admin/users/:id/disable")
+  @Patch("users/:id/disable")
   disableUser(@Param("id") id: string) {
-    // Implement logic to disable the user with the given ID
-    return { message: `User with ID ${id} disabled.` };
+    return this.adminService.disableUser(id);
   }
-  @Patch("admin/users/:id/activate")
+  @Patch("users/:id/activate")
   activateUser(@Param("id") id: string) {
-    // Implement logic to activate the user with the given ID
-    return { message: `User with ID ${id} activated.` };
+    return this.adminService.activateUser(id);
   }
-  @Delete("admin/users/:id")
+  @Delete("users/:id")
   deleteUser(@Param("id") id: string) {
-    // Implement logic to delete the user with the given ID
-    return { message: `User with ID ${id} deleted.` };
+    return this.adminService.deleteUser(id);
   }
 
   // audit and reporting routes
-  @Get("admin/audit-logs")
+  @Get("audit-logs")
   getAuditLogs() {
-    // Implement logic to retrieve audit logs
-    return { message: "Audit logs retrieved." };
+    return this.adminService.getAuditLogs();
   }
-  @Get("admin/reports")
+  @Get("reports")
   getReports() {
-    // Implement logic to retrieve reports
-    return { message: "Reports retrieved." };
+    return this.adminService.getReports();
   }
 }

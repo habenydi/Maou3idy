@@ -6,7 +6,7 @@ import { CreateDoctorDto } from "./dto/createDoctor.dto";
 export class DoctorService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: CreateDoctorDto, id: number) {
+  create(data: CreateDoctorDto, id: string) {
     return this.prisma.doctor.create({
       data: {
         speciality: data.speciality,
@@ -32,23 +32,22 @@ export class DoctorService {
             phone: true,
           },
         },
-        Service: true,
       },
     });
   }
 
-  findById(id: number) {
+  findById(id: string) {
     return this.prisma.doctor.findUnique({ where: { id } });
   }
 
-  update(id: number, data: Partial<CreateDoctorDto>) {
+  update(id: string, data: Partial<CreateDoctorDto>) {
     return this.prisma.doctor.update({
       where: { id },
       data,
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.doctor.delete({ where: { id } });
   }
 
@@ -68,7 +67,6 @@ export class DoctorService {
             phone: true,
           },
         },
-        Service: true,
       },
     });
   }
@@ -113,7 +111,7 @@ export class DoctorService {
       locations: ["New York, NY"],
     };
   }
-  approve(id: number) {
+  approve(id: string) {
     return this.prisma.doctor.update({
       where: { id },
       data: { verified: true },

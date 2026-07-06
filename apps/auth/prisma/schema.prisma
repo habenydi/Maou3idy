@@ -30,7 +30,6 @@ model User {
   phone        String        @default("")
 
   doctor       Doctor?
-  appointments Appointment[]
 
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @default(now()) @updatedAt
@@ -53,11 +52,6 @@ model Doctor {
   speciality      String
   bio             String
   license_number  String
-
-  working_hours   WorkingHours[]
-  slots           Slots[]
-  Service         Service[]
-  appointments    Appointment[]
 
   verified        Boolean         @default(false)
 
@@ -87,6 +81,7 @@ model Stats {
   ServerUptime          Float   @default(0)
   activeSessions        Int     @default(0)
   apiResponseTime       Float   @default(0)
+  totalrequests          Int     @default(0)
 
   PendingDoctors        Int     @default(0)
   MonthlyGrowth         Float   @default(0)
@@ -95,87 +90,4 @@ model Stats {
 
   NewSubmissions        Int     @default(0)
   verifiedRate          Float   @default(0)
-}
-
-model Category {
-  id        String      @id @default(uuid())
-
-  name      String
-
-  Service   Service[]
-
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-}
-
-model Service {
-  id            String         @id @default(uuid())
-
-  name          String
-  price         Float
-  duration      Int
-
-  category_id   String
-  category      Category       @relation(fields: [category_id], references: [id])
-
-  doctor_id     String
-  doctor        Doctor         @relation(fields: [doctor_id], references: [id])
-
-  appointments  Appointment[]
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-}
-
-model WorkingHours {
-  id           String    @id @default(uuid())
-
-  doctor_id    String
-  doctor       Doctor    @relation(fields: [doctor_id], references: [id])
-
-  day_of_week  Int
-  start_time   String
-  end_time     String
-
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
-model Slots {
-  id            String         @id @default(uuid())
-
-  doctor_id     String
-  doctor        Doctor         @relation(fields: [doctor_id], references: [id])
-
-  date          DateTime
-  start_time    String
-  end_time      String
-
-  appointment   Appointment?
-
-  is_booked     Boolean        @default(false)
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-}
-
-model Appointment {
-  id          String      @id @default(uuid())
-
-  user_id     String
-  user        User        @relation(fields: [user_id], references: [id])
-
-  doctor_id   String
-  doctor      Doctor      @relation(fields: [doctor_id], references: [id])
-
-  service_id  String
-  service     Service     @relation(fields: [service_id], references: [id])
-
-  slot_id     String      @unique()
-  slot        Slots       @relation(fields: [slot_id], references: [id])
-
-  status      String      @default("scheduled")
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 }

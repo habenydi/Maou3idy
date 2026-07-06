@@ -19,6 +19,7 @@ import { ChangePasswordDto } from "./dto/ChangePassword.dto";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { Role } from "@prisma/client";
 import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
+import { MetricsService } from "src/metrics/metrics.service";
 
 interface UserAuth {
   sub: number;
@@ -55,14 +56,17 @@ interface RequestWithUser extends Request {
 
 @Controller("auth")
 export class AuthController {
-  constructor(private Authservice: AuthService) {}
+  constructor(
+    private Authservice: AuthService,
+    private MetricsService: MetricsService,
+  ) {}
   @Get("google")
   @UseGuards(AuthGuard("google"))
   async googleAuth() {}
 
   @Get("google/callback")
   @UseGuards(AuthGuard("google"))
-  googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
+  async googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     const user = req.user;
     const token = this.Authservice.generateTokenForGoogleUser(user);
     res.cookie("access_token", token, {
@@ -71,6 +75,7 @@ export class AuthController {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
+    await this.MetricsService.incrementSession();
     res.redirect(`http://localhost:3000/google-callback`);
   }
 
@@ -105,6 +110,7 @@ export class AuthController {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
+    await this.MetricsService.incrementSession();
     return { user: result.user };
   }
   @Post("login")
@@ -121,6 +127,7 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
+    await this.MetricsService.incrementSession();
     return {
       user: result.user,
     };
@@ -146,9 +153,12 @@ export class AuthController {
     @Body() ChangePassword: ChangePasswordDto,
     @Req() req: RequestWithUser,
   ) {
-    const id = Number(req.user.sub);
     const { old_password, new_password } = ChangePassword;
-    return this.Authservice.change_password(id, old_password, new_password);
+    return this.Authservice.change_password(
+      String(req.user.sub),
+      old_password,
+      new_password,
+    );
   }
   @UseGuards(JwtGuard)
   @Get("me")
@@ -160,10 +170,11 @@ export class AuthController {
     return this.Authservice.doctor_register(body);
   }
   @Post("logout")
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie("access_token");
-
+    await this.MetricsService.decrementSession();
     return {
+      message: "Logged out successfully",
       success: true,
     };
   }

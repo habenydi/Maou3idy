@@ -15,6 +15,7 @@ import { Role } from "@prisma/client";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { DoctorService } from "src/doctor/doctor.service";
 import { JwtPayload } from "./guards/jwt.guard";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     private UserService: UsersService,
     private readonly email: MailerService,
     private readonly doctorService: DoctorService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private get frontendBaseUrl() {
@@ -207,7 +209,7 @@ export class AuthService {
     }
   }
   async change_password(
-    userId: number,
+    userId: string,
     old_password: string,
     new_password: string,
   ) {
@@ -254,6 +256,12 @@ export class AuthService {
     await this.UserService.update(user.id, {
       password: hashedPassword,
       role: Role.PENDING_DOCTOR,
+    });
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: user.id,
+        action: "new medical license verification pending for Dr. " + user.name,
+      },
     });
     await this.doctorService.create(body, user.id);
     return {

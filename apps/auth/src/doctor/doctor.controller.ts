@@ -31,7 +31,7 @@ export class DoctorController {
   }
   @Post()
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {
-    return this.doctorService.create(body, Number(id));
+    return this.doctorService.create(body, id);
   }
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
@@ -41,24 +41,24 @@ export class DoctorController {
   }
   @Get(":id")
   findById(@Param("id") id: string) {
-    return this.doctorService.findById(Number(id));
+    return this.doctorService.findById(id);
   }
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @Put(":id")
   Update(@Param(":id") id: string, @Body() body: Partial<CreateDoctorDto>) {
-    return this.doctorService.update(Number(id), body);
+    return this.doctorService.update(id, body);
   }
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(":id")
   remove(@Param(":id") id: string) {
-    return this.doctorService.remove(Number(id));
+    return this.doctorService.remove(id);
   }
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
   @Put(":id/approve")
   approve(@Param(":id") id: string) {
-    return this.doctorService.approve(Number(id));
+    return this.doctorService.approve(id);
   }
 }

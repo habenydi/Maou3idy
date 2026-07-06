@@ -7,6 +7,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config";
 import { DoctorModule } from "./doctor/doctor.module";
 import { AdminModule } from "./admin/admin.module";
+import { MetricsModule } from "./metrics/metrics.module";
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AdminModule } from "./admin/admin.module";
     UsersModule,
 
     MailerModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, MetricsModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
