@@ -97,7 +97,6 @@ export class AdminService {
         action: `Doctor ${doctor.user.name} approved`,
       },
     });
-
     return {
       message: `Doctor with ID ${id} approved.`,
       status: "approved",
@@ -314,6 +313,150 @@ export class AdminService {
           responseTime: stats?.ResponceTime || 0,
         },
       ],
+    };
+  }
+
+  async getUserRegistrationTrends(period: string) {
+    const now = new Date();
+    let startDate: Date;
+
+    if (period === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    } else {
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 42); // 6 weeks
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    // MONTHLY
+    if (period === "monthly") {
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const result: Record<string, number> = {};
+
+      // Initialize last 6 months with 0
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthLabel = monthNames[date.getMonth()];
+        result[monthLabel] = 0;
+      }
+
+      // Count registrations
+      users.forEach((user) => {
+        const monthLabel = monthNames[user.createdAt.getMonth()];
+
+        if (monthLabel in result) {
+          result[monthLabel]++;
+        }
+      });
+
+      return Object.entries(result).map(([label, count]) => ({
+        label,
+        count,
+      }));
+    }
+
+    // WEEKLY
+    const result: Record<string, number> = {
+      "Week 1": 0,
+      "Week 2": 0,
+      "Week 3": 0,
+      "Week 4": 0,
+      "Week 5": 0,
+      "Week 6": 0,
+    };
+
+    users.forEach((user) => {
+      const diffDays = Math.floor(
+        (now.getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      const weekIndex = Math.floor(diffDays / 7);
+
+      if (weekIndex >= 0 && weekIndex < 6) {
+        const weekLabel = `Week ${6 - weekIndex}`;
+        result[weekLabel]++;
+      }
+    });
+
+    return Object.entries(result).map(([label, count]) => ({
+      label,
+      count,
+    }));
+  }
+
+  async getRecentActivities() {
+    const activities = await this.prisma.auditlog.findMany({
+      orderBy: {
+        timestamp: "desc",
+      },
+      take: 5,
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return activities.map((activity) => ({
+      title: activity.user.name,
+      description: activity.action,
+      time: activity.timestamp,
+    }));
+  }
+
+  async getActivityLogs(page = 1, limit = 20) {
+    const activities = await this.prisma.auditlog.findMany({
+      orderBy: {
+        timestamp: "desc",
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    const total = await this.prisma.auditlog.count();
+
+    return {
+      activities: activities.map((activity) => ({
+        title: activity.user?.name ?? "Unknown user",
+        description: activity.action,
+        time: activity.timestamp.toISOString(),
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
     };
   }
 }

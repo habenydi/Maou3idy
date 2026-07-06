@@ -133,28 +133,29 @@ export class AuthController {
     };
   }
   @Post("forgot-password")
-  forget(@Body() body: ForgetPasswordDto) {
-    return this.Authservice.forget_password(body);
+  async forget(@Body() body: ForgetPasswordDto) {
+    await this.MetricsService.incrementSession();
+    return await this.Authservice.forget_password(body);
   }
   @Get("verify_email/token=:token")
-  verify_email(@Param("token") token: string) {
-    return this.Authservice.verify_email(token);
+  async verify_email(@Param("token") token: string) {
+    return await this.Authservice.verify_email(token);
   }
   @Patch("reset-password/token=:token")
-  reset_password(
+  async reset_password(
     @Param("token") token: string,
     @Body("new_password") new_password: string,
   ) {
-    return this.Authservice.reset_password(token, new_password);
+    return await this.Authservice.reset_password(token, new_password);
   }
   @UseGuards(JwtGuard)
   @Patch("change-password")
-  change_password(
+  async change_password(
     @Body() ChangePassword: ChangePasswordDto,
     @Req() req: RequestWithUser,
   ) {
     const { old_password, new_password } = ChangePassword;
-    return this.Authservice.change_password(
+    return await this.Authservice.change_password(
       String(req.user.sub),
       old_password,
       new_password,
@@ -166,8 +167,8 @@ export class AuthController {
     return req.user;
   }
   @Post("doctor-register")
-  doctor_register(@Body() body: DoctorRegisterDto) {
-    return this.Authservice.doctor_register(body);
+  async doctor_register(@Body() body: DoctorRegisterDto) {
+    return await this.Authservice.doctor_register(body);
   }
   @Post("logout")
   async logout(@Res({ passthrough: true }) res: Response) {

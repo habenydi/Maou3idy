@@ -78,6 +78,12 @@ export class AuthService {
       text: `Please click the following link to verify your email: ${url}`,
       html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
     });
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: user.id,
+        action: "User registered with email: " + user.email,
+      },
+    });
     return {
       statusCode: 201,
       message: "User registered successfully",

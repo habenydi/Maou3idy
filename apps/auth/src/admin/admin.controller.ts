@@ -1,4 +1,13 @@
-import { Controller, Get, Body, Patch, Param, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from "@nestjs/common";
 import { AdminService } from "./admin.service";
 
 @Controller("admin")
@@ -47,11 +56,29 @@ export class AdminController {
   deleteUser(@Param("id") id: string) {
     return this.adminService.deleteUser(id);
   }
+  @Get("users-registration-trends/period=:period")
+  async getUserRegistrationTrends(@Param("period") period: string) {
+    const result = await this.adminService.getUserRegistrationTrends(period);
+    return result;
+  }
 
   // audit and reporting routes
+  @Get("recent-activities")
+  async getRecentActivities() {
+    const result = await this.adminService.getRecentActivities();
+    return result;
+  }
+  @Get("activity-logs")
+  async getActivityLogs(
+    @Query("page", ParseIntPipe) page = 1,
+    @Query("limit", ParseIntPipe) limit = 20,
+  ) {
+    return await this.adminService.getActivityLogs(page, limit);
+  }
   @Get("audit-logs")
-  getAuditLogs() {
-    return this.adminService.getAuditLogs();
+  async getAuditLogs() {
+    const result = await this.adminService.getAuditLogs();
+    return result;
   }
   @Get("reports")
   getReports() {

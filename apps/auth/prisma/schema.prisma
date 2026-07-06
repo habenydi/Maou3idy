@@ -21,73 +21,75 @@ enum Role {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  verified     Boolean       @default(false)
-  email        String        @unique()
-  name         String
-  password     String        @default("")
-  role         Role          @default(USER)
-  phone        String        @default("")
+  id       String  @id @default(uuid())
+  verified Boolean @default(false)
+  email    String  @unique()
+  name     String
+  password String  @default("")
+  role     Role    @default(USER)
+  phone    String  @default("")
 
-  doctor       Doctor?
+  doctor Doctor?
+  auditlogs Auditlog[]
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Doctor {
-  id              String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  user_id         String          @unique()
-  user            User            @relation(fields: [user_id], references: [id])
+  user_id String @unique()
+  user    User   @relation(fields: [user_id], references: [id])
 
-  location        String          @default("")
-  experience      Int             @default(0)
-  TotalPatients   Int             @default(0)
-  Languages       String          @default("")
-  rating          Float           @default(0)
-  reviewCount     Int             @default(0)
-  profileImage    String          @default("")
+  location      String @default("")
+  experience    Int    @default(0)
+  TotalPatients Int    @default(0)
+  Languages     String @default("")
+  rating        Float  @default(0)
+  reviewCount   Int    @default(0)
+  profileImage  String @default("")
 
-  speciality      String
-  bio             String
-  license_number  String
+  speciality     String
+  bio            String
+  license_number String
 
-  verified        Boolean         @default(false)
+  verified Boolean @default(false)
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Auditlog {
-  id         String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  user_id    String
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
 
-  action     String
+  action String
 
-  timestamp  DateTime  @default(now())
+  timestamp DateTime @default(now())
 }
 
 model Stats {
-  id                    String @id @default(uuid())
+  id String @id @default(uuid())
 
-  TotalUsers            Int     @default(0)
-  TotalDoctors          Int     @default(0)
-  TotalAppointments     Int     @default(0)
-  ActiveDoctors         Int     @default(0)
-  PenddingAplications   Int     @default(0)
+  TotalUsers          Int @default(0)
+  TotalDoctors        Int @default(0)
+  TotalAppointments   Int @default(0)
+  ActiveDoctors       Int @default(0)
+  PenddingAplications Int @default(0)
 
-  ServerUptime          Float   @default(0)
-  activeSessions        Int     @default(0)
-  apiResponseTime       Float   @default(0)
-  totalrequests          Int     @default(0)
+  ServerUptime    Float @default(0)
+  activeSessions  Int   @default(0)
+  apiResponseTime Float @default(0)
+  totalrequests   Int   @default(0)
 
-  PendingDoctors        Int     @default(0)
-  MonthlyGrowth         Float   @default(0)
-  SystemHealth          Float   @default(0)
-  ResponceTime          Float   @default(0)
+  PendingDoctors Int   @default(0)
+  MonthlyGrowth  Float @default(0)
+  SystemHealth   Float @default(0)
+  ResponceTime   Float @default(0)
 
-  NewSubmissions        Int     @default(0)
-  verifiedRate          Float   @default(0)
+  NewSubmissions Int   @default(0)
+  verifiedRate   Float @default(0)
 }
