@@ -4,7 +4,7 @@ type ActivityItemProps = {
   title: string;
   description: string;
   time: string;
-  image?: string;
+  image?: string | null;
   icon?: string;
   iconBg?: string;
 };
@@ -14,8 +14,8 @@ export default function ActivityItem({
   description,
   time,
   image,
-  icon,
-  iconBg = 'bg-primary-fixed',
+  icon = 'assignment_late',
+  iconBg = 'bg-tertiary-container',
 }: ActivityItemProps) {
   return (
     <div className="flex gap-4">
