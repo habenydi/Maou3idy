@@ -8,6 +8,7 @@ interface Props {
 export default function UsersTable({
   users,
 }: Props) {
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-6 px-6 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">

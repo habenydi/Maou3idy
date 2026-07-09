@@ -1,53 +1,75 @@
-export default function UsersStatsGrid() {
+interface UsersStatsGridProps {
+  stats: {
+    TotalUsers: number;
+    ActiveDoctors: number;
+    PendingPatients: number;
+    SystemHealth: number;
+    NewlyOnboardedDoctors: number;
+    MonthlyGrowth: number;
+  };
+}
+
+export default function UsersStatsGrid({ stats }: UsersStatsGridProps) {
+  console.log("Stats in UsersStatsGrid:", stats.MonthlyGrowth);
+  const data = [
+    {
+      title: "Total Users",
+      value: stats?.TotalUsers ?? 0,
+      trend: stats?.MonthlyGrowth > 0 ? `${stats.MonthlyGrowth}% increase` : `${Math.abs(stats.MonthlyGrowth)}% decrease`,
+      trendColor: stats?.MonthlyGrowth > 0 ? "text-green-500" : "text-red-500",
+      trendIcon: stats?.MonthlyGrowth > 0 ? "trending_up" : "trending_down",
+    },
+    {
+      title: "Active Doctors",
+      value: stats?.ActiveDoctors ?? 0,
+      trend: stats?.NewlyOnboardedDoctors ? `${stats.NewlyOnboardedDoctors} newly onboarded` : "No new doctors",
+      trendColor: "text-slate-500",
+      trendIcon: "",
+    },
+    {
+      title: "Pending Patients",
+      value: stats?.PendingPatients ?? 0,
+      trend: "Requires review",
+      trendColor: "text-tertiary",
+      trendIcon: "",
+    },
+    {
+      title: "System Health",
+      value: stats?.SystemHealth ?? 0,
+      trend: "Security: High",
+      trendColor: "text-primary",
+      trendIcon: "",
+    },
+  ];
+
   return (
-<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="p-6 bg-surface-container-low rounded-xl">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
-              Total Users
-            </p>
-            <p className="text-4xl font-extrabold text-on-surface font-headline">
-              1,284
-            </p>
-            <div className="mt-4 flex items-center gap-1 text-xs text-green-600 font-bold">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {data.map((stat) => (
+        <div
+          key={stat.title}
+          className="p-6 bg-surface-container-low rounded-xl"
+        >
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
+            {stat.title}
+          </p>
+
+          <p className="text-4xl font-extrabold text-on-surface font-headline">
+            {stat.value}
+          </p>
+
+          <div
+            className={`mt-4 flex items-center gap-1 text-xs font-medium ${stat.trendColor}`}
+          >
+            {stat.trendIcon && (
               <span className="material-symbols-outlined text-xs">
-                trending_up
-              </span>{" "}
-              12% from last month
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-low rounded-xl">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
-              Active Doctors
-            </p>
-            <p className="text-4xl font-extrabold text-on-surface font-headline">
-              86
-            </p>
-            <div className="mt-4 flex items-center gap-1 text-xs text-slate-500 font-medium">
-              4 newly onboarded
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-low rounded-xl">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
-              Pending Patients
-            </p>
-            <p className="text-4xl font-extrabold text-on-surface font-headline">
-              32
-            </p>
-            <div className="mt-4 flex items-center gap-1 text-xs text-tertiary font-bold">
-              Requires review
-            </div>
-          </div>
-          <div className="p-6 bg-surface-container-low rounded-xl">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
-              System Health
-            </p>
-            <p className="text-4xl font-extrabold text-on-surface font-headline">
-              99.9%
-            </p>
-            <div className="mt-4 flex items-center gap-1 text-xs text-primary font-bold">
-              Security: High
-            </div>
+                {stat.trendIcon}
+              </span>
+            )}
+
+            {stat.trend}
           </div>
         </div>
+      ))}
+    </div>
   );
 }

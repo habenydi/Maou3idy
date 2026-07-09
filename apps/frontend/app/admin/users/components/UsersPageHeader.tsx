@@ -1,10 +1,5 @@
-interface UsersPageHeaderProps {
-  onAddUser?: () => void;
-}
 
-export default function UsersPageHeader({
-  onAddUser,
-}: UsersPageHeaderProps) {
+export default function UsersPageHeader() {
   return (
     <div className="flex justify-between items-end">
       <div>
@@ -18,15 +13,15 @@ export default function UsersPageHeader({
       </div>
 
       <div className="flex gap-3">
-      <div className="flex items-center gap-6">
-        <div className="relative group">
+        <div className="flex items-center gap-6 px-6 bg-surface-container-low rounded-xl">
+          <div className="relative group">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
             search
           </span>
           <input
             type="text"
             placeholder="Search clinical records..."
-            className="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all outline-none"
+            className="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-full text-sm  w-64 transition-all outline-none"
           />
         </div>
       </div>
