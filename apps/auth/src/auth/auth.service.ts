@@ -297,7 +297,7 @@ export class AuthService {
     }
 
     const payload: JwtPayload = {
-      sub: String(user.id),
+      sub: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -317,13 +317,13 @@ export class AuthService {
     };
   }
   generateTokenForGoogleUser(user: {
-    id: number;
+    id: string;
     name: string;
     email: string;
     role: Role;
   }) {
     const payload: JwtPayload = {
-      sub: String(user.id),
+      sub: user.id,
       name: user.name,
       email: user.email,
       role: user.role,

@@ -279,8 +279,9 @@ export class AdminService {
       },
     });
 
+    await this.prisma.doctor.deleteMany({ where: { user_id: id } });
+    await this.prisma.auditlog.deleteMany({ where: { user_id: id } });
     await this.prisma.user.delete({ where: { id } });
-
     return {
       message: `User with ID ${id} deleted.`,
       status: "deleted",

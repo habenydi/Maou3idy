@@ -22,8 +22,8 @@ import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
 import { MetricsService } from "src/metrics/metrics.service";
 
 interface UserAuth {
-  sub: number;
-  id: number;
+  sub: string;
+  id: string;
   email: string;
   verified: boolean;
   name: string;
@@ -44,7 +44,7 @@ interface UserAuth {
   };
 }
 export interface UserGoogleAuth {
-  id: number;
+  id: string;
   email: string;
   name: string;
   access_token: string;
