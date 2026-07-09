@@ -1,7 +1,7 @@
 'use client';
 
-import AdminSidebar from '@/app/simo/components/AdminSidebar';
-import AdminHeader from '@/app/simo/components/AdminHeader';
+import AdminSidebar from '@/app/admin/components/AdminSidebar';
+import AdminHeader from '@/app/admin/components/AdminHeader';
 import { useAuth } from '@/app/layout';
 
 import DashboardHeader from './components/DashboardHeader';

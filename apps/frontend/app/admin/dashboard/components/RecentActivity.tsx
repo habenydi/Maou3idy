@@ -42,7 +42,7 @@ export default function RecentActivity() {
         </h3>
 
         <Link
-          href="/simo/activity-logs"
+          href="/admin/activity-logs"
           className="text-primary text-xs font-bold hover:underline"
         >
           View All

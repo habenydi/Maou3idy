@@ -18,21 +18,23 @@ export default function UsersPageHeader({
       </div>
 
       <div className="flex gap-3">
-        <button className="px-6 py-3 bg-surface-container-highest text-on-surface rounded-xl font-semibold text-sm flex items-center gap-2">
+      <div className="flex items-center gap-6">
+        <div className="relative group">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+            search
+          </span>
+          <input
+            type="text"
+            placeholder="Search clinical records..."
+            className="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all outline-none"
+          />
+        </div>
+      </div>
+        <button className="px-6 py-3 bg-primary text-on-primary rounded-xl font-semibold text-sm flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">
             filter_list
           </span>
           Filters
-        </button>
-
-        <button
-          onClick={onAddUser}
-          className="px-6 py-3 bg-linear-to-r from-primary to-primary-container text-on-primary rounded-xl font-semibold text-sm flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-sm">
-            person_add
-          </span>
-          Add New User
         </button>
       </div>
     </div>

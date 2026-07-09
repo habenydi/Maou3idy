@@ -1,5 +1,5 @@
-import AdminHeader from '@/app/simo/components/AdminHeader';
-import AdminSidebar from '@/app/simo/components/AdminSidebar';
+import AdminHeader from '@/app/admin/components/AdminHeader';
+import AdminSidebar from '@/app/admin/components/AdminSidebar';
 
 import ApplicationsHeader from './components/ApplicationsHeader';
 import ApplicationFilters from './components/ApplicationFilters';

@@ -14,19 +14,19 @@ export default function AdminSidebar({
   const navItems = [
     {
       name: 'Dashboard',
-      href: '/simo/dashboard',
+      href: '/admin/dashboard',
       icon: 'dashboard',
       key: 'dashboard',
     },
     {
       name: 'Users',
-      href: '/simo/users',
+      href: '/admin/users',
       icon: 'group',
       key: 'users',
     },
     {
       name: 'Doctors',
-      href: '/simo/doctors',
+      href: '/admin/doctors',
       icon: 'description',
       key: 'doctors',
     },
