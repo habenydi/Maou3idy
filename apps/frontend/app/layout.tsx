@@ -6,16 +6,31 @@ import { ToastContainer } from "react-toastify";
 import { useState, useEffect, createContext, useContext} from "react";
 import axios from "axios";
 
+export type User = {
+  sub: string;
+  name: string;
+  email: string;
+  role: string;
+};
 
+export interface AuthUser {
+  user: User | null;
+  loading: boolean;
+  setUser: (user: User | null) => void;
+}
 
-const AuthContext = createContext<any>(null);
+const AuthContext = createContext<AuthUser>({
+  user: null,
+  loading: true,
+  setUser: () => {},
+});
 
 export function AuthProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

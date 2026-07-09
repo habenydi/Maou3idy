@@ -1,9 +1,9 @@
 export interface UserRow {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: "Doctor" | "Patient";
-  status: "Active" | "Inactive";
+  role: "DOCTOR" | "USER" | "ADMIN";
+  verified: boolean;
   createdAt: string;
   avatar: string;
 }

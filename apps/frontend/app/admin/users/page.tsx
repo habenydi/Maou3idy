@@ -10,11 +10,10 @@ import axios from "axios";
 
 export default async function DashboardPage() {
   const data = await getDashboardStats();
-
+  
   const response = await axios.get(
     "http://localhost:1337/admin/users"
   );
-
   const users = response.data.users;
 
   return (

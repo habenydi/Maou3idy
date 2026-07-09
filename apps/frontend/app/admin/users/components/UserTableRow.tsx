@@ -4,12 +4,15 @@ import Img from 'next/image';
 import { UserRow } from "@/types/user";
 import UserRoleBadge from "./UserRoleBadge";
 import UserStatusBadge from "./UserStatusBadge";
-
+import UsersAction from './UsersAction';
+import { useAuth } from '@/app/layout';
+import { AuthUser } from '@/app/layout';
 interface Props {
   user: UserRow;
 }
 
 export default function UserTableRow({ user }: Props) {
+  const { user: currentUser, loading } = useAuth();
   const date = new Date("2026-06-26T08:43:29.189Z");
 
   const formatted = date.toLocaleDateString("en-US", {
@@ -17,7 +20,13 @@ export default function UserTableRow({ user }: Props) {
     month: "short",
     year: "numeric",
   });
-
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (!currentUser) {
+    return <div>Please log in to view this content.</div>;
+  }
+  console.log("Current User:", currentUser);
   const defaultAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuBg0DvHSMBLnbe0iqPg8jcrfQPpcxc-lygCetMOLec3vSYBDi3V6UMvUhrdTV6B3nkQc4DgRRhb5niwbt76rX-WnFiMwy7rF98jBoXpgoxI6M2B2wEfHqMnA9Gu1d97sZrd3hsCwsePN7rR6i540KrwJRa3KE2dAmL-uYI-Yq7OFNUNcOXwyc3Djr5ifXYOv_EnAgJoWjmxw-SigYj-shqMZE8H_Q878pPFR62zvhwxj-RXz2uqLVX-18wsFGB9uYzI5Y7PPeNATvA";
   return (
     <div className="grid grid-cols-6 items-center px-6 py-4 bg-surface-container-lowest rounded-xl hover:bg-surface-bright group">
@@ -48,11 +57,11 @@ export default function UserTableRow({ user }: Props) {
       <div>{formatted}</div>
 
       <div>
-        <UserStatusBadge status={user.status} />
+        <UserStatusBadge status={user.verified ? "Active" : "Inactive"} />
       </div>
 
       <div className="flex justify-end gap-2">
-        {/* actions */}
+        <UsersAction userId={user.id} />
       </div>
     </div>
   );
