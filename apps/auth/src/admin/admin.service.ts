@@ -46,11 +46,22 @@ export class AdminService {
         ((usersThisMonth - usersLastMonth) / usersLastMonth) * 100;
     }
     const result = await this.metricsService.getMetrics();
+    const newlyDoctors = await this.prisma.user.count({
+      where: {
+        role: Role.DOCTOR,
+        createdAt: {
+          gte: startOfThisMonth,
+        },
+      },
+    });
     return {
       message: "Welcome to the Admin Dashboard",
       stats: {
         TotalUsers: totalUsers,
         TotalDoctors: totalDoctors,
+        PendingPatients: await this.prisma.user.count({
+          where: { role: Role.USER, verified: false },
+        }),
         PendingDoctorApprovals: pendingDoctorApprovals,
         MonthlyGrowth: Number(monthlyGrowth.toFixed(2)),
         TotalAppointments: stats?.TotalAppointments || 0,
@@ -59,6 +70,7 @@ export class AdminService {
         ServerUptime: result?.ServerUptime || 0,
         ApiResponseTime: result?.ApiResponseTime || 0,
         ActiveSessions: result?.ActiveSessions || 0,
+        NewlyOnboardedDoctors: newlyDoctors,
       },
     };
   }
