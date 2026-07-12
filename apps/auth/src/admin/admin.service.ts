@@ -195,21 +195,44 @@ export class AdminService {
     };
   }
 
-  async getAllUsers() {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        verified: true,
-        createdAt: true,
-      },
-    });
+  async getAllUsers(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        where: {
+          role: {
+            notIn: [
+              Role.ADMIN,
+              Role.PENDING_DOCTOR,
+              Role.REJECTED,
+              Role.BANNED,
+            ],
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          verified: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      this.prisma.user.count(),
+    ]);
 
     return {
-      users: users,
-      total: users.length,
+      users,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -222,7 +245,7 @@ export class AdminService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { role: Role.BANNED },
+      data: { verified: false },
     });
 
     await this.prisma.auditlog.create({
@@ -248,7 +271,7 @@ export class AdminService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { role: Role.USER },
+      data: { role: Role.USER, verified: true },
     });
 
     await this.prisma.auditlog.create({
@@ -285,6 +308,32 @@ export class AdminService {
     return {
       message: `User with ID ${id} deleted.`,
       status: "deleted",
+    };
+  }
+
+  async banUser(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      return { message: `User with ID ${id} not found.`, status: "error" };
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { role: Role.BANNED },
+    });
+
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: id,
+        action: `User ${user.name} banned`,
+      },
+    });
+
+    return {
+      message: `User with ID ${id} banned.`,
+      status: "banned",
+      user: updatedUser,
     };
   }
 

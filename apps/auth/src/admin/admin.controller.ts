@@ -41,8 +41,14 @@ export class AdminController {
 
   // user management routes
   @Get("users")
-  getAllUsers() {
-    return this.adminService.getAllUsers();
+  async getAllUsers(
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.adminService.getAllUsers(
+      Number(page) || 1,
+      Number(limit) || 10,
+    );
   }
   @Patch("users/:id/disable")
   disableUser(@Param("id") id: string) {
@@ -60,6 +66,10 @@ export class AdminController {
   async getUserRegistrationTrends(@Param("period") period: string) {
     const result = await this.adminService.getUserRegistrationTrends(period);
     return result;
+  }
+  @Patch("users/:id/ban")
+  banUser(@Param("id") id: string) {
+    return this.adminService.banUser(id);
   }
 
   // audit and reporting routes
