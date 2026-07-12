@@ -10,7 +10,6 @@ interface UsersStatsGridProps {
 }
 
 export default function UsersStatsGrid({ stats }: UsersStatsGridProps) {
-  console.log("Stats in UsersStatsGrid:", stats.MonthlyGrowth);
   const data = [
     {
       title: "Total Users",

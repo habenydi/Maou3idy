@@ -8,12 +8,22 @@ import FloatingAddUserButton from "./components/FloatingAddUserButton";
 import { getDashboardStats } from "@/lib/admin/dashboard";
 import axios from "axios";
 
-export default async function DashboardPage() {
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
+
+  const currentPage = Number(page) || 1;
+
   const data = await getDashboardStats();
-  
+
   const response = await axios.get(
-    "http://localhost:1337/admin/users"
+    `http://localhost:1337/admin/users?page=${currentPage}&limit=10`
   );
+
   const users = response.data.users;
 
   return (
@@ -31,7 +41,11 @@ export default async function DashboardPage() {
 
             <UsersTable users={users} />
 
-            <UsersPagination />
+            <UsersPagination
+              totalResults={users.length}
+              currentPage={currentPage}
+              totalPages={response.data.totalPages}
+            />
           </div>
         </section>
       </main>
