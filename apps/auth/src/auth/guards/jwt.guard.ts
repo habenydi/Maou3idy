@@ -34,14 +34,12 @@ export class JwtGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      if (!payload?.sub || !payload?.email) {
-        throw new UnauthorizedException("Invalid token payload");
-      }
 
       request.user = payload;
 
       return true;
-    } catch {
+    } catch (error) {
+      console.log("JWT ERROR:", error);
       throw new UnauthorizedException("Invalid or expired token");
     }
   }

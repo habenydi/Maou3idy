@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { MetricsService } from "../metrics/metrics.service";
 
 @Injectable()
@@ -75,9 +75,93 @@ export class AdminService {
     };
   }
 
+  async getDoctorApplications(page = 1, limit = 10, role?: string) {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {};
+
+    switch (role) {
+      case "pending":
+        where.role = Role.PENDING_DOCTOR;
+        break;
+
+      case "approved":
+        where.role = Role.DOCTOR;
+        break;
+
+      case "rejected":
+        where.role = Role.REJECTED;
+        break;
+
+      default:
+        where.role = {
+          in: [Role.PENDING_DOCTOR, Role.DOCTOR, Role.REJECTED],
+        };
+        break;
+    }
+
+    const [applications, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        where,
+        include: {
+          doctor: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      this.prisma.user.count({
+        where,
+      }),
+    ]);
+    return {
+      applications,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getDoctorApplicationSummary() {
+    const newSubmissions = await this.prisma.user.count({
+      where: {
+        role: Role.PENDING_DOCTOR,
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    const approved = await this.prisma.user.count({
+      where: {
+        role: Role.DOCTOR,
+      },
+    });
+
+    const rejected = await this.prisma.user.count({
+      where: {
+        role: Role.REJECTED,
+      },
+    });
+
+    const verifiedRate =
+      approved + rejected > 0
+        ? Math.round((approved / (approved + rejected)) * 100)
+        : 0;
+
+    return {
+      newSubmissions,
+      averageResponseTime: 4.2, // calculate if you store review dates
+      verifiedRate,
+    };
+  }
+
   async approveDoctor(id: string) {
     const doctor = await this.prisma.doctor.findUnique({
-      where: { id },
+      where: { user_id: id },
       include: { user: true },
     });
     if (!doctor || !doctor.verified) {
@@ -99,7 +183,7 @@ export class AdminService {
     });
 
     await this.prisma.doctor.update({
-      where: { id },
+      where: { user_id: id },
       data: { verified: true },
     });
 
@@ -118,7 +202,7 @@ export class AdminService {
 
   async rejectDoctor(id: string) {
     const doctor = await this.prisma.doctor.findUnique({
-      where: { id },
+      where: { user_id: id },
       include: { user: true },
     });
 
@@ -145,9 +229,38 @@ export class AdminService {
     };
   }
 
+  async activateDoctor(id: string) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { user_id: id },
+      include: { user: true },
+    });
+
+    if (!doctor) {
+      return { message: `Doctor with ID ${id} not found.`, status: "error" };
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: doctor.user_id },
+      data: { role: Role.DOCTOR },
+    });
+
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: doctor.user_id,
+        action: `Doctor ${doctor.user.name} activated`,
+      },
+    });
+
+    return {
+      message: `Doctor with ID ${id} activated.`,
+      status: "active",
+      doctor: updatedUser,
+    };
+  }
+
   async getDoctorLicense(id: string) {
     const doctor = await this.prisma.doctor.findUnique({
-      where: { id },
+      where: { user_id: id },
       include: { user: true },
     });
 
@@ -168,12 +281,14 @@ export class AdminService {
 
   async suspendDoctor(id: string) {
     const doctor = await this.prisma.doctor.findUnique({
-      where: { id },
+      where: { user_id: id },
       include: { user: true },
     });
 
     if (!doctor) {
-      return { message: `Doctor with ID ${id} not found.`, status: "error" };
+      throw new BadRequestException({
+        message: `Doctor with ID ${id} not found.`,
+      });
     }
 
     const updatedUser = await this.prisma.user.update({
@@ -187,7 +302,6 @@ export class AdminService {
         action: `Doctor ${doctor.user.name} suspended`,
       },
     });
-
     return {
       message: `Doctor with ID ${id} suspended.`,
       status: "suspended",
@@ -195,23 +309,41 @@ export class AdminService {
     };
   }
 
-  async getAllUsers(page = 1, limit = 10) {
+  async getAllUsers(page = 1, limit = 10, search?: string, role?: string) {
     const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {
+      role: {
+        notIn: [Role.ADMIN, Role.PENDING_DOCTOR, Role.REJECTED, Role.BANNED],
+      },
+    };
+
+    if (search) {
+      where.OR = [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          email: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    if (role && Object.values(Role).includes(role as Role)) {
+      where.role = role as Role;
+    }
 
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         skip,
         take: limit,
-        where: {
-          role: {
-            notIn: [
-              Role.ADMIN,
-              Role.PENDING_DOCTOR,
-              Role.REJECTED,
-              Role.BANNED,
-            ],
-          },
-        },
+        where,
         select: {
           id: true,
           name: true,
@@ -224,7 +356,9 @@ export class AdminService {
           createdAt: "desc",
         },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({
+        where,
+      }),
     ]);
 
     return {

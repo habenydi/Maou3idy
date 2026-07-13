@@ -32,7 +32,6 @@ export class RolesGuard implements CanActivate {
 
     // request.user is populated by JwtGuard/JwtStrategy validate() payload
     const user = request.user;
-
     if (!user?.role) {
       return false;
     }
