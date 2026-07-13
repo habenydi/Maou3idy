@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import Sidebar from '@/components/Sidebar';
+import Sidebar from '../components/SideBar';
 import AppointmentsHeader from './components/AppointmentsHeader';
 import AppointmentsFilters from './components/AppointmentsFilters';
 import AppointmentsTable from './components/AppointmentsTable';

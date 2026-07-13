@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Img from 'next/image';
-import axios from 'axios';
 import LogoutPage from '@/app/(auth)/logout/page';
 
 function Sidebar() {
@@ -15,7 +14,6 @@ function Sidebar() {
     { path: '/doctor/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { path: '/doctor/appointments', icon: 'calendar_today', label: 'Appointments' },
     { path: '/doctor/schedule', icon: 'schedule', label: 'Schedule' },
-    { path: '/doctor/patients', icon: 'group', label: 'Patients' },
     { path: '/doctor/services', icon: 'medical_services', label: 'Services' },
     { path: '/doctor/settings', icon: 'settings', label: 'Settings' },
   ];

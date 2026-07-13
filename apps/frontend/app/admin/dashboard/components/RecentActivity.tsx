@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import ActivityItem from './ActivityItem';
 
 interface Activity {
@@ -21,7 +22,9 @@ export default function RecentActivity() {
       try {
         const response = await axios.get(
           'http://localhost:1337/admin/recent-activities',
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
 
         setActivities(response.data);
@@ -53,11 +56,21 @@ export default function RecentActivity() {
       <div className="space-y-6">
         {loading ? (
           <p>Loading...</p>
+        ) : activities.length === 0 ? (
+          <p className="text-on-surface-variant">
+            No recent activities.
+          </p>
         ) : (
-          activities.map((activity) => (
+          activities.map((activity, index) => (
             <ActivityItem
-              key={`${activity.title}-${activity.time}`}
-              {...activity}
+              key={`${activity.title}-${activity.time}-${index}`}
+              title={activity.title}
+              description={activity.description}
+              image={activity.image}
+              time={formatDistanceToNow(
+                new Date(activity.time),
+                { addSuffix: true }
+              )}
             />
           ))
         )}

@@ -5,7 +5,6 @@ import Sidebar from '../components/SideBar';
 import TableSection from './components/tableSection';
 import AddServiceModal from './components/addServiceModal';
 import InformationFooter from '@/components/InformationFooter';
-// import InformationFooter from '@/components/InformationFooter';
 
 const Services = () => {
   const [services] = useState([

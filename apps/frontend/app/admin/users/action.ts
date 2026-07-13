@@ -6,6 +6,7 @@ export async function approveUser(userId: string) {
   try {
     await axios.patch(
       `http://localhost:1337/admin/users/${userId}/activate`,
+      {},
       { withCredentials: true }
     );
 
@@ -20,11 +21,14 @@ export async function disableUser(userId: string) {
   try {
     await axios.patch(
       `http://localhost:1337/admin/users/${userId}/disable`,
-      { withCredentials: true }
+      {},
+      {
+        withCredentials: true,
+      }
     );
 
     toast.success("User disabled successfully");
-    } catch (error) {
+  } catch (error) {
     console.error(error);
     toast.error("Failed to disable user");
   }
@@ -47,6 +51,7 @@ export async function banUser(userId: string) {
   try {
     await axios.patch(
       `http://localhost:1337/admin/users/${userId}/ban`,
+      {},
       { withCredentials: true }
     );
 

@@ -48,7 +48,7 @@ const data = await getDashboardStats();
 
         <section className="mt-16 p-8 flex-1">
           <div className="max-w-7xl mx-auto space-y-8">
-            <UsersPageHeader users={users} search={searchQuery} role={roleQuery} />
+            <UsersPageHeader search={searchQuery} role={roleQuery} />
 
             <UsersStatsGrid stats={data.stats} />
 
