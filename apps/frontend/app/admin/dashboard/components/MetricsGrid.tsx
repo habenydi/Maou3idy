@@ -1,7 +1,7 @@
 import axios from 'axios';
 import MetricCard from './MetricGrid';
 
-const responce = await axios.get('http://localhost:1337/admin/dashboard');
+const responce = await axios.get('http://localhost:1337/admin/dashboard', { withCredentials: true });
 
 const metrics = [
   {

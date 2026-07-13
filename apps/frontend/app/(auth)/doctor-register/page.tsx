@@ -126,7 +126,7 @@ function RegisterDoctor() {
 
       setMedicalLicense(null);
 
-      router.push("/patients/landingpage");
+      router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const backendMessage =

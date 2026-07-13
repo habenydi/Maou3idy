@@ -6,8 +6,6 @@ import { api } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import AppointmentsHeader from './components/AppointmentsHeader';
 import AppointmentsFilters from './components/AppointmentsFilters';
-import AppointmentsRow from './components/AppointmentsRow';
-import EmptyState from './components/EmptyState';
 import AppointmentsTable from './components/AppointmentsTable';
 
 export interface Appointment {
@@ -36,7 +34,6 @@ export const STATUS_COLORS = {
 };
 
 const Appointments = () => {
-  const router = useRouter();
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: 'RE-2931',

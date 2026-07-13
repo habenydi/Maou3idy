@@ -4,26 +4,39 @@ import UsersPageHeader from "./components/UsersPageHeader";
 import UsersStatsGrid from "./components/UsersStatsGrid";
 import UsersTable from "./components/UsersTable";
 import UsersPagination from "./components/UsersPagination";
-import FloatingAddUserButton from "./components/FloatingAddUserButton";
 import { getDashboardStats } from "@/lib/admin/dashboard";
 import axios from "axios";
 
+import { cookies } from "next/headers";
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    role?: string;
+  }>;
 }) {
-  const { page } = await searchParams;
+  const params = await searchParams;
 
-  const currentPage = Number(page) || 1;
+  const currentPage = Number(params.page || 1);
+  const searchQuery = params.search || "";
+  const roleQuery = params.role || "";
 
-  const data = await getDashboardStats();
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("access_token")?.value;
 
   const response = await axios.get(
-    `http://localhost:1337/admin/users?page=${currentPage}&limit=10`
+    `http://localhost:1337/admin/users?page=${currentPage}&search=${searchQuery}&role=${roleQuery}`,
+    {
+      headers: {
+        Cookie: `access_token=${accessToken}`,
+      },
+    }
   );
 
+const data = await getDashboardStats();
   const users = response.data.users;
 
   return (
@@ -35,7 +48,7 @@ export default async function DashboardPage({
 
         <section className="mt-16 p-8 flex-1">
           <div className="max-w-7xl mx-auto space-y-8">
-            <UsersPageHeader />
+            <UsersPageHeader users={users} search={searchQuery} role={roleQuery} />
 
             <UsersStatsGrid stats={data.stats} />
 
@@ -49,8 +62,6 @@ export default async function DashboardPage({
           </div>
         </section>
       </main>
-
-      <FloatingAddUserButton />
     </>
   );
 }

@@ -20,7 +20,8 @@ export default function RecentActivity() {
     const fetchActivities = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/admin/recent-activities'
+          'http://localhost:1337/admin/recent-activities',
+          { withCredentials: true }
         );
 
         setActivities(response.data);

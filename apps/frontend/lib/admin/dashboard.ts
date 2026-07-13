@@ -1,8 +1,18 @@
-import axios from 'axios';
+import axios from "axios";
+import { cookies } from "next/headers";
 
 export async function getDashboardStats() {
+  const cookieStore = await cookies();
+
+  const accessToken = cookieStore.get("access_token")?.value;
+
   const response = await axios.get(
-    'http://localhost:1337/admin/dashboard'
+    "http://localhost:1337/admin/dashboard",
+    {
+      headers: {
+        Cookie: `access_token=${accessToken}`,
+      },
+    }
   );
 
   return response.data;

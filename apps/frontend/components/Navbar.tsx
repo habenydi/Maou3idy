@@ -78,40 +78,74 @@ export default function Navbar({
         </div>
 
         {showAuthButtons && (
-          <div className="flex items-center gap-4">
-            {!user ? (
-              <>
-                <button 
-                  onClick={() => router.push('/login')}
-                  className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
-                >
-                  Sign In
-                </button>
-                <button 
-                  onClick={() => router.push('/doctor-register')}
-                  className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-                >
-                  Join as Doctor
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={() => router.push('/doctor-register')}
-                  className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
-                >
-                  Join as doctor
-                </button>
-                <button 
-                  onClick={handleLogout}
-                  className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-                >
-                  Logout
-                </button>
-              </>
-            )}
-          </div>
+  <div className="flex items-center gap-4">
+        {!user ? (
+          <>
+            <button
+              onClick={() => router.push('/login')}
+              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
+            >
+              Sign In
+            </button>
+
+            <button
+              onClick={() => router.push('/doctor-register')}
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+            >
+              Join as Doctor
+            </button>
+          </>
+        ) : user.role === 'ADMIN' ? (
+          <>
+            <button
+              onClick={() => router.push('/admin/dashboard')}
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+            >
+              Dashboard
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+            >
+              Logout
+            </button>
+          </>
+        ) : user.role === 'DOCTOR' ? (
+          <>
+            <button
+              onClick={() => router.push('/doctor-profile')}
+              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
+            >
+              Doctor Profile
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => router.push('/profile')}
+              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
+            >
+              My Profile
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+            >
+              Logout
+            </button>
+          </>
         )}
+      </div>
+    )}
       </div>
       <div className="bg-slate-200/50 h-px"></div>
     </header>
