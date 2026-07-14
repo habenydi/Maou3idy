@@ -13,7 +13,9 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token =
-      typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      typeof window !== 'undefined'
+        ? localStorage.getItem('access_token') || localStorage.getItem('token')
+        : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,6 +37,7 @@ axiosInstance.interceptors.response.use(
     // Redirect to login on 401
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
+      localStorage.removeItem('token');
       window.location.href = '/login';
     }
 
@@ -172,3 +175,27 @@ class ApiService {
 }
 
 export const api = new ApiService();
+
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:1337";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("access_token") || localStorage.getItem("token");
+}
+
+export async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const token = getToken();
+  return fetch(`${API_BASE}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init.headers,
+    },
+  });
+}

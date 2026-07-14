@@ -9,6 +9,7 @@ import DoctorHeader from './components/DoctorHeader';
 import StatsCards from './components/StatsCards';
 import AppointmentChart from './components/AppointmentChart';
 import TodaySchedule from './components/TodaySchedule';
+import { useAuth } from '@/app/layout';
 
 type Stats = {
   totalAppointments: number;
@@ -26,17 +27,27 @@ type ScheduleItem = {
 };
 
 const Dashboard = () => {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
-  
+
   useEffect(() => {
-    const storename = localStorage.getItem('name') || 'Doctor';
-    setName(storename);
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    setName(user.name ?? 'Doctor');
     fetchDashboardData();
-  }, []);
+  }, [authLoading, router, user]);
 
   const fetchDashboardData = async () => {
     try {

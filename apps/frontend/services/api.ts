@@ -25,4 +25,15 @@ api.interceptors.response.use(
   }
 );
 
+function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('access_token') || localStorage.getItem('token');
+}
+
+function unwrap<T>(request: Promise<{ data: T }>) {
+  return request.then((response) => response.data);
+}
+
 export default api;
+
+export { getStoredToken, unwrap };

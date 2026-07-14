@@ -1,337 +1,591 @@
-'use client';
+"use client";
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../components/SideBar';
 
 const Schedule = () => {
-  const router = useRouter();
-  const calendarGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: '80px repeat(7, 1fr)',
+  const auth = useAuth() as {
+    user: { role?: string; doctor?: { id?: string | number } } | null;
+    loading: boolean;
+  };
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const canManageSlots = auth?.user?.role === "DOCTOR";
+
+  const stats = useMemo(() => {
+    const available = events.filter(
+      (e) => e.extendedProps?.status === "available",
+    ).length;
+    const booked = events.filter(
+      (e) => e.extendedProps?.status === "booked",
+    ).length;
+    const unavailable = events.length - available - booked;
+    return { available, booked, unavailable, total: events.length };
+  }, [events]);
+
+  // ─── Fetch all slots ──────────────────────────────────────────────────────
+  const fetchSlots = useCallback(async () => {
+    if (!canManageSlots) {
+      setEvents([]);
+      return;
+    }
+
+    try {
+      setError(null);
+      const res = await apiFetch("/slots/me");
+      if (!res.ok) throw new Error("Could not load slots from server");
+      const data: Slot[] = await res.json();
+      setEvents(data.map(slotToEvent));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load slots";
+      setError(msg);
+    }
+  }, [canManageSlots]);
+
+  useEffect(() => {
+    void (async () => {
+      await fetchSlots();
+    })();
+  }, [fetchSlots]);
+
+  // ─── Generate slots ───────────────────────────────────────────────────────
+  const handleGenerateSlots = async () => {
+    if (!canManageSlots) {
+      toast.error("You need a doctor profile before generating slots");
+      return;
+    }
+
+    if (settings.startHour >= settings.endHour) {
+      toast.error("End time must be after start time");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await apiFetch("/slots/generate", {
+        method: "POST",
+        body: JSON.stringify({
+          start_date: settings.start_date,
+          number_of_days: settings.numberOfDays,
+          start_hour: settings.startHour,
+          end_hour: settings.endHour,
+          duration: settings.duration,
+          buffer_time: settings.buffer,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? `Server error (${res.status})`);
+      }
+
+      await fetchSlots();
+      toast.success("Slots generated and saved");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setError(msg);
+      toast.error(`Failed to generate slots: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ─── Delete a single slot ─────────────────────────────────────────────────
+  const deleteEvent = async (eventId: string) => {
+    if (!canManageSlots) {
+      toast.error("You need a doctor profile before managing slots");
+      return;
+    }
+
+    const event = events.find((e) => e.id === eventId);
+    if (event?.extendedProps?.isBooked) {
+      toast.warning("Booked slots cannot be deleted");
+      return;
+    }
+
+    try {
+      const res = await apiFetch(`/slots/${eventId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? "Delete failed");
+      }
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+      toast.success("Slot removed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    }
+  };
+
+  // ─── Drag-to-reschedule ───────────────────────────────────────────────────
+  const handleEventDrop = async (info: {
+    event: { id: string; start: Date | null; end: Date | null };
+    revert: () => void;
+  }) => {
+    if (!canManageSlots) {
+      toast.error("You need a doctor profile before managing slots");
+      info.revert();
+      return;
+    }
+
+    if (!info.event.start || info.event.start < new Date()) {
+      toast.error("Cannot move slots to the past");
+      info.revert();
+      return;
+    }
+
+    try {
+      const res = await apiFetch(`/slots/${info.event.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          date: toLocalDateStr(info.event.start),
+          start_time: info.event.start.toTimeString().slice(0, 5),
+          end_time: info.event.end!.toTimeString().slice(0, 5),
+        }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === info.event.id
+            ? { ...e, start: info.event.start!, end: info.event.end! }
+            : e,
+        ),
+      );
+    } catch {
+      toast.error("Failed to move slot — reverting");
+      info.revert();
+    }
+  };
+
+  // ─── Resize slot ──────────────────────────────────────────────────────────
+  const handleEventResize = async (info: {
+    event: { id: string; start: Date | null; end: Date | null };
+    revert: () => void;
+  }) => {
+    if (!canManageSlots) {
+      toast.error("You need a doctor profile before managing slots");
+      info.revert();
+      return;
+    }
+
+    if (!info.event.start || info.event.start < new Date()) {
+      toast.error("Cannot resize into the past");
+      info.revert();
+      return;
+    }
+
+    try {
+      const res = await apiFetch(`/slots/${info.event.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          date: toLocalDateStr(info.event.start),
+          start_time: info.event.start.toTimeString().slice(0, 5),
+          end_time: info.event.end!.toTimeString().slice(0, 5),
+        }),
+      });
+      if (!res.ok) throw new Error("Update failed");
+
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === info.event.id
+            ? { ...e, start: info.event.start!, end: info.event.end! }
+            : e,
+        ),
+      );
+    } catch {
+      toast.error("Failed to resize slot — reverting");
+      info.revert();
+    }
+  };
+
+  // ─── Clear all slots ──────────────────────────────────────────────────────
+  const handleClearAll = async () => {
+    if (!canManageSlots) {
+      toast.error("Doctor profile is required");
+      return;
+    }
+
+    if (!confirm("Clear all non-booked slots?")) return;
+
+    try {
+      const res = await apiFetch(`/slots/me`, { method: "DELETE" });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(body.message ?? "Clear failed");
+      }
+
+      await fetchSlots();
+
+      if (body.deleted === 0) {
+        toast.warning("No slots were cleared");
+      } else {
+        toast.info(`Cleared ${body.deleted ?? ""} slot(s)`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Clear failed");
+    }
+  };
+
+  const inputClass =
+    "w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow";
+
   return (
-    <div className='flex min-h-screen'>
+    <div className="flex min-h-screen">
       <Sidebar />
+
       <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
-        <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 shadow-sm flex justify-between items-center px-8">
-          <div className="flex items-center gap-8">
-            <h2 className="font-headline font-extrabold text-blue-700 text-lg">Schedule &amp; Slot Management</h2>
-            <nav className="hidden lg:flex items-center gap-6">
-              <a onClick={() => router.push('/doctor/schedule')} className="text-blue-600 border-b-2 border-blue-600 pb-1 font-headline font-semibold text-base transition-all cursor-pointer">Weekly View</a>
-              <a onClick={() => router.push('/doctor/schedule?view=list')} className="text-slate-500 hover:text-blue-500 font-headline font-semibold text-base transition-all cursor-pointer">List View</a>
-            </nav>
+        {/* Header */}
+        <header className="px-8 pt-10 pb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tighter text-on-surface mb-2">
+              Schedule
+            </h1>
+            <p className="text-on-surface-variant font-medium">
+              Configure availability and manage appointment slots.
+            </p>
           </div>
-          <div className="flex items-center gap-4">
-            <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all">
-              <span className="material-symbols-outlined">settings</span>
-            </button>
+
+          <div className="flex flex-wrap gap-3">
+            {[
+              {
+                label: "Available",
+                value: stats.available,
+                icon: "event_available",
+                color: "text-emerald-600",
+                bg: "bg-emerald-500/10",
+              },
+              {
+                label: "Booked",
+                value: stats.booked,
+                icon: "event_busy",
+                color: "text-primary",
+                bg: "bg-primary/10",
+              },
+              {
+                label: "Total",
+                value: stats.total,
+                icon: "calendar_month",
+                color: "text-on-surface-variant",
+                bg: "bg-surface-container",
+              },
+            ].map(({ label, value, icon, color, bg }) => (
+              <div
+                key={label}
+                className="bg-surface-container-lowest px-5 py-3 rounded-xl flex items-center gap-3 min-w-32.5"
+              >
+                <div
+                  className={`w-10 h-10 rounded-full ${bg} flex items-center justify-center ${color}`}
+                >
+                  <span
+                    className="material-symbols-outlined text-xl"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {icon}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">
+                    {label}
+                  </p>
+                  <p className="text-xl font-black text-on-surface">{value}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </header>
 
-        <section className="mt-16 p-8 flex-1 flex flex-col gap-8 bg-surface overflow-y-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-surface-container-high rounded-full transition-colors">
-                <span className="material-symbols-outlined">chevron_left</span>
-              </button>
-              <h3 className="font-headline font-bold text-2xl text-on-surface">Oct 23 - Oct 29, 2023</h3>
-              <button className="p-2 hover:bg-surface-container-high rounded-full transition-colors">
-                <span className="material-symbols-outlined">chevron_right</span>
-              </button>
+        <section className="px-8 pb-12">
+          {error && (
+            <div className="mb-6 flex items-center gap-3 bg-error-container/30 border border-error/20 text-error px-4 py-3 rounded-xl text-sm">
+              <span className="material-symbols-outlined text-lg">error</span>
+              {error}
             </div>
-            <div className="flex items-center gap-3">
-              <button className="px-5 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-medium text-sm flex items-center gap-2 transition-all hover:bg-surface-dim">
-                <span className="material-symbols-outlined text-lg">auto_awesome</span>
-                Auto-generate Slots
-              </button>
-              <button className="px-5 py-2.5 bg-linear-to-r from-primary to-primary-container text-on-primary rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                <span className="material-symbols-outlined text-lg">add</span>
-                Add Slot
-              </button>
-            </div>
-          </div>
+          )}
 
-          <div className="bg-surface-container-lowest rounded-4xl p-6 shadow-sm flex-1 flex flex-col min-h-150">
-            <div className="mb-6 border-b border-surface-container pb-4" style={calendarGridStyle}>
-              <div className="flex items-center justify-center font-label text-xs font-bold text-outline uppercase">Time</div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-outline uppercase">Mon</span>
-                <span className="text-xl font-headline font-extrabold">23</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-outline uppercase">Tue</span>
-                <span className="text-xl font-headline font-extrabold text-primary">24</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-outline uppercase">Wed</span>
-                <span className="text-xl font-headline font-extrabold">25</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-outline uppercase">Thu</span>
-                <span className="text-xl font-headline font-extrabold">26</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-outline uppercase">Fri</span>
-                <span className="text-xl font-headline font-extrabold">27</span>
-              </div>
-              <div className="flex flex-col items-center opacity-40">
-                <span className="text-xs font-bold text-outline uppercase">Sat</span>
-                <span className="text-xl font-headline font-extrabold">28</span>
-              </div>
-              <div className="flex flex-col items-center opacity-40">
-                <span className="text-xs font-bold text-outline uppercase">Sun</span>
-                <span className="text-xl font-headline font-extrabold">29</span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            {/* Settings panel */}
+            <div className="xl:col-span-4 space-y-4">
+              <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen((o) => !o)}
+                  className="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">
+                      tune
+                    </span>
+                    <h2 className="text-lg font-bold text-on-surface">
+                      Slot Settings
+                    </h2>
+                  </div>
+                  <span className="material-symbols-outlined text-outline">
+                    {settingsOpen ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
 
-            <div className="flex-1 overflow-y-auto pr-2 relative">
-              <div className="absolute w-full top-45 z-20 pointer-events-none">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-primary -ml-1"></div>
-                  <div className="flex-1 h-px bg-primary opacity-30"></div>
-                </div>
-              </div>
+                {settingsOpen && (
+                  <div className="px-6 pb-6 space-y-4 border-t border-outline-variant/20">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2 pt-3">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={settings.start_date}
+                        min={toLocalDateStr(new Date())}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            start_date: e.target.value,
+                          })
+                        }
+                        className={inputClass}
+                      />
+                    </div>
 
-              <div className="space-y-4">
-                <div className="min-h-20" style={calendarGridStyle}>
-                  <div className="text-xs font-bold text-outline flex items-start justify-center pt-1">09:00 AM</div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">John Doe</p>
-                      <p className="text-[10px] text-outline truncate">Follow-up</p>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                        Days Ahead
+                      </label>
+                      <select
+                        value={settings.numberOfDays}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            numberOfDays: parseInt(e.target.value, 10) || 1,
+                          })
+                        }
+                        className={inputClass}
+                      >
+                        {[3, 5, 7, 14, 21, 30].map((d) => (
+                          <option key={d} value={d}>
+                            {d} days
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
-                      <span className="material-symbols-outlined text-outline group-hover:text-primary">add</span>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Alice Wang</p>
-                      <p className="text-[10px] text-outline truncate">Consultation</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
-                      <span className="material-symbols-outlined text-outline group-hover:text-primary">add</span>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Robert Chen</p>
-                      <p className="text-[10px] text-outline truncate">Checkup</p>
-                    </div>
-                  </div>
-                  <div className="px-1"></div>
-                  <div className="px-1"></div>
-                </div>
 
-                <div className="min-h-20" style={calendarGridStyle}>
-                  <div className="text-xs font-bold text-outline flex items-start justify-center pt-1">10:00 AM</div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">30m Slot</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Mike Tyson</p>
-                      <p className="text-[10px] text-outline truncate">Physiology</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">1h Slot</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Sarah Jenkins</p>
-                      <p className="text-[10px] text-outline truncate">Cardio Test</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
-                      <span className="material-symbols-outlined text-outline group-hover:text-primary">add</span>
-                    </div>
-                  </div>
-                  <div className="px-1"></div>
-                  <div className="px-1"></div>
-                </div>
-
-                <div className="min-h-20" style={calendarGridStyle}>
-                  <div className="text-xs font-bold text-outline flex items-start justify-center pt-1">11:00 AM</div>
-                  <div className="px-1 col-span-3">
-                    <div className="bg-surface-container-high border-l-4 border-outline p-3 rounded-xl h-full flex items-center gap-3">
-                      <span className="material-symbols-outlined text-outline">block</span>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-xs font-bold text-on-surface">Hospital Rounds</p>
-                        <p className="text-[10px] text-outline">Busy until 1:00 PM</p>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                          Duration
+                        </label>
+                        <select
+                          value={settings.duration}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              duration: parseInt(e.target.value, 10),
+                            })
+                          }
+                          className={inputClass}
+                        >
+                          <option value={15}>15 min</option>
+                          <option value={30}>30 min</option>
+                          <option value={45}>45 min</option>
+                          <option value={60}>1 hour</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                          Buffer
+                        </label>
+                        <select
+                          value={settings.buffer}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              buffer: parseInt(e.target.value, 10),
+                            })
+                          }
+                          className={inputClass}
+                        >
+                          <option value={0}>None</option>
+                          <option value={5}>5 min</option>
+                          <option value={10}>10 min</option>
+                          <option value={15}>15 min</option>
+                        </select>
                       </div>
                     </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">1h Slot</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Peter Parker</p>
-                      <p className="text-[10px] text-outline truncate">Routine</p>
-                    </div>
-                  </div>
-                  <div className="px-1"></div>
-                  <div className="px-1"></div>
-                </div>
 
-                <div className="min-h-20" style={calendarGridStyle}>
-                  <div className="text-xs font-bold text-outline flex items-start justify-center pt-1">12:00 PM</div>
-                  <div className="px-1 col-span-5 bg-surface-container-low rounded-xl flex items-center justify-center border-y border-surface-container-high border-dashed">
-                    <span className="text-xs font-bold text-outline uppercase tracking-widest flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">restaurant</span>
-                      Lunch Break
-                    </span>
-                  </div>
-                  <div className="px-1"></div>
-                  <div className="px-1"></div>
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          value={settings.startHour}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              startHour: e.target.value,
+                            })
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          value={settings.endHour}
+                          onChange={(e) =>
+                            setSettings({
+                              ...settings,
+                              endHour: e.target.value,
+                            })
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
 
-                <div className="min-h-20" style={calendarGridStyle}>
-                  <div className="text-xs font-bold text-outline flex items-start justify-center pt-1">01:00 PM</div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">1h Slot</p>
+                    <div className="flex flex-col gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={handleGenerateSlots}
+                        disabled={loading || !canManageSlots}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-on-primary font-bold rounded-xl hover:bg-primary-container transition-colors disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          {loading ? "hourglass_top" : "auto_fix_high"}
+                        </span>
+                        {loading ? "Generating…" : "Generate Slots"}
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setSettings(DEFAULT_SETTINGS)}
+                          className="px-4 py-2.5 text-sm font-semibold text-on-surface-variant bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors"
+                        >
+                          Reset
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearAll}
+                          disabled={!canManageSlots}
+                          className="px-4 py-2.5 text-sm font-semibold text-error bg-error-container/30 rounded-xl hover:bg-error-container/50 transition-colors"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={fetchSlots}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          refresh
+                        </span>
+                        Refresh from server
+                      </button>
                     </div>
                   </div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">30m Slot</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-surface-container-low border-2 border-dashed border-outline-variant p-3 rounded-xl h-full flex items-center justify-center group cursor-pointer hover:bg-surface-container-high transition-colors">
-                      <span className="material-symbols-outlined text-outline group-hover:text-primary">add</span>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-primary/10 border-l-4 border-primary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-primary uppercase">Booked</span>
-                      <p className="text-xs font-bold text-on-surface truncate">Gwen Stacy</p>
-                      <p className="text-[10px] text-outline truncate">New Patient</p>
-                    </div>
-                  </div>
-                  <div className="px-1">
-                    <div className="bg-tertiary-container/10 border-l-4 border-tertiary p-3 rounded-xl h-full flex flex-col justify-center">
-                      <span className="text-[10px] font-bold text-tertiary uppercase">Available</span>
-                      <p className="text-xs font-bold text-on-surface">1h Slot</p>
-                    </div>
-                  </div>
-                  <div className="px-1"></div>
-                  <div className="px-1"></div>
-                </div>
+                )}
               </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2 bg-surface-container-low p-6 rounded-3xl flex flex-col gap-6">
-              <div className="flex justify-between items-center">
-                <h4 className="font-headline font-bold text-lg">Auto-generation Settings</h4>
-                <button className="text-primary font-bold text-sm">Reset to Default</button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Legend */}
+              <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-5">
+                <h3 className="text-sm font-bold text-on-surface mb-3">
+                  Legend
+                </h3>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-outline uppercase px-1">Slot Duration</label>
-                  <select className="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" defaultValue="30 Minutes">
-                    <option>15 Minutes</option>
-                    <option>30 Minutes</option>
-                    <option>45 Minutes</option>
-                    <option>1 Hour</option>
-                  </select>
+                  {(
+                    [
+                      ["available", "Available"],
+                      ["unavailable", "Unavailable (past)"],
+                      ["booked", "Booked"],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <div
+                      key={key}
+                      className="flex items-center gap-2.5 text-sm text-on-surface-variant"
+                    >
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: SLOT_COLORS[key] }}
+                      />
+                      {label}
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-outline uppercase px-1">Buffer Time</label>
-                  <select className="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" defaultValue="5 Minutes">
-                    <option>No Buffer</option>
-                    <option>5 Minutes</option>
-                    <option>10 Minutes</option>
-                    <option>15 Minutes</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-outline uppercase px-1">Start Hour</label>
-                  <input className="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" type="time" defaultValue="09:00" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-outline uppercase px-1">End Hour</label>
-                  <input className="w-full bg-surface-container-lowest border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" type="time" defaultValue="17:00" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col justify-between">
-              <div>
-                <h4 className="font-headline font-bold text-lg text-primary mb-2">Weekly Summary</h4>
-                <p className="text-sm text-outline mb-6 leading-relaxed">
-                  Your current availability is set to 32 hours per week. You have filled 88% of your core cardiological slots.
+                <p className="mt-4 text-xs text-outline leading-relaxed">
+                  Click an available slot to remove it. Drag to reschedule open
+                  slots.
                 </p>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Efficiency</span>
-                    <span className="text-sm font-bold">92%</span>
-                  </div>
-                  <div className="w-full h-2 bg-primary-fixed rounded-full overflow-hidden">
-                    <div className="w-[92%] h-full bg-primary"></div>
-                  </div>
+              </div>
+            </div>
+
+            {/* Calendar */}
+            <div className="xl:col-span-8">
+              <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 overflow-hidden">
+                <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">
+                    calendar_month
+                  </span>
+                  <h2 className="text-lg font-bold text-on-surface">
+                    Calendar View
+                  </h2>
+                </div>
+                <div className="p-4 md:p-6 schedule-calendar">
+                  <FullCalendar
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                    initialView="timeGridWeek"
+                    headerToolbar={{
+                      left: "prev,next today",
+                      center: "title",
+                      right: "dayGridMonth,timeGridWeek,timeGridDay",
+                    }}
+                    height="auto"
+                    editable
+                    nowIndicator
+                    slotMinTime="07:00:00"
+                    slotMaxTime="21:00:00"
+                    weekends
+                    events={events}
+                    eventClick={(info) => {
+                      if (info.event.extendedProps?.isBooked) {
+                        toast.info("This slot is already booked");
+                        return;
+                      }
+                      if (
+                        confirm(
+                          `Remove "${info.event.title}" on ${info.event.start?.toLocaleDateString()}?`,
+                        )
+                      ) {
+                        deleteEvent(info.event.id);
+                      }
+                    }}
+                    eventDrop={handleEventDrop}
+                    eventResize={handleEventResize}
+                    eventContent={(info) => (
+                      <div className="px-1 py-0.5 text-xs font-semibold leading-tight">
+                        <div className="truncate">{info.event.title}</div>
+                        <div className="text-[10px] opacity-80">
+                          {info.timeText}
+                        </div>
+                      </div>
+                    )}
+                  />
                 </div>
               </div>
-              <button className="mt-8 w-full py-3 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-on-primary-fixed-variant transition-all">
-                <span className="material-symbols-outlined text-lg">analytics</span>
-                View Detailed Insights
-              </button>
             </div>
           </div>
         </section>
       </main>
-
-      <button className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
-        <span className="material-symbols-outlined text-3xl transition-transform group-hover:rotate-90">add</span>
-      </button>
-      <div className="hidden fixed inset-0 z-100 flex items-center justify-center p-6">
-        <div className="absolute inset-0 bg-on-surface/20 backdrop-blur-sm"></div>
-        <div className="relative glass-panel w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl border border-white/20">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <span className="text-xs font-bold text-primary uppercase tracking-widest">New Appointment Slot</span>
-              <h5 className="font-headline font-extrabold text-2xl mt-1">Configure Slot</h5>
-            </div>
-            <button className="p-2 hover:bg-surface-container-high rounded-full transition-colors">
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <div className="space-y-6">
-            {/* ...existing code... */}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

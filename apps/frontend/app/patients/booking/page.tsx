@@ -40,7 +40,7 @@ function Booking() {
   if (!doctorData) {
     return <div>Error loading doctor data</div>;
   }
-  const { doctor, services, locations, availability } = doctorData;
+  const { doctor, services, locations } = doctorData;
 
 return (
   <>
@@ -60,7 +60,7 @@ return (
 
         <aside className="lg:col-span-4">
           <div className="sticky top-28 space-y-6">
-            <BookingSidebar availability={availability} />
+            <BookingSidebar doctorId={doctorId} doctorName={`${doctor.firstName} ${doctor.lastName}`} />
             <ReviewsTeaser />
           </div>
         </aside>
