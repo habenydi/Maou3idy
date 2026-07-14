@@ -8,10 +8,12 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 
-interface JwtPayload {
+export interface JwtPayload {
   sub: string;
-  email: string;
   role: Role;
+  name: string;
+  email: string;
+  verified: boolean;
 }
 
 interface RequestWithUser extends Request {
@@ -24,16 +26,14 @@ export class JwtGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-
     const token = request.cookies?.access_token;
 
     if (!token) {
-      throw new UnauthorizedException("Unauthorized!");
+      throw new UnauthorizedException("Unauthorized! sdfnur askdn");
     }
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-
       if (!payload?.sub || !payload?.email) {
         throw new UnauthorizedException("Invalid token payload");
       }

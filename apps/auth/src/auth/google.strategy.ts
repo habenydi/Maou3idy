@@ -3,6 +3,7 @@
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-google-oauth20";
+import { PrismaService } from "../prisma/prisma.service";
 
 interface GoogleProfile {
   id: string;
@@ -13,21 +14,36 @@ interface GoogleProfile {
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
-  constructor() {
+  constructor(private prisma: PrismaService) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: "http://127.0.0.1:1337/auth/google/callback",
+      callbackURL: "http://localhost:1337/auth/google/callback",
       scope: ["email", "profile"],
     });
   }
 
-  validate(accessToken: string, refreshToken: string, profile: GoogleProfile) {
-    return {
-      email: profile.emails[0].value,
-      name: profile.displayName,
-      picture: profile.photos?.[0]?.value,
-      googleId: profile.id,
-    };
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: GoogleProfile,
+  ) {
+    const email = profile.emails[0].value;
+
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: profile.displayName,
+          verified: true,
+        },
+      });
+    }
+
+    return user;
   }
 }

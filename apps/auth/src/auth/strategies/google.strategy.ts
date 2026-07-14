@@ -6,9 +6,6 @@ import { AuthService } from "../auth.service";
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
   constructor(private authService: AuthService) {
-    console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-    console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
-    console.log("GOOGLE_CALLBACK_URL:", process.env.GOOGLE_CALLBACK_URL);
     super({
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,

@@ -33,14 +33,14 @@ export class UsersController {
   }
   @Get(":id")
   findById(@Param("id") id: string) {
-    return this.usersService.findById(Number(id));
+    return this.usersService.findById(id);
   }
   @Put(":id")
   Update(@Param("id") id: string, @Body() body: Partial<CreateUserDto>) {
-    return this.usersService.update(Number(id), body);
+    return this.usersService.update(id, body);
   }
   @Delete(":id")
   remove(@Param("id") id: string) {
-    return this.usersService.remove(Number(id));
+    return this.usersService.remove(id);
   }
 }

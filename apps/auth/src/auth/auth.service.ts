@@ -14,11 +14,8 @@ import { MailerService } from "@nestjs-modules/mailer";
 import { Role } from "@prisma/client";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { DoctorService } from "src/doctor/doctor.service";
-
-interface JwtPayload {
-  sub: number;
-  email: string;
-}
+import { JwtPayload } from "./guards/jwt.guard";
+import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
@@ -27,16 +24,14 @@ export class AuthService {
     private UserService: UsersService,
     private readonly email: MailerService,
     private readonly doctorService: DoctorService,
+    private readonly prisma: PrismaService,
   ) {}
 
   private get frontendBaseUrl() {
-    return process.env.FRONTEND_URL ?? "http://127.0.0.1:3000";
+    return process.env.FRONTEND_URL ?? "http://localhost:3000";
   }
 
-  private signToken(
-    payload: { sub: number; email: string; role: Role },
-    expiresIn: string,
-  ) {
+  private signToken(payload: JwtPayload, expiresIn: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.jwtService.sign(payload, { expiresIn } as any);
   }
@@ -46,7 +41,6 @@ export class AuthService {
       throw new BadRequestException("Password must be at least 8 characters");
     }
   }
-
   async hashPassword(password: string) {
     return await bcrypt.hash(password, 10);
   }
@@ -69,18 +63,26 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const payload = {
-      sub: user.id,
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
       email: user.email,
       role: user.role,
+      verified: user.verified,
     };
-    const token = this.signToken(payload, "15m");
+    const token = this.signToken(payload, "1d");
     const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
       to: email,
       subject: "Verify your email",
       text: `Please click the following link to verify your email: ${url}`,
       html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
+    });
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: user.id,
+        action: "User registered with email: " + user.email,
+      },
     });
     return {
       statusCode: 201,
@@ -106,8 +108,14 @@ export class AuthService {
     if (!isMatched) {
       throw new UnauthorizedException("Wrong password");
     }
-    const playload = { sub: user.id, email: user.email, role: user.role };
-    const token = this.signToken(playload, "1d");
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
+    const token = this.signToken(payload, "1d");
     return {
       statusCode: 200,
       Message: "Login success",
@@ -132,10 +140,14 @@ export class AuthService {
           "If an account exists, a reset link has been sent to your email",
       };
     }
-    const token = this.signToken(
-      { sub: user.id, email: user.email, role: user.role },
-      "15m",
-    );
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
+    const token = this.signToken(payload, "1d");
     const url = `${this.frontendBaseUrl}/reset-password/?token=${encodeURIComponent(token)}`;
     await this.email.sendMail({
       to: email,
@@ -203,7 +215,7 @@ export class AuthService {
     }
   }
   async change_password(
-    userId: number,
+    userId: string,
     old_password: string,
     new_password: string,
   ) {
@@ -251,6 +263,12 @@ export class AuthService {
       password: hashedPassword,
       role: Role.PENDING_DOCTOR,
     });
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: user.id,
+        action: "new medical license verification pending for Dr. " + user.name,
+      },
+    });
     await this.doctorService.create(body, user.id);
     return {
       statusCode: 200,
@@ -278,7 +296,13 @@ export class AuthService {
       });
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+    };
     const token = this.signToken(payload, "1d");
 
     return {
@@ -292,8 +316,19 @@ export class AuthService {
       },
     };
   }
-  generateTokenForGoogleUser(user: { id: number; email: string; role: Role }) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+  generateTokenForGoogleUser(user: {
+    id: number;
+    name: string;
+    email: string;
+    role: Role;
+  }) {
+    const payload: JwtPayload = {
+      sub: String(user.id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: true,
+    };
     const token = this.signToken(payload, "1d");
     return token;
   }
