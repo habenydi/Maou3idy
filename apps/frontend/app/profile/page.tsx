@@ -3,6 +3,7 @@ import PatientStats from './components/PatientStats';
 import PersonalInformation from './components/PersonalInformation';
 import EmergencyContact from './components/EmergencyContact';
 import RecentActivity from './components/RecentActivity';
+import BackButton from '@/components/BackButton';
 
 export default async function ProfilePage() {
   // Replace with API calls
@@ -64,6 +65,9 @@ export default async function ProfilePage() {
   return (
     <main className="min-h-screen bg-surface p-8">
       <div className="max-w-7xl mx-auto space-y-8">
+        <div>
+          <BackButton path="" />
+        </div>
         <ProfileHeader
           name={user.name}
           email={user.email}

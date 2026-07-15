@@ -136,7 +136,7 @@ export default function ChangePasswordForm() {
           style={{ color: "#424655" }}
         >
           <span
-            onClick={() => router.push("/success")}
+            onClick={() => router.push("/settings")}
             className="font-bold hover:underline underline-offset-4 cursor-pointer"
             style={{
               color: "#0057cd",
