@@ -7,6 +7,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
+import { PrismaService } from "src/prisma/prisma.service";
 
 export interface JwtPayload {
   sub: string;
@@ -22,7 +23,10 @@ interface RequestWithUser extends Request {
 
 @Injectable()
 export class JwtGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
@@ -34,13 +38,16 @@ export class JwtGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-
       request.user = payload;
-
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
+      if (!user) {
+        throw new UnauthorizedException("User not found");
+      }
       return true;
     } catch (error) {
-      console.log("JWT ERROR:", error);
-      throw new UnauthorizedException("Invalid or expired token");
+      throw new UnauthorizedException("Invalid token");
     }
   }
 }

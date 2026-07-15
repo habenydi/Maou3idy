@@ -1,21 +1,33 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
-export class MetricsService {
+export class MetricsService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
-  async recordRequest(responseTime: number) {
-    const stats = await this.prisma.stats.upsert({
+  async onModuleInit() {
+    const stats = await this.prisma.stats.findUnique({
       where: { id: "default" },
-      update: {},
-      create: {
-        id: "default",
-        ResponceTime: 0,
-        totalrequests: 0,
-        activeSessions: 0,
-      },
     });
+
+    if (!stats) {
+      await this.prisma.stats.create({
+        data: {
+          id: "default",
+          ResponceTime: 0,
+          totalrequests: 0,
+          activeSessions: 0,
+        },
+      });
+    }
+  }
+
+  async recordRequest(responseTime: number) {
+    const stats = await this.prisma.stats.findUnique({
+      where: { id: "default" },
+    });
+
+    if (!stats) return;
 
     const totalrequests = stats.totalrequests + 1;
 
@@ -33,18 +45,12 @@ export class MetricsService {
   }
 
   async incrementSession() {
-    await this.prisma.stats.upsert({
+    await this.prisma.stats.update({
       where: { id: "default" },
-      update: {
+      data: {
         activeSessions: {
           increment: 1,
         },
-      },
-      create: {
-        id: "default",
-        activeSessions: 1,
-        ResponceTime: 0,
-        totalrequests: 0,
       },
     });
   }
@@ -69,21 +75,23 @@ export class MetricsService {
   }
 
   async getMetrics() {
-    const stats = await this.prisma.stats.upsert({
+    const stats = await this.prisma.stats.findUnique({
       where: { id: "default" },
-      update: {},
-      create: {
-        id: "default",
-        activeSessions: 0,
-        ResponceTime: 0,
-        totalrequests: 0,
-      },
     });
+
+    if (!stats) {
+      return {
+        ActiveSessions: 0,
+        ApiResponseTime: 0,
+        ServerUptime: Number((process.uptime() / 3600).toFixed(2)),
+        Totalrequests: 0,
+      };
+    }
 
     return {
       ActiveSessions: stats.activeSessions,
       ApiResponseTime: Number(stats.ResponceTime.toFixed(2)),
-      ServerUptime: Number((process.uptime() / 3600).toFixed(2)), // hours
+      ServerUptime: Number((process.uptime() / 3600).toFixed(2)),
       Totalrequests: stats.totalrequests,
     };
   }

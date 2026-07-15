@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UseGuards,
+  Header,
 } from "@nestjs/common";
 import type { Response, Request } from "express";
 import { AuthService } from "./auth.service";
@@ -163,6 +164,9 @@ export class AuthController {
   }
   @UseGuards(JwtGuard)
   @Get("me")
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
+  @Header("Expires", "0")
   getMe(@Req() req: RequestWithUser): UserAuth {
     return req.user;
   }
