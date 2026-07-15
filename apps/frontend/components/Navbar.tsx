@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/app/layout';
+import { useState } from 'react';
+import ProfileMenu from './components/ProfileMenu';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -16,6 +18,7 @@ export default function Navbar({
 }: NavbarProps) {
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -77,75 +80,83 @@ export default function Navbar({
           </nav>
         </div>
 
-        {showAuthButtons && (
-  <div className="flex items-center gap-4">
-        {!user ? (
-          <>
-            <button
-              onClick={() => router.push('/login')}
-              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
-            >
-              Sign In
-            </button>
+      {showAuthButtons && (
+        <div className="flex items-center gap-4">
+          {!user ? (
+            <>
+              <button
+                onClick={() => router.push('/login')}
+                className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
+              >
+                Sign In
+              </button>
 
-            <button
-              onClick={() => router.push('/doctor-register')}
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-            >
-              Join as Doctor
-            </button>
-          </>
-        ) : user.role === 'ADMIN' ? (
-          <>
-            <button
-              onClick={() => router.push('/admin/dashboard')}
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-            >
-              Dashboard
-            </button>
+              <button
+                onClick={() => router.push('/doctor-register')}
+                className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+              >
+                Join as Doctor
+              </button>
+            </>
+          ) : (
+            <>
+              {(user.role === 'ADMIN' || user.role === 'DOCTOR') ? (
+                <button
+                  onClick={() =>
+                    router.push(
+                      user.role === 'ADMIN'
+                        ? '/admin/dashboard'
+                        : '/doctor/dashboard'
+                    )
+                  }
+                  className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+                >
+                  Dashboard
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push('/doctor-register')}
+                  className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+                >
+                  Join as Doctor
+                </button>
+              )}
 
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-            >
-              Logout
-            </button>
-          </>
-        ) : user.role === 'DOCTOR' ? (
-          <>
-            <button
-              onClick={() => router.push('/doctor-profile')}
-              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
-            >
-              Doctor Profile
-            </button>
+              {/* Profile Icon */}
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="
+                    w-11 h-11 rounded-full
+                    bg-slate-100
+                    hover:bg-slate-200
+                    flex items-center justify-center
+                    transition-all
+                  "
+                >
+                  <span className="material-symbols-outlined">
+                    account_circle
+                  </span>
+                </button>
 
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => router.push('/profile')}
-              className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
-            >
-              My Profile
-            </button>
+                {menuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setMenuOpen(false)}
+                    />
 
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-            >
-              Logout
-            </button>
-          </>
-        )}
-      </div>
-    )}
+                    <ProfileMenu
+                      user={user}
+                      onLogout={handleLogout}
+                    />
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
       </div>
       <div className="bg-slate-200/50 h-px"></div>
     </header>

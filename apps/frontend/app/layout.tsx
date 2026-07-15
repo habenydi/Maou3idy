@@ -36,6 +36,9 @@ export function AuthProvider({
   useEffect(() => {
     axios
       .get("http://localhost:1337/auth/me", {
+        headers: {
+          "Cache-Control": "no-cache",
+        },
         withCredentials: true,
       })
       .then((res) => setUser(res.data))
