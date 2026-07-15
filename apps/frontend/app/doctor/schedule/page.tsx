@@ -1,8 +1,87 @@
 "use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import Sidebar from '../components/SideBar';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { toast } from "react-toastify";
+import Sidebar from "../components/SideBar";
+import { apiFetch } from "@/lib/api";
+import "./schedule.css";
+import { useAuth } from "../../layout";
+
+function toLocalDateStr(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+type SlotStatus = "available" | "unavailable" | "booked";
+
+type CalendarEvent = {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  backgroundColor: string;
+  editable?: boolean;
+  extendedProps?: {
+    status: SlotStatus;
+    isBooked: boolean;
+  };
+};
+
+type Slot = {
+  id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_booked: boolean;
+  status: string;
+};
+
+const DEFAULT_SETTINGS = {
+  duration: 30,
+  buffer: 5,
+  start_date: toLocalDateStr(new Date()),
+  numberOfDays: 3,
+  startHour: "09:00",
+  endHour: "09:30",
+};
+
+const SLOT_COLORS: Record<SlotStatus, string> = {
+  available: "#10b981",
+  unavailable: "#9ca3af",
+  booked: "#0057cd",
+};
+
+function slotToEvent(slot: Slot): CalendarEvent {
+  const dateStr = toLocalDateStr(new Date(slot.date));
+
+  const status: SlotStatus = slot.is_booked
+    ? "booked"
+    : slot.status?.toUpperCase() === "AVAILABLE"
+      ? "available"
+      : "unavailable";
+
+  return {
+    id: String(slot.id),
+    title:
+      status === "booked"
+        ? "Booked"
+        : status === "available"
+          ? "Available"
+          : "Unavailable",
+    start: new Date(`${dateStr}T${slot.start_time}`),
+    end: new Date(`${dateStr}T${slot.end_time}`),
+    backgroundColor: SLOT_COLORS[status],
+    editable: status === "available",
+    extendedProps: { status, isBooked: slot.is_booked },
+  };
+}
 
 const Schedule = () => {
   const auth = useAuth() as {
