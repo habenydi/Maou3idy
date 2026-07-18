@@ -14,7 +14,7 @@ import ReviewsTeaser from './components/ReviewsTeaser';
 
 function Booking() {
   const searchParams = useSearchParams();
-  const doctorId = searchParams.get('doctorId') || '1';
+  const doctorId = searchParams.get('doctorId') || '';
   const [doctorData, setDoctorData] = useState<DoctorDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
 

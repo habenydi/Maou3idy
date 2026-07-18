@@ -25,7 +25,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
           </div>
 
           <button
-            onClick={() => router.push('/patients/doctor')}
+            onClick={() => router.push('/patients/specialties')}
             className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
           >
             View all specialties

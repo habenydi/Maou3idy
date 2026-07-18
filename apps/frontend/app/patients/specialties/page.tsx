@@ -1,5 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'react-toastify';
+
 import Navbar from '@/components/Navbar';
 import InformationFooter from '@/components/InformationFooter';
 
@@ -9,7 +13,41 @@ import DoctorGrid from './components/DoctorGrid';
 import DoctorListHeader from './components/DoctorListHeader';
 import Pagination from './components/Pagination';
 
+import { getDoctors } from './components/doctors';
+import { DoctorsResponse } from '@/types/doctor';
+
 export default function DoctorPage() {
+  const searchParams = useSearchParams();
+
+  const [data, setData] =
+    useState<DoctorsResponse | null>(null);
+
+  const search = searchParams.get('search') || '';
+  const location = searchParams.get('location') || '';
+  const page = Number(searchParams.get('page')) || 1;
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const doctors = await getDoctors({
+          search,
+          location,
+          page,
+        });
+
+        setData(doctors);
+      } catch (error) {
+        toast.error(
+          'Error fetching doctors. Please try again later.'
+        );
+
+        console.error(error);
+      }
+    };
+
+    fetchDoctors();
+  }, [search, location, page]);
+
   return (
     <div className="bg-surface text-on-surface">
       <Navbar activeLink="specialties" />
@@ -21,9 +59,18 @@ export default function DoctorPage() {
           <FilterSidebar />
 
           <div className="flex-1">
-            <DoctorListHeader />
-            <DoctorGrid />
-            <Pagination />
+            <DoctorListHeader
+              totalDoctors={data?.total || 0}
+            />
+
+            <DoctorGrid
+              doctors={data?.doctors || []}
+            />
+
+            <Pagination
+              currentPage={data?.page || 1}
+              totalPages={data?.totalPages || 1}
+            />
           </div>
         </div>
       </main>

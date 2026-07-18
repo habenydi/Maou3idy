@@ -52,7 +52,7 @@ export default function BookingSidebar({ doctorId, doctorName }: Props) {
                 setSelectedDate(data[0].date);
             }
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Failed to load slots');
+            console.error('Error loading slots:', error);
         } finally {
             setLoading(false);
         }
