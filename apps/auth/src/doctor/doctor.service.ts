@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateDoctorDto } from "./dto/createDoctor.dto";
+import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
 
 @Injectable()
 export class DoctorService {
@@ -116,5 +117,115 @@ export class DoctorService {
       where: { id },
       data: { verified: true },
     });
+  }
+
+  async getDoctors(query: GetDoctorsDto) {
+    const { search, location, page = 1 } = query;
+
+    const limit = 12;
+    const skip = (page - 1) * limit;
+
+    const [doctors, total] = await Promise.all([
+      this.prisma.doctor.findMany({
+        where: {
+          AND: [
+            search
+              ? {
+                  OR: [
+                    {
+                      user: {
+                        name: {
+                          contains: search,
+                          mode: "insensitive",
+                        },
+                      },
+                    },
+                    {
+                      speciality: {
+                        contains: search,
+                        mode: "insensitive",
+                      },
+                    },
+                  ],
+                }
+              : {},
+            location
+              ? {
+                  location: {
+                    contains: location,
+                    mode: "insensitive",
+                  },
+                }
+              : {},
+          ],
+        },
+        include: {
+          user: true,
+        },
+        skip,
+        take: limit,
+      }),
+
+      this.prisma.doctor.count({
+        where: {
+          AND: [
+            search
+              ? {
+                  OR: [
+                    {
+                      user: {
+                        name: {
+                          contains: search,
+                          mode: "insensitive",
+                        },
+                      },
+                    },
+                    {
+                      speciality: {
+                        contains: search,
+                        mode: "insensitive",
+                      },
+                    },
+                  ],
+                }
+              : {},
+            location
+              ? {
+                  location: {
+                    contains: location,
+                    mode: "insensitive",
+                  },
+                }
+              : {},
+          ],
+        },
+      }),
+    ]);
+
+    return {
+      doctors: doctors.map((doctor) => ({
+        id: doctor.id,
+        name: doctor.user.name,
+        image: doctor.user.image,
+        speciality: doctor.speciality,
+        experience: doctor.experience,
+        rating: doctor.rating,
+        location: doctor.location,
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getSpecialties() {
+    const specialties = await this.prisma.doctor.findMany({
+      distinct: ["speciality"],
+      select: {
+        speciality: true,
+      },
+    });
+
+    return specialties.map((s) => s.speciality);
   }
 }

@@ -12,7 +12,7 @@ async function bootstrap() {
   });
   app.use(cookieParser());
   app.useGlobalInterceptors(app.get(MetricsInterceptor));
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap();

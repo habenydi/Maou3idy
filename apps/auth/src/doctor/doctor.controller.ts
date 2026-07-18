@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { DoctorService } from "./doctor.service";
@@ -13,11 +14,22 @@ import { CreateDoctorDto } from "./dto/createDoctor.dto";
 import { Role } from "@prisma/client";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/auth/decorator/roles.decorator";
+import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
 
 @Controller("doctors")
 export class DoctorController {
   constructor(private doctorService: DoctorService) {}
 
+  @Get("specialities")
+  async getSpecialities() {
+    return {
+      specialties: await this.doctorService.getSpecialties(),
+    };
+  }
+  @Get("find")
+  find(@Query() query: GetDoctorsDto) {
+    return this.doctorService.getDoctors(query);
+  }
   @Get("featured")
   findFeatured() {
     return this.doctorService.findFeatured();
