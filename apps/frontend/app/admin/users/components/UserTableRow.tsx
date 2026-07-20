@@ -59,7 +59,7 @@ export default function UserTableRow({ user }: Props) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <UsersAction userId={user.id} status={user.verified.toString()} />
+        <UsersAction userId={user.id} status={user.verified.toString()} role={user.role} />
       </div>
     </div>
   );

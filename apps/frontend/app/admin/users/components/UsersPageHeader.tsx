@@ -141,7 +141,7 @@ export default function UsersPageHeader({
               </button>
 
               <button
-                onClick={() => updateParam('role', 'PATIENT')}
+                onClick={() => updateParam('role', 'USER')}
                 className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${
                   role === 'PATIENT'
                     ? 'bg-primary/10 text-primary font-semibold'

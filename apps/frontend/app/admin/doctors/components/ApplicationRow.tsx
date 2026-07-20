@@ -3,12 +3,12 @@ import Img from 'next/image';
 import { Application } from '../page';
 import { activateDoctor, approveDoctor, rejectDoctor, suspendDoctor } from '../action';
 import { useRouter } from 'next/dist/client/components/navigation';
-import {doctorApplication} from '../page';
+import { DoctorApplication } from '../page';
 export default function ApplicationRow({
   id,
   name,
   email,
-  doctor: { speciality, createdAt: date } = {} as doctorApplication,
+  doctor: { speciality, createdAt: date } = {} as DoctorApplication,
   image,
   role,
 }: Application) {
@@ -81,7 +81,7 @@ export default function ApplicationRow({
           {role === "PENDING_DOCTOR" && (
           <button onClick={async () => { await approveDoctor(id);
             router.refresh()
-          }} className="p-2 hover:text-success"> 
+          }} className="p-2 hover:text-green-600"> 
             <span className="material-symbols-outlined">
               check_circle
             </span>

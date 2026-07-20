@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import ProfileMenuHeader from './ProfileMenuHeader';
 import ProfileMenuItem from './ProfileMenuItem';
 import ProfileMenuFooter from './ProfileMenuFooter';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 interface User {
   name: string;
   email: string;
   role: string;
+  image?: string | null;
 }
 
 interface ProfileMenuProps {
@@ -21,6 +24,32 @@ export default function ProfileMenu({
   onLogout,
 }: ProfileMenuProps) {
   const router = useRouter();
+
+  const handleImageChange = async (file: File) => {
+  const formData = new FormData();
+
+  formData.append('image', file);
+
+  try {
+    await axios.patch(
+      'http://localhost:1337/users/profile-image',
+      formData,
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    // Refresh user data
+    router.refresh();
+    toast.success('Profile image updated successfully');
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to update profile image');
+  }
+};
 
   return (
     <div className="
@@ -39,6 +68,9 @@ export default function ProfileMenu({
       <ProfileMenuHeader
         name={user.name}
         email={user.email}
+        image={user.image}
+        onImageChange={handleImageChange}
+
       />
 
       <div className="border-t border-slate-200 py-2">
@@ -60,12 +92,7 @@ export default function ProfileMenu({
           icon="person"
           label="Profile"
           onClick={() =>
-            router.push(
-              user.role === 'ADMIN'
-                ? '/admin/profile'
-                : user.role === 'DOCTOR'
-                ? '/doctor/profile'
-                : '/profile'
+            router.push('/profile'
             )
           }
         />
@@ -78,17 +105,9 @@ export default function ProfileMenu({
               user.role === 'ADMIN'
                 ? '/admin/settings'
                 : user.role === 'DOCTOR'
-                ? '/doctor/settings'
+                ? '/settings'
                 : '/settings'
             )
-          }
-        />
-
-        <ProfileMenuItem
-          icon="notifications"
-          label="Notifications"
-          onClick={() =>
-            router.push('/notifications')
           }
         />
 

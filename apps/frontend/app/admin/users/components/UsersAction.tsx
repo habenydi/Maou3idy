@@ -8,18 +8,33 @@ import { useRouter } from "next/navigation";
 export default function UsersAction({
   userId,
   status,
+  role,
 }: {
   userId: string;
   status: string;
+  role: string;
 }) {
   const [showMore, setShowMore] = useState(false);
   const route = useRouter();
   return (
     <div className="relative flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      {status === 'true' ? (
+      {role === 'BANNED' ? (
+        <button
+          className="p-2 hover:text-green-500"
+          onClick={async () => {
+            await approveUser(userId);
+            route.refresh();
+          }}
+        >
+          <span className="material-symbols-outlined">
+            check_circle
+          </span>
+        </button>
+      ) : status === 'true' ? (
         <button
           className="p-2 hover:text-yellow-500"
-          onClick={async () => { await disableUser(userId);
+          onClick={async () => {
+            await disableUser(userId);
             route.refresh();
           }}
         >
@@ -30,7 +45,8 @@ export default function UsersAction({
       ) : (
         <button
           className="p-2 hover:text-green-500"
-          onClick={async () => { await approveUser(userId);
+          onClick={async () => {
+            await approveUser(userId);
             route.refresh();
           }}
         >
