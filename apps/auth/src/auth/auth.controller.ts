@@ -14,13 +14,13 @@ import type { Response, Request } from "express";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
-import { JwtGuard } from "./guards/jwt.guard";
 import { ForgetPasswordDto } from "./dto/forget_password.dto";
 import { ChangePasswordDto } from "./dto/ChangePassword.dto";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { Role } from "@prisma/client";
 import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
 import { MetricsService } from "src/metrics/metrics.service";
+import { Public } from "src/auth/decorator/public.decorator";
 
 interface UserAuth {
   sub: string;
@@ -30,6 +30,7 @@ interface UserAuth {
   name: string;
   role: Role;
   token: string;
+  image: string;
   doctor?: {
     id: number;
     specialty: string;
@@ -61,10 +62,12 @@ export class AuthController {
     private Authservice: AuthService,
     private MetricsService: MetricsService,
   ) {}
+  @Public()
   @Get("google")
   @UseGuards(AuthGuard("google"))
   async googleAuth() {}
 
+  @Public()
   @Get("google/callback")
   @UseGuards(AuthGuard("google"))
   async googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
@@ -80,6 +83,7 @@ export class AuthController {
     res.redirect(`http://localhost:3000/google-callback`);
   }
 
+  @Public()
   @Get("verify/:token")
   verifyToken(@Param("token") token: string) {
     const isValid = this.Authservice.verifyJwtToken(token);
@@ -99,6 +103,7 @@ export class AuthController {
   //     res.redirect(`http://localhost:3000/login?verified=false`);
   //   }
   // }
+  @Public()
   @Post("register")
   async register(
     @Body() body: RegisterDto,
@@ -114,6 +119,7 @@ export class AuthController {
     await this.MetricsService.incrementSession();
     return { user: result.user };
   }
+  @Public()
   @Post("login")
   async login(
     @Body() body: LoginDto,
@@ -133,15 +139,18 @@ export class AuthController {
       user: result.user,
     };
   }
+  @Public()
   @Post("forgot-password")
   async forget(@Body() body: ForgetPasswordDto) {
     await this.MetricsService.incrementSession();
     return await this.Authservice.forget_password(body);
   }
+  @Public()
   @Get("verify_email/token=:token")
   async verify_email(@Param("token") token: string) {
     return await this.Authservice.verify_email(token);
   }
+  @Public()
   @Patch("reset-password/token=:token")
   async reset_password(
     @Param("token") token: string,
@@ -149,7 +158,6 @@ export class AuthController {
   ) {
     return await this.Authservice.reset_password(token, new_password);
   }
-  @UseGuards(JwtGuard)
   @Patch("change-password")
   async change_password(
     @Body() ChangePassword: ChangePasswordDto,
@@ -162,12 +170,13 @@ export class AuthController {
       new_password,
     );
   }
-  @UseGuards(JwtGuard)
   @Get("me")
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
   @Header("Expires", "0")
   getMe(@Req() req: RequestWithUser): UserAuth {
+    console.log("getMe called, user:", req.user); // Debugging line
+    console.log("getMe called, user image:", req.user?.image); // Debugging line
     return req.user;
   }
   @Post("doctor-register")

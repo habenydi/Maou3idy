@@ -11,11 +11,10 @@ import {
 } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { RolesGuard } from "src/auth/guards/roles.guard";
-import { JwtGuard } from "src/auth/guards/jwt.guard";
 import { Roles } from "src/auth/decorator/roles.decorator";
 import { Role } from "@prisma/client";
 
-@UseGuards(JwtGuard, RolesGuard)
+@UseGuards(RolesGuard)
 @Roles(Role.ADMIN)
 @Controller("admin")
 export class AdminController {

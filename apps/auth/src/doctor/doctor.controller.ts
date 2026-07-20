@@ -15,25 +15,30 @@ import { Role } from "@prisma/client";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/auth/decorator/roles.decorator";
 import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
+import { Public } from "src/auth/decorator/public.decorator";
 
 @Controller("doctors")
 export class DoctorController {
   constructor(private doctorService: DoctorService) {}
 
+  @Public()
   @Get("specialities")
   async getSpecialities() {
     return {
       specialties: await this.doctorService.getSpecialties(),
     };
   }
+  @Public()
   @Get("find")
   find(@Query() query: GetDoctorsDto) {
     return this.doctorService.getDoctors(query);
   }
+  @Public()
   @Get("featured")
   findFeatured() {
     return this.doctorService.findFeatured();
   }
+  @Public()
   @Get("search")
   search(
     @Param("specialty") specialty: string,
@@ -51,6 +56,7 @@ export class DoctorController {
   async findAll() {
     return await this.doctorService.findAll();
   }
+  @Public()
   @Get(":id")
   findById(@Param("id") id: string) {
     return this.doctorService.findById(id);

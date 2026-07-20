@@ -8,6 +8,8 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
+import { IS_PUBLIC_KEY } from "src/auth/decorator/public.decorator";
+import { Reflector } from "@nestjs/core";
 
 export interface JwtPayload {
   sub: string;
@@ -15,6 +17,7 @@ export interface JwtPayload {
   name: string;
   email: string;
   verified: boolean;
+  image?: string;
 }
 
 interface RequestWithUser extends Request {
@@ -26,25 +29,46 @@ export class JwtGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const token = request.cookies?.access_token;
 
     if (!token) {
       throw new UnauthorizedException("Unauthorized! sdfnur askdn");
     }
-
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      request.user = payload;
+
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
       });
-      if (!user) {
+
+      if (
+        !user ||
+        user.verified !== payload.verified ||
+        user?.role === Role.BANNED
+      ) {
         throw new UnauthorizedException("User not found");
       }
+
+      request.user = {
+        sub: user.id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        verified: user.verified,
+      };
+
       return true;
     } catch (error) {
       throw new UnauthorizedException("Invalid token");

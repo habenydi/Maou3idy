@@ -164,7 +164,7 @@ export class AdminService {
       where: { user_id: id },
       include: { user: true },
     });
-    if (!doctor || !doctor.verified) {
+    if (!doctor || !doctor.user.verified) {
       return {
         message: `Doctor with ID ${id} not found or not verified.`,
         status: "error",
@@ -314,7 +314,7 @@ export class AdminService {
 
     const where: Prisma.UserWhereInput = {
       role: {
-        notIn: [Role.ADMIN, Role.PENDING_DOCTOR, Role.REJECTED, Role.BANNED],
+        notIn: [Role.ADMIN, Role.PENDING_DOCTOR, Role.REJECTED],
       },
     };
 
