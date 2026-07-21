@@ -25,14 +25,13 @@ export default function UserTableRow({ user }: Props) {
   if (!currentUser) {
     return <div>Please log in to view this content.</div>;
   }
-  const defaultAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuBg0DvHSMBLnbe0iqPg8jcrfQPpcxc-lygCetMOLec3vSYBDi3V6UMvUhrdTV6B3nkQc4DgRRhb5niwbt76rX-WnFiMwy7rF98jBoXpgoxI6M2B2wEfHqMnA9Gu1d97sZrd3hsCwsePN7rR6i540KrwJRa3KE2dAmL-uYI-Yq7OFNUNcOXwyc3Djr5ifXYOv_EnAgJoWjmxw-SigYj-shqMZE8H_Q878pPFR62zvhwxj-RXz2uqLVX-18wsFGB9uYzI5Y7PPeNATvA";
   return (
     <div className="grid grid-cols-6 items-center px-6 py-4 bg-surface-container-lowest rounded-xl hover:bg-surface-bright group">
       <div className="col-span-2 flex items-center gap-4">
         <Img
         width={40}
           height={40}
-          src={user.avatar ? user.avatar : defaultAvatar}
+          src={user.image}
           alt={user.name}
           className="w-10 h-10 rounded-full object-cover"
         />

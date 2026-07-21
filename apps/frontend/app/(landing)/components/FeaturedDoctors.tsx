@@ -2,10 +2,10 @@
 
 import Img from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Doctor } from '@/types/types';
+import { FeaturedDoctor } from '@/services/landingPageService';
 
 type Props = {
-  doctors: Doctor[];
+  doctors: FeaturedDoctor[];
 };
 
 export default function FeaturedDoctors({ doctors }: Props) {
@@ -46,8 +46,8 @@ export default function FeaturedDoctors({ doctors }: Props) {
                   width={500}
                   height={500}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
-                  src={doctor.profileImage}
-                  alt={`${doctor.firstName} ${doctor.lastName}`}
+                  src={doctor.user.image}
+                  alt={`${doctor.user.name}`}
                 />
 
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
@@ -62,11 +62,11 @@ export default function FeaturedDoctors({ doctors }: Props) {
               </div>
 
               <h3 className="font-bold text-lg mb-1">
-                Dr. {doctor.firstName} {doctor.lastName}
+                Dr. {doctor.user.name}
               </h3>
 
               <p className="text-primary text-sm font-semibold mb-4">
-                {doctor.specialty}
+                {doctor.speciality}
               </p>
 
               <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-6">
@@ -77,7 +77,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
               </div>
 
               <button
-                onClick={() => router.push(`/doctors/${doctor.id}`)}
+                onClick={() => router.push(`/patients/booking?doctorId=${doctor.id}`)}
                 className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors"
               >
                 Book Appointment

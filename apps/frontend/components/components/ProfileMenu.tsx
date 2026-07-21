@@ -6,6 +6,7 @@ import ProfileMenuItem from './ProfileMenuItem';
 import ProfileMenuFooter from './ProfileMenuFooter';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useState } from 'react';
 
 interface User {
   name: string;
@@ -24,6 +25,7 @@ export default function ProfileMenu({
   onLogout,
 }: ProfileMenuProps) {
   const router = useRouter();
+  const [image , setImage] = useState(user.image || null);
 
   const handleImageChange = async (file: File) => {
   const formData = new FormData();
@@ -31,7 +33,7 @@ export default function ProfileMenu({
   formData.append('image', file);
 
   try {
-    await axios.patch(
+    const response = await axios.patch(
       'http://localhost:1337/users/profile-image',
       formData,
       {
@@ -43,6 +45,7 @@ export default function ProfileMenu({
     );
 
     // Refresh user data
+    setImage(response.data.image);
     router.refresh();
     toast.success('Profile image updated successfully');
   } catch (error) {
@@ -68,7 +71,7 @@ export default function ProfileMenu({
       <ProfileMenuHeader
         name={user.name}
         email={user.email}
-        image={user.image}
+        image={image}
         onImageChange={handleImageChange}
 
       />

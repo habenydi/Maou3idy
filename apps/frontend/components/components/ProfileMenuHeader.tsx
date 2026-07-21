@@ -32,7 +32,7 @@ export default function ProfileMenuHeader({
               alt={name}
               fill
               sizes="56px"
-              className="object-cover"
+              className="object-cover transition-opacity duration-500 ease-out"
             />
           ) : (
             <div className="w-full h-full bg-slate-200 flex items-center justify-center">

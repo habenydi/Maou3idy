@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Img from 'next/image';
-import LogoutPage from '@/app/(auth)/logout/page';
 
 function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (activePath: string) => pathname === activePath;
 
@@ -82,8 +82,10 @@ function Sidebar() {
           </Link>
           <Link
             className="flex items-center gap-3 text-error px-4 py-2 hover:bg-error-container/10 rounded-lg transition-all"
-            onClick={LogoutPage}
-            href="/login"
+            onClick={() => {
+              router.push('/logout');
+            }}
+            href={"/logout"}
           >
             <span className="material-symbols-outlined text-lg">logout</span>
             <span>Logout</span>

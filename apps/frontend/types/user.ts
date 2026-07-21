@@ -5,5 +5,5 @@ export interface UserRow {
   role: "DOCTOR" | "USER" | "ADMIN";
   verified: boolean;
   createdAt: string;
-  avatar: string;
+  image: string;
 }

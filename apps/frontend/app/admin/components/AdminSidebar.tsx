@@ -1,102 +1,108 @@
-'use client';
+  'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useAuth } from '@/app/layout';
+  import Link from 'next/link';
+  import Image from 'next/image';
+  import { useAuth } from '@/app/layout';
+  import { useRouter } from 'next/navigation';
 
-type AdminSidebarProps = {
-  activePage?: 'dashboard' | 'users' | 'doctors';
-};
+  type AdminSidebarProps = {
+    activePage?: 'dashboard' | 'users' | 'doctors';
+  };
 
-export default function AdminSidebar({
-  activePage = 'dashboard',
-}: AdminSidebarProps) {
-  const navItems = [
-    {
-      name: 'Dashboard',
-      href: '/admin/dashboard',
-      icon: 'dashboard',
-      key: 'dashboard',
-    },
-    {
-      name: 'Users',
-      href: '/admin/users',
-      icon: 'group',
-      key: 'users',
-    },
-    {
-      name: 'Doctors',
-      href: '/admin/doctors',
-      icon: 'description',
-      key: 'doctors',
-    },
-  ];
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
+  export default function AdminSidebar({
+    activePage = 'dashboard',
+  }: AdminSidebarProps) {
+    const router = useRouter();
+    const navItems = [
+      {
+        name: 'Dashboard',
+        href: '/admin/dashboard',
+        icon: 'dashboard',
+        key: 'dashboard',
+      },
+      {
+        name: 'Users',
+        href: '/admin/users',
+        icon: 'group',
+        key: 'users',
+      },
+      {
+        name: 'Doctors',
+        href: '/admin/doctors',
+        icon: 'description',
+        key: 'doctors',
+      },
+    ];
+    const { user, loading} = useAuth();
+    if (loading) {
+      return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    }
 
-  return (
-    <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-slate-50 p-4">
-      {/* Logo */}
-      <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
-          <span className="material-symbols-outlined">
-            medical_services
-          </span>
+    return (
+      <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-slate-50 p-4">
+        {/* Logo */}
+        <div className="mb-8 flex items-center gap-3 px-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
+            <span className="material-symbols-outlined">
+              medical_services
+            </span>
+          </div>
+
+          <div>
+            <h2 className="font-['Manrope'] text-xl font-bold text-slate-900">
+              Maou<span className="text-blue-500">3</span>idy
+            </h2>
+
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Clinical Admin
+            </p>
+          </div>
         </div>
 
-        <div>
-          <h2 className="font-['Manrope'] text-xl font-bold text-slate-900">
-            Maou<span className="text-blue-500">3</span>idy
-          </h2>
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item) => {
+            const isActive = activePage === item.key;
 
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            Clinical Admin
-          </p>
-        </div>
-      </div>
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all
+                  ${
+                    isActive
+                      ? 'bg-white font-semibold text-blue-600 shadow-sm'
+                      : 'font-medium text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'
+                  }`}
+              >
+                <span className="material-symbols-outlined">
+                  {item.icon}
+                </span>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item) => {
-          const isActive = activePage === item.key;
-
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all
-                ${
-                  isActive
-                    ? 'bg-white font-semibold text-blue-600 shadow-sm'
-                    : 'font-medium text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'
-                }`}
-            >
-              <span className="material-symbols-outlined">
-                {item.icon}
-              </span>
-
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
 
       {/* Admin Profile */}
       <div className="mt-auto rounded-xl bg-slate-100 p-4">
         <div className="flex items-center gap-3">
           <Image
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD81svyPA2q1S6VVGoKBKruqUMi6WgQIiCSP3YLFig9fRlJQn29pFZhMJhTYlpxvvHesozL1kyJoPO4u3SWXwOtyWtYCESYQehlKpV1jAS-5_nzkTAzW5eH_hbEK9DFYwdykj-FfPEZ-yGumnZbNu-rlPk_6Pi-mCts7MQnoRf4apUKMOxN8XTKxiGGQx1eCTuIJrafp2jnJfH8duLsvx-6krhTaRhLUb7uqsUS_t5YNvu8l79KuRTD2lu41b_mR884Rtty65RT_s"
+            src={
+              user?.image ||
+              'https://ui-avatars.com/api/?name=Admin'
+            }
             alt="Admin"
-            width={40}
-            height={40}
+            width={48}
+            height={48}
+            style={{ width: 'auto', height: '40px' }}
             className="rounded-lg object-cover"
           />
 
-          <div className="overflow-hidden">
+          <div className="overflow-hidden flex-1">
             <p className="truncate text-xs font-bold text-slate-900">
-              Mr. {user?.name || 'Admin'}
+              {user?.name || 'Admin'}
             </p>
 
             <p className="truncate text-[10px] text-slate-500">
@@ -104,7 +110,36 @@ export default function AdminSidebar({
             </p>
           </div>
         </div>
+
+        <button
+          onClick={() => {
+            router.push('/logout');
+          }}
+          className="
+            mt-4
+            flex
+            w-full
+            items-center
+            justify-center
+            gap-2
+            rounded-lg
+            bg-red-50
+            px-3
+            py-2
+            text-sm
+            font-medium
+            text-red-600
+            transition-colors
+            hover:bg-red-100
+          "
+        >
+          <span className="material-symbols-outlined text-base">
+            logout
+          </span>
+
+          Logout
+        </button>
       </div>
-    </aside>
-  );
-}
+      </aside>
+    );
+  }

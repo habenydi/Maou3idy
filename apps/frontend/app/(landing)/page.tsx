@@ -10,17 +10,17 @@ import HowItWorks from './components/HowItWorks';
 import CTASection from './components/CTASection';
 import LoadingScreen from './components/LoadingScreen';
 
-import { getLandingPageData } from '@/services/landingPageService';
-import { LandingPageData } from '@/types';
+import { getFeaturedDoctors} from '@/services/landingPageService';
+import { FeaturedDoctor } from '@/services/landingPageService';
 
 export default function LandingPage() {
-  const [landingData, setLandingData] = useState<LandingPageData | null>(null);
+  const [landingData, setLandingData] = useState<FeaturedDoctor[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getLandingPageData();
+        const data = await getFeaturedDoctors();
         setLandingData(data);
       } catch (error) {
         console.error('Error loading landing page:', error);
@@ -40,7 +40,7 @@ export default function LandingPage() {
 
       <main className="pt-20">
         <HeroSection />
-        <FeaturedDoctors doctors={landingData?.featuredDoctors || []} />
+        <FeaturedDoctors doctors={landingData  || []} />
         <HowItWorks />
         <CTASection />
       </main>
