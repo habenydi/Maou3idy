@@ -67,6 +67,7 @@ export class JwtGuard implements CanActivate {
         name: user.name,
         email: user.email,
         verified: user.verified,
+        image: user.image,
       };
 
       return true;

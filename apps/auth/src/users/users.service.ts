@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
+import { Role } from "@prisma/client/edge";
 
 @Injectable()
 export class UsersService {
@@ -43,7 +44,7 @@ export class UsersService {
 
     const imageUrl = await this.cloudinaryService.uploadImage(file.buffer);
 
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       where: {
         id: userId,
       },
@@ -51,5 +52,54 @@ export class UsersService {
         image: imageUrl,
       },
     });
+  }
+
+  async getLandingPageData() {
+    const totalPatients = await this.prisma.user.count({
+      where: {
+        role: Role.USER,
+      },
+    });
+
+    const specialties = await this.prisma.doctor.findMany({
+      distinct: ["speciality"],
+      select: {
+        speciality: true,
+      },
+    });
+
+    const featuredDoctors = await this.prisma.doctor.findMany({
+      take: 3,
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+      orderBy: {
+        rating: "desc",
+      },
+    });
+
+    return {
+      totalPatients,
+      totalSpecialists: specialties.length,
+      featuredDoctors,
+    };
+  }
+
+  getNextSession() {
+    const imageUrl =
+      "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle";
+    return {
+      date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+      doctor: {
+        name: "Dr. John Doe",
+        specialty: "Cardiologist",
+        image: imageUrl,
+      },
+    };
   }
 }

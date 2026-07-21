@@ -34,7 +34,7 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
-  image     String    @default("https://images.openai.com/static-rsc-4/StJDioyhch4BhbkvyfWYe9sB6-PNkNO9T560woQ3MBf62JrvxuHkIzDUcwaHWRCRvwkG91zFWHJlXeepzYqEfSwNekRYn_pM9fLzMW4kCSVbYaUhfVXtZXTORNLoh9blE038VdoX_nr7CSruwd6Cbck6BZ-fAWNEahwogbxL0A9h_wjvrgq8DepIDEB6wbdZ?purpose=fullsize")
+  image     String    @default("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle")
 }
 
 model Doctor {

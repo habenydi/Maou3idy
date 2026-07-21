@@ -351,6 +351,7 @@ export class AdminService {
           role: true,
           verified: true,
           createdAt: true,
+          image: true,
         },
         orderBy: {
           createdAt: "desc",

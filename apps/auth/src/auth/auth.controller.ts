@@ -175,8 +175,6 @@ export class AuthController {
   @Header("Pragma", "no-cache")
   @Header("Expires", "0")
   getMe(@Req() req: RequestWithUser): UserAuth {
-    console.log("getMe called, user:", req.user); // Debugging line
-    console.log("getMe called, user image:", req.user?.image); // Debugging line
     return req.user;
   }
   @Post("doctor-register")

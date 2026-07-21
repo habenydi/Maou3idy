@@ -18,10 +18,23 @@ import { Roles } from "src/auth/decorator/roles.decorator";
 import { Role } from "@prisma/client";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { Public } from "src/auth/decorator/public.decorator";
 
 @Controller("users")
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Public()
+  @Get("landing-page")
+  getLandingPageData() {
+    return this.usersService.getLandingPageData();
+  }
+
+  @Public()
+  @Get("next-session")
+  getNextSession() {
+    return this.usersService.getNextSession();
+  }
 
   @Post()
   create(@Body() body: CreateUserDto) {
