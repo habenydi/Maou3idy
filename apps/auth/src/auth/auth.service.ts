@@ -16,6 +16,7 @@ import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { DoctorService } from "src/doctor/doctor.service";
 import { JwtPayload } from "./guards/jwt.guard";
 import { PrismaService } from "src/prisma/prisma.service";
+import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
 
 @Injectable()
 export class AuthService {
@@ -25,10 +26,16 @@ export class AuthService {
     private readonly email: MailerService,
     private readonly doctorService: DoctorService,
     private readonly prisma: PrismaService,
+    private readonly rabbitMqService: RabbitMqService,
   ) {}
 
   private get frontendBaseUrl() {
     return process.env.FRONTEND_URL ?? "http://localhost:3000";
+  }
+
+  private emitEvent(pattern: string, data: unknown) {
+    console.log(`Emitting event: ${pattern} with data:`, data);
+    this.rabbitMqService.emit(pattern, data).subscribe();
   }
 
   private signToken(payload: JwtPayload, expiresIn: string) {
@@ -71,18 +78,24 @@ export class AuthService {
       verified: user.verified,
     };
     const token = this.signToken(payload, "1d");
-    const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
-    await this.email.sendMail({
-      to: email,
-      subject: "Verify your email",
-      text: `Please click the following link to verify your email: ${url}`,
-      html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
-    });
+    // const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
+    // await this.email.sendMail({
+    //   to: email,
+    //   subject: "Verify your email",
+    //   text: `Please click the following link to verify your email: ${url}`,
+    //   html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
+    // });
     await this.prisma.auditlog.create({
       data: {
         user_id: user.id,
         action: "User registered with email: " + user.email,
       },
+    });
+    this.emitEvent("user.created", {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      verificationToken: token,
     });
     return {
       statusCode: 201,

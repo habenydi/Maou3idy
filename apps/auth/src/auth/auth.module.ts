@@ -10,6 +10,7 @@ import { GoogleStrategy } from "./google.strategy";
 import { MetricsService } from "src/metrics/metrics.service";
 
 import { UsersModule } from "src/users/users.module";
+import { RabbitMqModule } from "src/rabbitmq/rabbitmq.module";
 
 @Module({
   imports: [
@@ -27,12 +28,13 @@ import { UsersModule } from "src/users/users.module";
       provide: "APP_GUARD",
       useClass: JwtGuard,
     },
+    RabbitMqModule,
     AuthService,
     JwtGuard,
     RolesGuard,
     GoogleStrategy,
     MetricsService,
   ],
-  exports: [JwtModule, JwtGuard, RolesGuard],
+  exports: [JwtModule, JwtGuard, RolesGuard, RabbitMqModule],
 })
 export class AuthModule {}
