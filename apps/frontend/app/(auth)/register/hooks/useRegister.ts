@@ -5,8 +5,9 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { registerSchema } from "../../../schema/register";
 import { RegisterFormData } from "@/types/register";
+import { RegisterProps } from "@/types/register";
 
-export function useRegister() {
+export function useRegister({setUser}: RegisterProps) {
 	const router = useRouter();
 
 	const handleGoogleLogin = () => {
@@ -44,6 +45,7 @@ export function useRegister() {
 				}
 			);
 
+			setUser(response.data.user);
 			toast.success(
 				response.data.message ||
 				"Registration successful! Please check your email to verify your account."

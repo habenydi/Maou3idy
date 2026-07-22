@@ -17,11 +17,7 @@ export default function Login() {
 	useEffect(() => {
 	if (!user) return;
 
-	router.push(
-		user.role === "ADMIN"
-		? "/admin/dashboard"
-		: "/doctor/dashboard"
-	);
+	router.push("/");
 	}, [user, router]);
 
 	return (

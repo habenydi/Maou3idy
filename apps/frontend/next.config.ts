@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "ui-avatars.com",
+      },
+      {
+        protocol: "https",
+        hostname: "fonts.googleapis.com",
       }
     ],
   },

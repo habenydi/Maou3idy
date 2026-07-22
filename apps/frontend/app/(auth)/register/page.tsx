@@ -20,13 +20,13 @@ import SocialLogin from "./components/SocialLogin";
 export default function RegisterPage() {
 	const router = useRouter();
 
-	const { user, loading } = useAuth();
+	const { user, loading, setUser } = useAuth();
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
 	const { registerUser, handleGoogleLogin } =
-		useRegister();
+		useRegister({ setUser });
 
 	const {
 		register,
@@ -38,15 +38,9 @@ export default function RegisterPage() {
 
 	useEffect(() => {
 		if (loading) return;
-
-		if (user) {
-			router.push(
-				user.role === "DOCTOR" ||
-				user.role === "ADMIN"
-					? "/doctor/dashboard"
-					: "/"
-			);
-		}
+		if (!user) return;
+		router.refresh();
+		router.push("/");
 	}, [user, loading, router]);
 
 	return (
