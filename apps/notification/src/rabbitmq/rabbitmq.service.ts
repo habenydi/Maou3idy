@@ -11,7 +11,6 @@ export class RabbitMqService {
   async onModuleInit() {
     try {
       await this.client.connect();
-      console.log('RabbitMQ connected successfully');
     } catch (error) {
       console.error('RabbitMQ connection failed:', error);
     }

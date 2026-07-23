@@ -1,18 +1,15 @@
-version: '3.8'
-
 services:
-  db:
+  notification_db:
     image: postgres:15
     container_name: notification_db
-    restart: always
     environment:
       POSTGRES_USER: yassir
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: notification_db
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - notification_postgres_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  notification_postgres_data:

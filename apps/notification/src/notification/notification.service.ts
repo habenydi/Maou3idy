@@ -15,8 +15,6 @@ export class NotificationService {
     verificationToken: string;
   }) {
     try {
-      console.log('Received user.created event:', data);
-
       await this.prisma.user.upsert({
         where: {
           id: data.id,
@@ -32,7 +30,7 @@ export class NotificationService {
         },
       });
 
-      const url = `${process.env.FRONTEND_URL}/verify-email?token=${encodeURIComponent(
+      const url = `${process.env.FRONTEND_URL}/verification-email?token=${encodeURIComponent(
         data.verificationToken,
       )}`;
 
@@ -50,10 +48,33 @@ export class NotificationService {
           </p>
         `,
       });
-
-      console.log(`Verification email sent to ${data.email}`);
     } catch (error) {
       console.error('Failed to process user.created event:', error);
+    }
+  }
+
+  async handleUserForgetPasswordEvent(data: { email: string; Token: string }) {
+    try {
+      const url = `${process.env.FRONTEND_URL}/reset-password?token=${encodeURIComponent(
+        data.Token,
+      )}`;
+
+      await this.mailService.sendMail({
+        to: data.email,
+        subject: 'Reset your password',
+        text: `Please click the following link to reset your password: ${url}`,
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>Please reset your password by clicking the link below:</p>
+          <p>
+            <a href="${url}">
+              Reset Password
+            </a>
+          </p>
+        `,
+      });
+    } catch (error) {
+      console.error('Failed to process user.forget_password event:', error);
     }
   }
 }

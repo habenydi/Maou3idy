@@ -17,4 +17,11 @@ export class NotificationController {
   async handleUserCreatedEvent(@Payload() data: UserCreatedEvent) {
     await this.notificationService.handleUserCreatedEvent(data);
   }
+
+  @EventPattern('user.forget_password')
+  async handleUserForgetPasswordEvent(
+    @Payload() data: { email: string; Token: string },
+  ) {
+    await this.notificationService.handleUserForgetPasswordEvent(data);
+  }
 }
