@@ -145,10 +145,26 @@ export class AuthController {
     await this.MetricsService.incrementSession();
     return await this.Authservice.forget_password(body);
   }
-  @Public()
   @Get("verify_email/token=:token")
-  async verify_email(@Param("token") token: string) {
-    return await this.Authservice.verify_email(token);
+  async verifyEmail(
+    @Param("token") token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.Authservice.verify_email(token);
+
+    res.clearCookie("token");
+    res.cookie("access_token", result.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      statusCode: result.statusCode,
+      message: result.message,
+      user: result.user,
+    };
   }
   @Public()
   @Patch("reset-password/token=:token")

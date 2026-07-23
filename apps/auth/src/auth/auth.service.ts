@@ -34,7 +34,6 @@ export class AuthService {
   }
 
   private emitEvent(pattern: string, data: unknown) {
-    console.log(`Emitting event: ${pattern} with data:`, data);
     this.rabbitMqService.emit(pattern, data).subscribe();
   }
 
@@ -161,13 +160,18 @@ export class AuthService {
       verified: user.verified,
     };
     const token = this.signToken(payload, "1d");
-    const url = `${this.frontendBaseUrl}/reset-password/?token=${encodeURIComponent(token)}`;
-    await this.email.sendMail({
-      to: email,
-      subject: "Reset your password",
-      text: `Please click the following link to reset your password: ${url}`,
-      html: `<p>Please click the following link to reset your password:</p><p><a href="${url}">${url}</a></p>`,
+    this.emitEvent("user.forget_password", {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      Token: token,
     });
+    // await this.email.sendMail({
+    //   to: email,
+    //   subject: "Reset your password",
+    //   text: `Please click the following link to reset your password: ${url}`,
+    //   html: `<p>Please click the following link to reset your password:</p><p><a href="${url}">${url}</a></p>`,
+    // });
     return {
       statusCode: 200,
       message: "If an account exists, a reset link has been sent to your email",
@@ -182,7 +186,9 @@ export class AuthService {
         throw new BadRequestException("User not found");
       }
       const hashedPassword = await this.hashPassword(new_password);
-      await this.UserService.update(user.id, { password: hashedPassword });
+      await this.UserService.update(user.id, {
+        password: hashedPassword,
+      });
       await this.verify_email(token);
       return {
         statusCode: 200,
@@ -205,25 +211,49 @@ export class AuthService {
   async verify_email(token: string) {
     try {
       const decoded = this.jwtService.verify<JwtPayload>(token);
+
       const user = await this.UserService.findByEmail(decoded.email);
+
       if (!user) {
         throw new BadRequestException("User not found");
       }
-      await this.UserService.update(user.id, { verified: true });
+
+      const updatedUser = await this.UserService.update(user.id, {
+        verified: true,
+      });
+
+      const payload: JwtPayload = {
+        sub: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        verified: true,
+      };
+
+      const newToken = this.signToken(payload, "1d");
+
+      await this.prisma.auditlog.create({
+        data: {
+          user_id: user.id,
+          action: "User verified their email: " + user.email,
+        },
+      });
+
       return {
         statusCode: 200,
         message: "Email verified successfully",
+        token: newToken,
         user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          phone: user.phone,
-          role: String(user.role),
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          image: updatedUser.image,
           verified: true,
         },
       };
-    } catch (_error) {
-      console.error("Error verifying email:", _error);
+    } catch (error) {
+      console.error("Error verifying email:", error);
       throw new ForbiddenException("Invalid or expired token");
     }
   }

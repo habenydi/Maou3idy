@@ -30,6 +30,10 @@ export class UsersController {
     return this.usersService.getLandingPageData();
   }
 
+  @Get("my-data")
+  getMyData(@Req() req: any) {
+    return this.usersService.findById(req.user.sub);
+  }
   @Public()
   @Get("next-session")
   getNextSession() {
