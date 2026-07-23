@@ -91,8 +91,6 @@ export default function HeroSection() {
           'http://localhost:1337/users/next-session',
           { withCredentials: true }
         );
-
-        console.log('Next session response:', response.data ? response.data : 'No upcoming sessions');
         setNextSession(response.data);
       } catch (error) {
         console.error('Error fetching next session:', error);
@@ -196,7 +194,7 @@ const imageSrc =
 
                     <div>
                       <p className="text-sm font-bold text-on-surface">
-                        Dr. {nextSession.doctor.name}
+                        {nextSession.doctor.name}
                       </p>
 
                       <p className="text-xs text-on-surface-variant">

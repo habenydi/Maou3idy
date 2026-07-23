@@ -19,12 +19,14 @@ export default function ProfileHeader({
     <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-sm">
       <div className="flex flex-col md:flex-row items-center gap-6">
         {image ? (
-          <Img
-            src={image}
-            alt={name}
-            fill
-            className="w-28 h-28 rounded-full object-cover"
-          />
+        <Img
+          src={image}
+          alt={name || "Profile picture"}
+          width={112}
+          height={112}
+          className="rounded-full object-cover"
+          loading="eager"
+        />
         ) : (
           <div className="w-28 h-28 rounded-full bg-slate-200 flex items-center justify-center">
             <span className="material-symbols-outlined text-7xl text-slate-500">

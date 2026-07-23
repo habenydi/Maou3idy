@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { z } from 'zod';
+import { useAuth }  from '@/app/layout';
+
+const tokenSchema = z.string().trim().min(1, "Verification token is missing.");
 
 export default function VerificationEmail() {
 	const searchParams = useSearchParams();
@@ -17,8 +20,8 @@ export default function VerificationEmail() {
 	const displayStatus = hasToken ? status : 'error';
 	const displayMessage = hasToken ? message : 'Verification token is missing.';
 	const displayErrorMessage = hasToken ? errorMessage : 'Verification token is missing.';
+	const { loading, setUser } = useAuth();
 
-	const tokenSchema = z.string().trim().min(1, "Verification token is missing.");
 
 	useEffect(() => {
 		const tokenCheck = tokenSchema.safeParse(token ?? "");
@@ -39,8 +42,13 @@ export default function VerificationEmail() {
 				setMessage(data.message || 'Email verified successfully.');
 				toast.success("Email verified successfully");
 				setErrorMessage(null);
+				console.log("User data after verification:", data.user);
+				if (data.user) {
+					setUser(data.user);
+				}
 				setTimeout(() => {
-					router.replace('/success');
+					router.refresh();
+					router.push('/');
 				}, 2000);
 			} catch (error) {
 				setStatus('error');
@@ -59,7 +67,15 @@ export default function VerificationEmail() {
 		};
 
 		verifyEmail();
-	}, [router, token, tokenSchema]);
+	}, [router, token, setUser]);
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen">
+				<p className="text-lg font-medium text-gray-700">Loading...</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="font-body min-h-screen flex items-center justify-center p-6 overflow-x-hidden" style={{ backgroundColor: '#f9f9fd', color: '#191c1e' }}>

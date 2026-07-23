@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/app/layout';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ProfileMenu from './components/ProfileMenu';
 
 interface NavbarProps {
@@ -16,9 +16,32 @@ export default function Navbar({
   activeLink = 'doctors',
   showAuthButtons = true,
 }: NavbarProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClickOutside,
+      );
+    };
+  }, [menuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -123,7 +146,7 @@ export default function Navbar({
               )}
 
               {/* Profile Icon */}
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="
