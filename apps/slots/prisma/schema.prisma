@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+  DOCTOR
+  PENDING_DOCTOR
+  REJECTED
+  BANNED
+}
+
+enum SlotsStatus {
+  AVAILABLE
+  UNAVAILABLE
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id       String  @id @default(uuid())
+  verified Boolean @default(false)
+  email    String  @unique()
+  name     String
+  password String  @default("")
+  role     Role    @default(USER)
+  phone    String  @default("")
+
+  doctor Doctor?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  slots     Slots[]
+}
+
+model Doctor {
+  id String @id @default(uuid())
+
+  user_id   String   @unique()
+  user      User     @relation(fields: [user_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  slots     Slots[]
+}
+
+model Slots {
+  id         String      @id @default(uuid())
+  doctor_id  String?
+  doctor     Doctor?     @relation(fields: [doctor_id], references: [id])
+  user_id    String?
+  user       User?       @relation(fields: [user_id], references: [id])
+  date       DateTime
+  start_time String
+  end_time   String
+  is_booked  Boolean     @default(false)
+  status     SlotsStatus @default(AVAILABLE)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
