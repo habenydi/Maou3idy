@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Sidebar from '../components/SideBar';
+import DoctorShell from '../components/DoctorShell';
 import TableSection from './components/tableSection';
 import AddServiceModal from './components/addServiceModal';
 import InformationFooter from '@/components/InformationFooter';
@@ -15,9 +15,8 @@ const Services = () => {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 bg-surface min-h-screen p-8 md:p-12 overflow-y-auto">
+    <DoctorShell>
+      <main className="flex-1 bg-surface min-h-screen p-4 sm:p-8 md:p-12 overflow-y-auto">
         {/* Header Section */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div>
@@ -62,7 +61,7 @@ const Services = () => {
           onClose={() => setShowModal(false)} />)
         }
       </main>
-    </div>
+    </DoctorShell>
   );
 };
 

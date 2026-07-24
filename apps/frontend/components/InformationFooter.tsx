@@ -10,8 +10,6 @@ export default function PrivacyPolicy() {
             <div className="flex flex-wrap justify-center gap-8 font-inter text-xs">
                 <Link href="/privacy-policy" className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Privacy Policy</Link>
                 <Link href="/terms-of-service" className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Terms of Service</Link>
-                <Link href="/contact-support" className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Contact Support</Link>
-                <Link href="/healthcare-partners" className="text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">Healthcare Partners</Link>
             </div>
             </div>
         </footer>

@@ -1,9 +1,14 @@
+import BackButton from "@/components/BackButton"
+
 export default function PrivacyPolicy() {
     return (
 <>
   <meta charSet="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy Policy - Maou<span className="text-blue-500">3</span>idy</title>
+  <div className="bg-surface text-on-surface antialiased">
+    <BackButton />
+  </div>
   <main
     style={{
       maxWidth: 900,

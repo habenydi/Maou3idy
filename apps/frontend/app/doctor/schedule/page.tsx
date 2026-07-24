@@ -6,7 +6,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { toast } from "react-toastify";
-import Sidebar from "../components/SideBar";
+import DoctorShell from "../components/DoctorShell";
 import { apiFetch } from "@/lib/api";
 import "./schedule.css";
 import { useAuth } from "../../layout";
@@ -316,9 +316,7 @@ const Schedule = () => {
     "w-full bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow";
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-
+    <DoctorShell>
       <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
         {/* Header */}
         <header className="px-8 pt-10 pb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -665,7 +663,7 @@ const Schedule = () => {
           </div>
         </section>
       </main>
-    </div>
+    </DoctorShell>
   );
 };
 

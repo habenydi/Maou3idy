@@ -6,16 +6,16 @@ export default function CTASection() {
   const router = useRouter();
 
   return (
-        <section className="py-20 px-6">
-          <div className="max-w-7xl mx-auto rounded-[2.5rem] bg-linear-to-br from-primary to-blue-700 p-12 lg:p-24 relative overflow-hidden text-center lg:text-left">
+        <section className="py-16 sm:py-20 px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto rounded-[1.5rem] sm:rounded-[2.5rem] bg-linear-to-br from-primary to-blue-700 p-6 sm:p-12 lg:p-24 relative overflow-hidden text-center lg:text-left">
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
-            <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               <div>
-                <h2 className="text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-8">Ready to prioritize your health?</h2>
+                <h2 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 sm:mb-8">Ready to prioritize your health?</h2>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <button onClick={() => router.push('/register')} className="px-10 py-5 bg-white text-primary font-bold rounded-2xl text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
-                  <button onClick={() => router.push('/doctor-register')} className="px-10 py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
+                  <button onClick={() => router.push('/register')} className="px-8 sm:px-10 py-4 sm:py-5 bg-white text-primary font-bold rounded-2xl text-base sm:text-lg hover:scale-105 active:scale-95 transition-all">Get Started</button>
+                  <button onClick={() => router.push('/doctor-register')} className="px-8 sm:px-10 py-4 sm:py-5 border-2 border-white/30 text-white font-bold rounded-2xl text-base sm:text-lg hover:bg-white/10 transition-all">Join as Doctor</button>
                 </div>
               </div>
               <div className="hidden lg:flex justify-center">

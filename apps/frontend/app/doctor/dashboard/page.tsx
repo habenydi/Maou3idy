@@ -3,7 +3,7 @@
 import  { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import Sidebar from '../components/SideBar';
+import DoctorShell from '../components/DoctorShell';
 import InformationFooter from '@/components/InformationFooter';
 import DoctorHeader from './components/DoctorHeader';
 import StatsCards from './components/StatsCards';
@@ -80,38 +80,29 @@ const Dashboard = () => {
   const scheduleItems: ScheduleItem[] = todaySchedule.length ? todaySchedule : fallbackSchedule;
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="grow p-8 space-y-8 overflow-y-auto bg-surface">
-          {/* Header */}
-          <DoctorHeader name={name || 'Doctor'} />
-
-          {/* Error State */}
-          {error && (
-            <div className="p-4 bg-error/10 text-error rounded-lg border border-error/20">
-              {error}
-            </div>
-          )}
-          {/* Loading State */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              <p className="text-on-surface-variant">Loading dashboard...</p>
-            </div>
-          ) : (
-            <>
-              <StatsCards stats={stats} />
-              <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <AppointmentChart />
-                <TodaySchedule scheduleItems={scheduleItems} />
-              </section>
-            </>
-          )}
-        </main>
-      </div>
+    <DoctorShell>
+      <main className="flex-1 p-4 sm:p-8 space-y-8 overflow-y-auto bg-surface">
+        <DoctorHeader name={name || 'Doctor'} />
+        {error && (
+          <div className="p-4 bg-error/10 text-error rounded-lg border border-error/20">{error}</div>
+        )}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 gap-4">
+            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <p className="text-on-surface-variant">Loading dashboard...</p>
+          </div>
+        ) : (
+          <>
+            <StatsCards stats={stats} />
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <AppointmentChart />
+              <TodaySchedule scheduleItems={scheduleItems} />
+            </section>
+          </>
+        )}
+      </main>
       <InformationFooter />
-    </div>
+    </DoctorShell>
   );
 };
 

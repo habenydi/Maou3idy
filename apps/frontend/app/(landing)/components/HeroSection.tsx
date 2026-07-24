@@ -117,14 +117,14 @@ const imageSrc =
         )}`
       : '/default-avatar.png';
   return (
-<section className="relative px-6 py-20 lg:py-32 overflow-hidden">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+<section className="relative px-4 sm:px-6 py-16 sm:py-20 lg:py-32 overflow-hidden">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className="relative z-10">
-              <span className="inline-block py-1 px-3 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold tracking-wider mb-6">{formatNumber(stats.totalPatients)}+ PATIENTS TRUST OUR PLATFORM</span>
-              <h1 className="text-5xl lg:text-7xl font-extrabold text-on-surface tracking-tighter leading-[1.1] mb-6">
+              <span className="inline-block py-1 px-3 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold tracking-wider mb-4 sm:mb-6">{formatNumber(stats.totalPatients)}+ PATIENTS TRUST OUR PLATFORM</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-on-surface tracking-tighter leading-[1.1] mb-4 sm:mb-6">
                 Find the right <span className="text-primary">doctor</span> easily
               </h1>
-              <p className="text-lg text-on-surface-variant max-w-lg mb-10 leading-relaxed">
+              <p className="text-base sm:text-lg text-on-surface-variant max-w-lg mb-8 sm:mb-10 leading-relaxed">
                 Access world-class healthcare from the comfort of your home. Book appointments with top specialists in minutes.
               </p>
 

@@ -1,3 +1,5 @@
+import BackButton from "@/components/BackButton";
+
 export default function HelpPage() {
   const faqs = [
     {
@@ -25,6 +27,7 @@ export default function HelpPage() {
   return (
     <div className="p-8 space-y-8">
       {/* Header */}
+      <BackButton/>
       <div>
         <h1 className="text-3xl font-extrabold text-on-surface">
           Help Center

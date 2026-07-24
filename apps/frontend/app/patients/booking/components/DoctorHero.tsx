@@ -9,10 +9,10 @@ type Props = {
 
 export default function DoctorHero({ doctor }: Props) {
     return (
-                <section className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
-                  <div className="md:col-span-8 bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col md:flex-row items-center md:items-end p-8 gap-8 relative">
+                <section className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 mb-8 sm:mb-12">
+                  <div className="md:col-span-8 bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col md:flex-row items-center md:items-end p-5 sm:p-8 gap-5 sm:gap-8 relative">
                     {/* Profile Image */}
-                    <div className="relative w-48 h-48 md:w-64 md:h-64 shrink-0">
+                    <div className="relative w-36 h-36 sm:w-48 sm:h-48 md:w-64 md:h-64 shrink-0">
                       <Img
                         width={400}
                         height={400}
@@ -21,20 +21,18 @@ export default function DoctorHero({ doctor }: Props) {
                         src={doctor.profileImage}
                       />
                     </div>
-                    <div className="grow space-y-4 text-center md:text-left">
+                    <div className="grow space-y-3 sm:space-y-4 text-center md:text-left">
                       <div className="flex items-center justify-center md:justify-start gap-2">
                         <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-1 uppercase">
-                          <span className="material-symbols-outlined text-sm material-fill">
-                            verified
-                          </span>
+                          <span className="material-symbols-outlined text-sm material-fill">verified</span>
                           Verified Specialist
                         </span>
                       </div>
                       <div>
-                        <h1 className="text-4xl md:text-5xl font-headline font-extrabold text-on-surface tracking-tight">
+                        <h1 className="text-2xl sm:text-4xl md:text-5xl font-headline font-extrabold text-on-surface tracking-tight">
                           Dr. {doctor.firstName} {doctor.lastName}
                         </h1>
-                        <p className="text-xl text-secondary font-medium mt-1">
+                        <p className="text-base sm:text-xl text-secondary font-medium mt-1">
                           {doctor.specialty} • {doctor.yearsOfExperience}+ Years Experience
                         </p>
                       </div>

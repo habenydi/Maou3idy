@@ -2,13 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 
-export default function BackButton({path}: {path: string}) {
+export default function BackButton() {
   const router = useRouter();
-  const routour = "/" + path;
 
   return (
     <button
-      onClick={() => router.push(routour)}
+      onClick={() => router.back()}
       className="
         group flex items-center justify-center
         h-12 w-28

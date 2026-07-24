@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import Sidebar from '../components/SideBar';
+import DoctorShell from '../components/DoctorShell';
 import AppointmentsHeader from './components/AppointmentsHeader';
 import AppointmentsFilters from './components/AppointmentsFilters';
 import AppointmentsTable from './components/AppointmentsTable';
@@ -134,37 +134,27 @@ const Appointments = () => {
   const acceptedCount = appointments.filter((a) => a.status === 'accepted').length;
   if (loading) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
+      <DoctorShell>
         <main className="flex-1 bg-surface min-h-screen overflow-y-auto flex items-center justify-center">
           <p className="text-on-surface-variant">Loading appointments...</p>
         </main>
-      </div>
+      </DoctorShell>
     );
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
+    <DoctorShell>
       <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
-        {/* Header Section */}
         <AppointmentsHeader pendingCount={pendingCount} acceptedCount={acceptedCount} />
-
-        {/* Search and Filter Bar */}
-        <section className="px-8 pb-12">
+        <section className="px-4 sm:px-8 pb-12">
           <AppointmentsFilters searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-4 bg-error/10 text-error rounded-lg border border-error/20">
-              {error}
-            </div>
+            <div className="mb-4 p-4 bg-error/10 text-error rounded-lg border border-error/20">{error}</div>
           )}
-
           <AppointmentsTable appointments={filteredAppointments} onAccept={handleAccept} onReject={handleReject} />
         </section>
       </main>
-    </div>
+    </DoctorShell>
   );
 };
 

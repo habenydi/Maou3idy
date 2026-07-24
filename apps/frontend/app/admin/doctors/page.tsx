@@ -1,5 +1,5 @@
 import AdminHeader from "@/app/admin/components/AdminHeader";
-import AdminSidebar from "@/app/admin/components/AdminSidebar";
+import AdminShell from "@/app/admin/components/AdminShell";
 
 import ApplicationsHeader from "./components/ApplicationsHeader";
 import ApplicationFilters from "./components/ApplicationFilters";
@@ -68,26 +68,21 @@ export default async function DashboardPage({
   const stats = await getDoctorApplicationSummary();
 
   return (
-    <>
-      <AdminSidebar activePage="doctors" />
+    <AdminShell activePage="doctors">
       <AdminHeader />
-
-      <main className="ml-64 pt-24 p-8 min-h-screen bg-surface">
+      <main className="pt-16 p-4 sm:p-8 min-h-screen bg-surface">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <ApplicationsHeader />
           <ApplicationFilters role={roleQuery} />
         </div>
-
         <ApplicationsTable applications={applications} />
-
         <ApplicationsPagination
           total={applicationsResponse.data.total}
           page={pageQuery}
           totalPages={applicationsResponse.data.totalPages}
         />
-
         <ApplicationsSummary stats={stats} />
       </main>
-    </>
+    </AdminShell>
   );
 }

@@ -7,7 +7,7 @@ export default function SettingsPage() {
     <main className="min-h-screen bg-surface p-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <BackButton path="" />
+          <BackButton />
         </div>
         {/* Page Header */}
         <div className="mb-10">

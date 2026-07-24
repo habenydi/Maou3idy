@@ -54,7 +54,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-surface p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        <BackButton path="" />
+        <BackButton />
 
         <ProfileHeader
           name={user.name}

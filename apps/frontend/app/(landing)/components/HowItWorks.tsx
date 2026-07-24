@@ -1,15 +1,15 @@
 
 export default function HowItWorks() {
   return (
-<section className="py-24 px-6 overflow-hidden">
+<section className="py-16 sm:py-24 px-4 sm:px-6 overflow-hidden">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <h2 className="text-4xl font-bold tracking-tight mb-4">Seamless Healthcare Journey</h2>
+            <div className="text-center mb-12 sm:mb-20">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Seamless Healthcare Journey</h2>
               <p className="text-on-surface-variant max-w-2xl mx-auto mb-8">
                 Skip the waiting room. Our streamlined process connects you with experts in three simple steps.
               </p>
             </div>
-            <div className="grid lg:grid-cols-3 gap-12 relative">
+            <div className="grid sm:grid-cols-3 lg:grid-cols-3 gap-8 sm:gap-12 relative">
               {/* Connecting line for desktop */}
               <div className="hidden lg:block absolute top-24 left-0 w-full h-0.5 bg-primary/10 -z-10"></div>
 

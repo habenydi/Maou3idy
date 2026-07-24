@@ -1,6 +1,6 @@
 'use client';
 
-import AdminSidebar from '@/app/admin/components/AdminSidebar';
+import AdminShell from '@/app/admin/components/AdminShell';
 import AdminHeader from '@/app/admin/components/AdminHeader';
 import { useAuth } from '@/app/layout';
 
@@ -15,29 +15,22 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
+      <div className="flex items-center justify-center h-screen">Loading...</div>
     );
   }
 
   return (
-    <>
-      <AdminSidebar />
+    <AdminShell activePage="dashboard">
       <AdminHeader />
-
-      <main className="ml-64 pt-24 p-8 min-h-screen">
+      <main className="pt-16 p-4 sm:p-8 min-h-screen">
         <DashboardHeader />
-
         <MetricsGrid />
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <UserRegistrationTrends />
           <RecentActivity />
         </div>
-
         <PlatformPulse />
       </main>
-    </>
+    </AdminShell>
   );
 }

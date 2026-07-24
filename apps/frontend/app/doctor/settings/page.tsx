@@ -1,5 +1,5 @@
 'use client';
-import Sidebar from "../components/SideBar";
+import DoctorShell from "../components/DoctorShell";
 import InformationFooter from "@/components/InformationFooter";
 import DoctorHeader from "../dashboard/components/DoctorHeader";
 
@@ -13,61 +13,46 @@ export default function DoctorSettingsPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen bg-surface">
-                <Sidebar />
-                <main className="grow overflow-y-auto">
-                    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+            <DoctorShell>
+                <main className="flex-1 overflow-y-auto">
+                    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
                         <DoctorHeader name="Doctor" />
                         <div>Loading...</div>
                     </div>
                 </main>
-            </div>
+            </DoctorShell>
         );
     }
 
     if (!user) {
         return (
-            <div className="flex min-h-screen bg-surface">
-                <Sidebar />
-                <main className="grow overflow-y-auto">
-                    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+            <DoctorShell>
+                <main className="flex-1 overflow-y-auto">
+                    <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
                         <DoctorHeader name="Doctor" />
                         <div>You must be logged in to access this page.</div>
                     </div>
                 </main>
-            </div>
+            </DoctorShell>
         );
     }
   return (
-    <div className="flex min-h-screen bg-surface">
-      <Sidebar />
-
-      <main className="grow overflow-y-auto">
-        <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <DoctorShell>
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-8 space-y-8 max-w-7xl mx-auto">
           <DoctorHeader name="Doctor" />
-
-          {/* Page Header */}
           <div>
-            <h1 className="text-3xl font-extrabold text-on-surface tracking-tight">
-              Settings
-            </h1>
-
+            <h1 className="text-3xl font-extrabold text-on-surface tracking-tight">Settings</h1>
             <p className="mt-2 text-on-surface-variant">
-              Manage your account, professional information, security, and
-              notification preferences.
+              Manage your account, professional information, security, and notification preferences.
             </p>
           </div>
-
-          {/* Settings Sections */}
           <ProfileSettings user={user} />
-
           <ProfessionalSettings />
-
           <SecuritySettings />
-
           <InformationFooter />
         </div>
       </main>
-    </div>
+    </DoctorShell>
   );
 }
