@@ -5,7 +5,6 @@ import { UsersModule } from "./users/users.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config";
-import { DoctorModule } from "./doctor/doctor.module";
 import { SlotsModule } from './slots/slots.module';
 
 @Module({
@@ -38,7 +37,6 @@ import { SlotsModule } from './slots/slots.module';
         },
       }),
     }),
-    DoctorModule,
     SlotsModule,
   ],
 })

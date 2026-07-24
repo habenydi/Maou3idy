@@ -2,8 +2,6 @@ import { Type } from "class-transformer";
 import { IsInt, IsString, Min } from "class-validator";
 
 export class CreateSlotsDto {
-    doctor_id!: string;
-
     @IsString()
     start_date!: string;
 

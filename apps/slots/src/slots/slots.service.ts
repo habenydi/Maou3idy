@@ -40,6 +40,23 @@ export class SlotsService {
         ].join("-");
     }
 
+    private parseTimeToMinutes(time: string): number {
+        const [hours, minutes] = time.split(":").map(Number);
+
+        if (
+            Number.isNaN(hours) ||
+            Number.isNaN(minutes) ||
+            hours < 0 ||
+            hours > 23 ||
+            minutes < 0 ||
+            minutes > 59
+        ) {
+            throw new BadRequestException("Invalid time format. Expected HH:MM");
+        }
+
+        return hours * 60 + minutes;
+    }
+
     private combineDateAndTime(date: Date, time: string): Date {
         const [hours, minutes] = time.split(":").map(Number);
         const combined = new Date(date);
@@ -69,7 +86,10 @@ export class SlotsService {
             throw new BadRequestException("Start date cannot be in the past");
         }
 
-        if (start_hour >= end_hour) {
+        const startMinutes = this.parseTimeToMinutes(start_hour);
+        const endMinutes = this.parseTimeToMinutes(end_hour);
+
+        if (startMinutes >= endMinutes) {
             throw new BadRequestException("End time must be after start time");
         }
 
@@ -85,11 +105,8 @@ export class SlotsService {
                 day.getDate(),
             );
 
-            // Use local date formatting instead of toISOString() which converts to UTC
-            const dateStr = this.toLocalDateStr(day);
-
-            let current = new Date(`${dateStr}T${start_hour}:00`);
-            const end = new Date(`${dateStr}T${end_hour}:00`);
+            let current = this.combineDateAndTime(day, start_hour);
+            const end = this.combineDateAndTime(day, end_hour);
 
             while (current < end) {
                 const slotEnd = new Date(current.getTime() + duration * 60000);
