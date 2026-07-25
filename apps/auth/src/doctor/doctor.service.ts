@@ -7,13 +7,18 @@ import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
 export class DoctorService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: CreateDoctorDto, id: string) {
+  async create(body: CreateDoctorDto, userId: string) {
     return this.prisma.doctor.create({
       data: {
-        speciality: data.speciality,
-        bio: data.bio,
-        license_number: data.license_number,
-        user: { connect: { id } },
+        speciality: body.speciality,
+        bio: body.bio,
+        license_number: body.license_number,
+        medical_license_url: body.medical_license_url,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }
@@ -41,14 +46,28 @@ export class DoctorService {
     return this.prisma.doctor.findUnique({ where: { id } });
   }
 
-  update(id: string, data: Partial<CreateDoctorDto>) {
+  async update(id: string, data: Partial<CreateDoctorDto>) {
+    await this.prisma.auditlog.create({
+      data: {
+        action: "Dr Profile Updated",
+        user_id: id,
+        timestamp: new Date(),
+      },
+    });
     return this.prisma.doctor.update({
       where: { id },
       data,
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    await this.prisma.auditlog.create({
+      data: {
+        action: "Dr Profile Deleted",
+        user_id: id,
+        timestamp: new Date(),
+      },
+    });
     return this.prisma.doctor.delete({ where: { id } });
   }
 

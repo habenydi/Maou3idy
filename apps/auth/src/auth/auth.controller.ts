@@ -9,6 +9,8 @@ import {
   Res,
   UseGuards,
   Header,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
 import type { Response, Request } from "express";
 import { AuthService } from "./auth.service";
@@ -21,6 +23,7 @@ import { Role } from "@prisma/client";
 import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
 import { MetricsService } from "src/metrics/metrics.service";
 import { Public } from "src/auth/decorator/public.decorator";
+import { FileInterceptor } from "@nestjs/platform-express/multer/interceptors/file.interceptor";
 
 interface UserAuth {
   sub: string;
@@ -93,16 +96,6 @@ export class AuthController {
       return { valid: false };
     }
   }
-
-  // @Get("verify_email/token=:token")
-  // async verifyEmail(@Param("token") token: string, @Res() res: Response) {
-  //   const isValid = await this.Authservice.verify_email(token);
-  //   if (isValid) {
-  //     res.redirect(`http://localhost:3000/login?verified=true`);
-  //   } else {
-  //     res.redirect(`http://localhost:3000/login?verified=false`);
-  //   }
-  // }
   @Public()
   @Post("register")
   async register(
@@ -194,8 +187,12 @@ export class AuthController {
     return req.user;
   }
   @Post("doctor-register")
-  async doctor_register(@Body() body: DoctorRegisterDto) {
-    return await this.Authservice.doctor_register(body);
+  @UseInterceptors(FileInterceptor("medical_license"))
+  async doctor_register(
+    @Body() body: DoctorRegisterDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.Authservice.doctor_register(body, file);
   }
   @Post("logout")
   async logout(@Res({ passthrough: true }) res: Response) {

@@ -34,7 +34,14 @@ export class UsersService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    await this.prisma.auditlog.create({
+      data: {
+        action: "DELETE_USER",
+        user_id: id,
+        timestamp: new Date(),
+      },
+    });
     return this.prisma.user.delete({ where: { id } });
   }
   async updateProfileImage(userId: string, file: Express.Multer.File) {
@@ -43,6 +50,14 @@ export class UsersService {
     }
 
     const imageUrl = await this.cloudinaryService.uploadImage(file.buffer);
+
+    await this.prisma.auditlog.create({
+      data: {
+        action: "UPDATE_PROFILE_IMAGE",
+        user_id: userId,
+        timestamp: new Date(),
+      },
+    });
 
     return await this.prisma.user.update({
       where: {

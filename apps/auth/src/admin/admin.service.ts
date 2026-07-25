@@ -2,12 +2,14 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma, Role } from "@prisma/client";
 import { MetricsService } from "../metrics/metrics.service";
+import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
 
 @Injectable()
 export class AdminService {
   constructor(
     private prisma: PrismaService,
     private metricsService: MetricsService,
+    private readonly rabbitMqService: RabbitMqService,
   ) {}
 
   async getDashboard() {
@@ -193,6 +195,11 @@ export class AdminService {
         action: `Doctor ${doctor.user.name} approved`,
       },
     });
+
+    this.rabbitMqService.emit("doctor.approved", {
+      email: doctor.user.email,
+      name: doctor.user.name,
+    });
     return {
       message: `Doctor with ID ${id} approved.`,
       status: "approved",
@@ -222,6 +229,10 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("doctor.rejected", {
+      email: doctor.user.email,
+      name: doctor.user.name,
+    });
     return {
       message: `Doctor with ID ${id} rejected.`,
       status: "rejected",
@@ -621,7 +632,7 @@ export class AdminService {
     });
 
     return activities.map((activity) => ({
-      title: activity.user.name,
+      title: activity.user?.name,
       description: activity.action,
       time: activity.timestamp,
     }));

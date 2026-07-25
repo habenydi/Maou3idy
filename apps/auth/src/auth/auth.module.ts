@@ -11,6 +11,7 @@ import { MetricsService } from "src/metrics/metrics.service";
 
 import { UsersModule } from "src/users/users.module";
 import { RabbitMqModule } from "src/rabbitmq/rabbitmq.module";
+import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RabbitMqModule } from "src/rabbitmq/rabbitmq.module";
     RolesGuard,
     GoogleStrategy,
     MetricsService,
+    CloudinaryService,
   ],
   exports: [JwtModule, JwtGuard, RolesGuard, RabbitMqModule],
 })

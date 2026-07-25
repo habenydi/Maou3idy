@@ -17,6 +17,7 @@ import { DoctorService } from "src/doctor/doctor.service";
 import { JwtPayload } from "./guards/jwt.guard";
 import { PrismaService } from "src/prisma/prisma.service";
 import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
+import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly doctorService: DoctorService,
     private readonly prisma: PrismaService,
     private readonly rabbitMqService: RabbitMqService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   private get frontendBaseUrl() {
@@ -77,13 +79,6 @@ export class AuthService {
       verified: user.verified,
     };
     const token = this.signToken(payload, "1d");
-    // const url = `${this.frontendBaseUrl}/verification-email?token=${encodeURIComponent(token)}`;
-    // await this.email.sendMail({
-    //   to: email,
-    //   subject: "Verify your email",
-    //   text: `Please click the following link to verify your email: ${url}`,
-    //   html: `<p>Please click the following link to verify your email:</p><p><a href="${url}">${url}</a></p>`,
-    // });
     await this.prisma.auditlog.create({
       data: {
         user_id: user.id,
@@ -164,14 +159,8 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      Token: token,
+      token: token,
     });
-    // await this.email.sendMail({
-    //   to: email,
-    //   subject: "Reset your password",
-    //   text: `Please click the following link to reset your password: ${url}`,
-    //   html: `<p>Please click the following link to reset your password:</p><p><a href="${url}">${url}</a></p>`,
-    // });
     return {
       statusCode: 200,
       message: "If an account exists, a reset link has been sent to your email",
@@ -273,6 +262,12 @@ export class AuthService {
     }
     const hashedPassword = await this.hashPassword(new_password);
     await this.UserService.update(user.id, { password: hashedPassword });
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: user.id,
+        action: "User changed their password",
+      },
+    });
     return {
       statusCode: 200,
       message: "Password changed successfully",
@@ -285,34 +280,68 @@ export class AuthService {
       },
     };
   }
-  async doctor_register(body: DoctorRegisterDto) {
-    this.ensurePasswordStrength(body.password);
+  async doctor_register(body: DoctorRegisterDto, file: Express.Multer.File) {
     const email = this.normalizeEmail(body.email);
-    const hashedPassword = await this.hashPassword(body.password);
+
     const user = await this.UserService.findByEmail(email);
+
     if (!user) {
-      throw new BadRequestException("the email does not exist");
+      throw new BadRequestException("The email does not exist");
     }
-    if (user.verified === false) {
-      throw new BadRequestException("the email is not verified");
+
+    if (!user.verified) {
+      throw new BadRequestException("The email is not verified");
     }
-    if (String(user.role) !== Role.USER) {
+
+    if (user.role !== Role.USER) {
       throw new BadRequestException(
-        "the user is already a doctor or pending doctor",
+        "The user is already a doctor or has a pending doctor request",
       );
     }
 
+    if (!file) {
+      throw new BadRequestException("Medical license is required");
+    }
+
+    const uploadedLicense = await this.cloudinaryService.uploadImage(
+      file.buffer,
+    );
+
     await this.UserService.update(user.id, {
-      password: hashedPassword,
       role: Role.PENDING_DOCTOR,
     });
+
+    const doctor = await this.doctorService.create(
+      {
+        ...body,
+        medical_license_url: uploadedLicense,
+      },
+      user.id,
+    );
+
     await this.prisma.auditlog.create({
       data: {
         user_id: user.id,
-        action: "new medical license verification pending for Dr. " + user.name,
+        action: `New medical license verification pending for Dr. ${user.name}`,
       },
     });
-    await this.doctorService.create(body, user.id);
+
+    const AdminEmail = await this.prisma.user.findFirst({
+      where: {
+        role: Role.ADMIN,
+      },
+    });
+
+    if (AdminEmail) {
+      this.emitEvent("doctor.registered", {
+        email: AdminEmail.email,
+        name: AdminEmail.name,
+        doctorName: user.name,
+        doctorEmail: user.email,
+        licenseNumber: body.license_number,
+        licenseUrl: uploadedLicense,
+      });
+    }
     return {
       statusCode: 200,
       message: "Doctor registration request submitted successfully",
@@ -323,9 +352,9 @@ export class AuthService {
         phone: user.phone,
         role: Role.PENDING_DOCTOR,
       },
+      doctor,
     };
   }
-
   async validateGoogleUser(profile: any) {
     const email = this.normalizeEmail((profile.emails as any[])[0].value);
     let user = await this.UserService.findByEmail(email);

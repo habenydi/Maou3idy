@@ -9,6 +9,7 @@ import { DoctorModule } from "./doctor/doctor.module";
 import { AdminModule } from "./admin/admin.module";
 import { MetricsModule } from "./metrics/metrics.module";
 import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
+import { AuthEventListenerModule } from './auth-event-listener/auth-event-listener.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
     }),
     DoctorModule,
     AdminModule,
+    AuthEventListenerModule,
   ],
 })
 export class AppModule {}

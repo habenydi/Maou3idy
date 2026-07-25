@@ -55,6 +55,8 @@ model Doctor {
   bio            String
   license_number String
 
+  medical_license_url String
+
   verified Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -62,12 +64,13 @@ model Doctor {
 }
 
 model Auditlog {
-  id String @id @default(uuid())
+  id        String   @id @default(uuid())
 
-  user_id String
-  user    User   @relation(fields: [user_id], references: [id])
+  user_id   String?
+  user      User?    @relation(fields: [user_id], references: [id])
 
-  action String
+  action    String
+  details   String?
 
   timestamp DateTime @default(now())
 }

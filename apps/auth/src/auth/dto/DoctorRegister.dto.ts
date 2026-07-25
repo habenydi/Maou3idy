@@ -28,6 +28,4 @@ export class DoctorRegisterDto {
   bio: string;
   @IsNotEmpty({ message: "Phone number is required" })
   phone: string;
-  @IsNotEmpty({ message: "Medical license is required" })
-  medical_license: string;
 }
