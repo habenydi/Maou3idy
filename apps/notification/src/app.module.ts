@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { NotificationModule } from './notification/notification.module';
 import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
@@ -11,8 +9,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
-    UsersModule,
-    PrismaModule,
     NotificationModule,
     RabbitMqModule,
     ConfigModule.forRoot({
