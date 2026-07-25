@@ -112,7 +112,7 @@ function RegisterDoctor() {
           payload,
           {
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
               Accept: "application/json",
             },
             withCredentials: true,
