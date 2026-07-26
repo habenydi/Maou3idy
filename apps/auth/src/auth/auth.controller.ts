@@ -65,6 +65,12 @@ export class AuthController {
     private Authservice: AuthService,
     private MetricsService: MetricsService,
   ) {}
+
+  @Public()
+  @Get("test")
+  test() {
+    return "test";
+  }
   @Public()
   @Get("google")
   @UseGuards(AuthGuard("google"))
