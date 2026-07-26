@@ -197,6 +197,8 @@ export class AdminService {
     });
 
     this.rabbitMqService.emit("doctor.approved", {
+      id: doctor.user_id,
+      doctorId: doctor.id,
       email: doctor.user.email,
       name: doctor.user.name,
     });
@@ -230,6 +232,8 @@ export class AdminService {
     });
 
     this.rabbitMqService.emit("doctor.rejected", {
+      id: doctor.user_id,
+      doctorId: doctor.id,
       email: doctor.user.email,
       name: doctor.user.name,
     });
