@@ -35,6 +35,14 @@ export class AuthEventListenerService {
         action: `Received appointment request from ${user.name}`,
       },
     });
+    await this.prismaService.notification.create({
+      data: {
+        user_id: doctor.id,
+        message: `You have a new appointment request from ${user.name}.`,
+        title: "New Appointment Request",
+        isRead: false,
+      },
+    });
   }
   async handleAppointmentConfirmed(data: AppointmentEventData) {
     const user = await this.prismaService.user.findUnique({
@@ -63,6 +71,15 @@ export class AuthEventListenerService {
       data: {
         user_id: doctor.id,
         action: `You confirmed an appointment with ${user.name}`,
+      },
+    });
+
+    await this.prismaService.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Dr. ${doctor.name} has confirmed your appointment.`,
+        title: "Appointment Confirmed",
+        isRead: false,
       },
     });
   }
@@ -94,6 +111,15 @@ export class AuthEventListenerService {
         action: `Appointment canceled with ${user.name}`,
       },
     });
+
+    await this.prismaService.notification.create({
+      data: {
+        user_id: doctor.id,
+        message: `${user.name} has canceled their appointment with you.`,
+        title: "Appointment Canceled",
+        isRead: false,
+      },
+    });
   }
   async handleAppointmentRescheduled(data: AppointmentEventData) {
     const user = await this.prismaService.user.findUnique({
@@ -121,6 +147,15 @@ export class AuthEventListenerService {
       data: {
         user_id: doctor.id,
         action: `Appointment rescheduled with ${user.name}`,
+      },
+    });
+
+    await this.prismaService.notification.create({
+      data: {
+        user_id: doctor.id,
+        message: `${user.name} has rescheduled their appointment with you.`,
+        title: "Appointment Rescheduled",
+        isRead: false,
       },
     });
   }
@@ -153,6 +188,15 @@ export class AuthEventListenerService {
         action: `Appointment with ${user.name} was completed`,
       },
     });
+
+    await this.prismaService.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Your appointment with Dr. ${doctor.name} has been marked as completed.`,
+        title: "Appointment Completed",
+        isRead: false,
+      },
+    });
   }
 
   async handleAppointmentRejected(data: AppointmentEventData) {
@@ -182,6 +226,15 @@ export class AuthEventListenerService {
       data: {
         user_id: doctor.id,
         action: `You rejected an appointment request from ${user.name}`,
+      },
+    });
+
+    await this.prismaService.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Dr. ${doctor.name} has rejected your appointment request.`,
+        title: "Appointment Rejected",
+        isRead: false,
       },
     });
   }

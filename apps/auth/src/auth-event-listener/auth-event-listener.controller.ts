@@ -14,27 +14,27 @@ export class AuthEventListenerController {
   ) {}
 
   // Appointment event handlers
-  @MessagePattern("appointment_created")
+  @MessagePattern("appointment.created")
   async handleAppointmentCreated(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCreated(data);
   }
 
-  @MessagePattern("appointment_confirmed")
+  @MessagePattern("appointment.confirmed")
   async handleAppointmentConfirmed(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentConfirmed(data);
   }
 
-  @MessagePattern("appointment_canceled")
+  @MessagePattern("appointment.canceled")
   async handleAppointmentCanceled(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCanceled(data);
   }
 
-  @MessagePattern("appointment_rescheduled")
+  @MessagePattern("appointment.rescheduled")
   async handleAppointmentRescheduled(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentRescheduled(data);
   }
 
-  @MessagePattern("appointment_completed")
+  @MessagePattern("appointment.completed")
   async handleAppointmentCompleted(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCompleted(data);
   }

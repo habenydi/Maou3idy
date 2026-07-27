@@ -202,6 +202,14 @@ export class AdminService {
       email: doctor.user.email,
       name: doctor.user.name,
     });
+    await this.prisma.notification.create({
+      data: {
+        user_id: doctor.user_id,
+        message: `Congratulations! Your doctor application has been approved. You can now access all the features available to doctors.`,
+        title: "Doctor Application Approved",
+        isRead: false,
+      },
+    });
     return {
       message: `Doctor with ID ${id} approved.`,
       status: "approved",
@@ -237,6 +245,14 @@ export class AdminService {
       email: doctor.user.email,
       name: doctor.user.name,
     });
+    await this.prisma.notification.create({
+      data: {
+        user_id: doctor.user_id,
+        message: `We regret to inform you that your doctor application has been rejected. Please review the feedback provided and consider reapplying in the future.`,
+        title: "Doctor Application Rejected",
+        isRead: false,
+      },
+    });
     return {
       message: `Doctor with ID ${id} rejected.`,
       status: "rejected",
@@ -263,6 +279,15 @@ export class AdminService {
       data: {
         user_id: doctor.user_id,
         action: `Doctor ${doctor.user.name} activated`,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: doctor.user_id,
+        message: `Your account has been activated. You can now access all the features available to doctors.`,
+        title: "Doctor Account Activated",
+        isRead: false,
       },
     });
 
@@ -317,6 +342,16 @@ export class AdminService {
         action: `Doctor ${doctor.user.name} suspended`,
       },
     });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: doctor.user_id,
+        message: `Your account has been suspended. Please contact support for more information.`,
+        title: "Doctor Account Suspended",
+        isRead: false,
+      },
+    });
+
     return {
       message: `Doctor with ID ${id} suspended.`,
       status: "suspended",
@@ -405,6 +440,15 @@ export class AdminService {
       },
     });
 
+    await this.prisma.notification.create({
+      data: {
+        user_id: id,
+        message: `Your account has been disabled. Please contact support for more information.`,
+        title: "Account Disabled",
+        isRead: false,
+      },
+    });
+
     return {
       message: `User with ID ${id} disabled.`,
       status: "disabled",
@@ -428,6 +472,15 @@ export class AdminService {
       data: {
         user_id: id,
         action: `User ${user.name} activated`,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: id,
+        message: `Your account has been activated. You can now access all the features available to users.`,
+        title: "Account Activated",
+        isRead: false,
       },
     });
 

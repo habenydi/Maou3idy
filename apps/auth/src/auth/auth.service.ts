@@ -91,6 +91,15 @@ export class AuthService {
       name: user.name,
       verificationToken: token,
     });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Welcome ${user.name}! Thank you for registering. Please verify your email to access all features.`,
+        title: "Welcome to Our Platform!",
+        isRead: false,
+      },
+    });
     return {
       statusCode: 201,
       message: "User registered successfully",
@@ -268,6 +277,14 @@ export class AuthService {
         action: "User changed their password",
       },
     });
+    await this.prisma.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Your password has been changed successfully.`,
+        title: "Password Changed",
+        isRead: false,
+      },
+    });
     return {
       statusCode: 200,
       message: "Password changed successfully",
@@ -342,6 +359,15 @@ export class AuthService {
         licenseUrl: uploadedLicense,
       });
     }
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: user.id,
+        message: `Your doctor registration request has been submitted successfully. Our team will review your application and notify you once it's approved.`,
+        title: "Doctor Registration Request Submitted",
+        isRead: false,
+      },
+    });
     return {
       statusCode: 200,
       message: "Doctor registration request submitted successfully",

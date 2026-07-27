@@ -10,6 +10,8 @@ import { AdminModule } from "./admin/admin.module";
 import { MetricsModule } from "./metrics/metrics.module";
 import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
 import { AuthEventListenerModule } from './auth-event-listener/auth-event-listener.module';
+import { ReviewModule } from './review/review.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { AuthEventListenerModule } from './auth-event-listener/auth-event-listen
     DoctorModule,
     AdminModule,
     AuthEventListenerModule,
+    ReviewModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}
