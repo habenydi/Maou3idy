@@ -47,6 +47,7 @@ model Doctor {
   experience    Int    @default(0)
   TotalPatients Int    @default(0)
   Languages     String @default("")
+  CompletedAppointments Int @default(0)
   rating        Float  @default(0)
   reviewCount   Int    @default(0)
   profileImage  String @default("")
@@ -61,6 +62,18 @@ model Doctor {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+
+  doctorId  String
+  userId    String
+
+  rating    Int
+  comment   String?
+
+  createdAt DateTime @default(now())
 }
 
 model Auditlog {
