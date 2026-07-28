@@ -50,4 +50,71 @@ export class NotificationService {
       },
     });
   }
+
+  async findMine(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: {
+        user_id: userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  async latest(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: {
+        user_id: userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 5,
+    });
+  }
+
+  async getUnreadCount(userId: string) {
+    return await this.prisma.notification.count({
+      where: {
+        user_id: userId,
+        isRead: false,
+      },
+    });
+  }
+
+  async getUnreadNotifications(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: {
+        user_id: userId,
+        isRead: false,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  async markRead(id: string) {
+    return await this.prisma.notification.update({
+      where: {
+        id,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    return await this.prisma.notification.updateMany({
+      where: {
+        user_id: userId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+  }
 }

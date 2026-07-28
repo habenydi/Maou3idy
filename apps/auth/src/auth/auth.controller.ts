@@ -192,6 +192,7 @@ export class AuthController {
   getMe(@Req() req: RequestWithUser): UserAuth {
     return req.user;
   }
+  @Public()
   @Post("doctor-register")
   @UseInterceptors(FileInterceptor("medical_license"))
   async doctor_register(
