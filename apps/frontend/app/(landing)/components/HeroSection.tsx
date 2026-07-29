@@ -53,7 +53,7 @@ export default function HeroSection() {
     if (location.trim()) {
       params.set('location', location);
     }
-    router.push(`/patients/specialties?${params.toString()}`);
+    router.push(`/specialties?${params.toString()}`);
   };
 
   const [stats, setStats] = useState<stats>({

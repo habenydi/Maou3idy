@@ -22,7 +22,7 @@ export default function SearchSection() {
 
     params.set('page', '1');
 
-    router.push(`/patients/specialties?${params.toString()}`);
+    router.push(`/specialties?${params.toString()}`);
   };
 
   return (

@@ -6,6 +6,7 @@ import PersonalInformation from "./components/PersonalInformation";
 import BackButton from "@/components/BackButton"
 import { useEffect, useState } from "react";
 import axios from "axios";
+import EditProfileModal from "./components/EditProfileModal";
 
 interface User {
   name: string;
@@ -17,6 +18,7 @@ interface User {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -24,7 +26,6 @@ export default function ProfilePage() {
         const response = await axios.get(`http://localhost:1337/users/my-data`, {
           withCredentials: true,
         });
-        console.log("Fetched user data:", response.data);
         setUser(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -61,6 +62,7 @@ export default function ProfilePage() {
           email={user.email}
           role={user.role}
           image={user.image ?? undefined}
+          setEditOpen={setEditOpen}
         />
 
         <PatientStats stats={stats} />
@@ -74,6 +76,16 @@ export default function ProfilePage() {
           />
         </div>
       </div>
+      {editOpen && (
+        <EditProfileModal
+          onClose={() => setEditOpen(false)}
+          user={{
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            }}
+        />
+      )}
     </main>
   );
 }

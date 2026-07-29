@@ -1,12 +1,14 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import AppointmentCard from './AppointmentCard';
+import AppointmentsCard from './AppointmentCard';
 
 type Appointment = {
   id: string;
   doctorName: string;
   specialty: string;
-  dateTime: string;
+  date: string;
+  time: string;
+  status: 'CONFIRMED' | 'PENDING';
 };
 
 type Props = {
@@ -34,14 +36,7 @@ export default function UpcomingAppointments({
       </div>
 
       <div className="space-y-4">
-        {appointments.map((appointment) => (
-          <AppointmentCard
-            key={appointment.id}
-            doctorName={appointment.doctorName}
-            specialty={appointment.specialty}
-            dateTime={appointment.dateTime}
-          />
-        ))}
+        <AppointmentsCard appointments={appointments} />
       </div>
     </section>
   );

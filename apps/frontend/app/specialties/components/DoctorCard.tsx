@@ -64,7 +64,7 @@ export default function DoctorCard({
 
         <button
           onClick={() =>
-            router.push(`/patients/booking?doctorId=${id}`)
+            router.push(`/booking?doctorId=${id}`)
           }
           className="w-full bg-surface-container-highest py-3 rounded-lg font-bold"
         >

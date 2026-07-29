@@ -2,14 +2,14 @@ type DashboardStatsProps = {
   upcomingAppointments: number;
   completedVisits: number;
   pendingResults: number;
-  favoriteDoctors: number;
+  cancelledAppointments: number;
 };
 
 export default function DashboardStats({
   upcomingAppointments,
   completedVisits,
   pendingResults,
-  favoriteDoctors,
+  cancelledAppointments,
 }: DashboardStatsProps) {
   const stats = [
     {
@@ -28,9 +28,9 @@ export default function DashboardStats({
       icon: 'pending_actions',
     },
     {
-      label: 'Favorite Doctors',
-      value: favoriteDoctors,
-      icon: 'favorite',
+      label: 'Cancelled Appointments',
+      value: cancelledAppointments,
+      icon: 'cancel',
     },
   ];
 

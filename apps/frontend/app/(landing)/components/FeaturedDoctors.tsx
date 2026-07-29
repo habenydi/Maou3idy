@@ -25,7 +25,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
           </div>
 
           <button
-            onClick={() => router.push('/patients/specialties')}
+            onClick={() => router.push('/specialties')}
             className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
           >
             View all specialties
@@ -77,7 +77,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
               </div>
 
               <button
-                onClick={() => router.push(`/patients/booking?doctorId=${doctor.id}`)}
+                onClick={() => router.push(`/booking?doctorId=${doctor.id}`)}
                 className="w-full py-3 bg-surface-container-high rounded-xl font-bold text-sm hover:bg-primary hover:text-on-primary transition-colors"
               >
                 Book Appointment

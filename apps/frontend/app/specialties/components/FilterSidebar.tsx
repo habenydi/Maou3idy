@@ -43,7 +43,7 @@ export default function FilterSidebar() {
     params.set('page', '1');
 
     router.push(
-      `/patients/specialties?${params.toString()}`
+      `/specialties?${params.toString()}`
     );
   };
 
@@ -59,7 +59,7 @@ export default function FilterSidebar() {
     params.set('page', '1');
 
     router.push(
-      `/patients/specialties?${params.toString()}`
+      `/specialties?${params.toString()}`
     );
   };
 

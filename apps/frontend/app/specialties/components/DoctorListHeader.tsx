@@ -25,7 +25,7 @@ export default function DoctorListHeader({
     params.set('page', '1');
 
     router.push(
-      `/patients/specialties?${params.toString()}`
+      `/specialties?${params.toString()}`
     );
   };
 

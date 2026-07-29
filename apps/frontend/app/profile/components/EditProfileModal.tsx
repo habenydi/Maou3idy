@@ -1,0 +1,99 @@
+'use client';
+
+import { useState } from 'react';
+
+interface Props {
+  user: {
+    name: string;
+    email: string;
+    role: string;
+  };
+  onClose: () => void;
+}
+
+export default function EditProfileModal({
+  user,
+  onClose,
+}: Props) {
+  const [name, setName] = useState(user.name);
+  const [phone, setPhone] = useState('');
+
+  const handleSave = async () => {
+    // axios.patch(...)
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">
+            Edit Profile
+          </h2>
+
+          <button onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="text-sm font-medium">
+              Full Name
+            </label>
+
+            <input
+              value={name}
+              onChange={(e) =>
+                setName(e.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-slate-200 p-3"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">
+              Email
+            </label>
+
+            <input
+              value={user.email}
+              disabled
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-100 p-3"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">
+              Phone Number
+            </label>
+
+            <input
+              value={phone}
+              onChange={(e) =>
+                setPhone(e.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-slate-200 p-3"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-slate-200 px-4 py-2"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSave}
+            className="rounded-xl bg-primary px-4 py-2 text-white"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

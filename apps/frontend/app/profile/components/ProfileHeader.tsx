@@ -7,6 +7,7 @@ interface ProfileHeaderProps {
   email: string;
   role: string;
   image?: string;
+  setEditOpen: (open: boolean) => void;
 }
 
 export default function ProfileHeader({
@@ -14,6 +15,7 @@ export default function ProfileHeader({
   email,
   role,
   image,
+  setEditOpen,
 }: ProfileHeaderProps) {
   return (
     <div className="bg-surface-container-lowest rounded-3xl p-8 shadow-sm">
@@ -49,7 +51,7 @@ export default function ProfileHeader({
           </span>
         </div>
 
-        <button className="px-5 py-3 rounded-xl bg-primary text-on-primary font-semibold">
+        <button className="px-5 py-3 rounded-xl bg-primary text-on-primary font-semibold" onClick={() => setEditOpen(true)}>
           Edit Profile
         </button>
       </div>

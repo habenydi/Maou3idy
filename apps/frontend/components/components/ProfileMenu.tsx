@@ -90,7 +90,6 @@ export default function ProfileMenu({
             }
           />
         )}
-
         <ProfileMenuItem
           icon="person"
           label="Profile"
@@ -98,8 +97,20 @@ export default function ProfileMenu({
             router.push('/profile'
             )
           }
+          />
+        <ProfileMenuItem
+          icon="dashboard_customize"
+          label="Your Dashboard"
+          onClick={() => router.push("/patients/dashboard")}
         />
-
+        <ProfileMenuItem
+          icon="lock"
+          label="Change Password"
+          onClick={() =>
+            router.push('/change-password'
+            )
+          }
+        />
         <ProfileMenuItem
           icon="settings"
           label="Settings"

@@ -15,13 +15,13 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'ADMIN')) {
-      toast.error('You are not authorized to access this page.');
-      router.push('/');
+      toast.error('You must be an admin to access this page.');
+      router.replace('/');
     }
   }, [user, loading, router]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!user || user.role !== 'ADMIN') {

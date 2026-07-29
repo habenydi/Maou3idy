@@ -124,7 +124,7 @@ export default function Navbar({
               Find Doctors
             </a>
             <a
-              onClick={() => router.push('/patients/specialties')}
+              onClick={() => router.push('/specialties')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'specialties'
                   ? 'text-blue-600 border-b-2 border-blue-600'
@@ -177,7 +177,7 @@ export default function Navbar({
                       }
                       className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                     >
-                      Dashboard
+                      {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
                     </button>
                   ) : (
                     <button
@@ -240,7 +240,7 @@ export default function Navbar({
       {mobileNavOpen && (
         <div className="md:hidden bg-slate-50 border-t border-slate-200 px-4 py-4 space-y-2">
           <a onClick={() => { router.push('/'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Find Doctors</a>
-          <a onClick={() => { router.push('/patients/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Specialties</a>
+          <a onClick={() => { router.push('/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Specialties</a>
           <a onClick={() => { router.push('/about-us'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">About Us</a>
           {showAuthButtons && (
             <div className="pt-2 border-t border-slate-200 space-y-2">

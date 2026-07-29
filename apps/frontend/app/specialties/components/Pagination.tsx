@@ -22,7 +22,7 @@ export default function Pagination({
     params.set('page', page.toString());
 
     router.push(
-      `/patients/specialties?${params.toString()}`
+      `/specialties?${params.toString()}`
     );
   };
 
