@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '@/app/layout';
 import { useEffect, useRef, useState } from 'react';
 import ProfileMenu from './components/ProfileMenu';
+import NotificationBell from './NotificationBell';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -16,33 +17,60 @@ export default function Navbar({
   activeLink = 'doctors',
   showAuthButtons = true,
 }: NavbarProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
-        setMenuOpen(false);
+    useEffect(() => {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await axios.get("http://localhost:1337/notification/unread-count", {
+            withCredentials: true,
+          });
+          setUnreadCount(response.data);
+        } catch (error) {
+          console.error("Error fetching unread notifications count:", error);
+        }
+      };
+
+      if (user) {
+        fetchUnreadCount();
       }
-    }
+    }, [user]);
 
-    if (menuOpen) {
+    useEffect(() => {
+      function handleClickOutside(event: MouseEvent) {
+        const target = event.target as Node;
+
+        if (
+          profileRef.current &&
+          !profileRef.current.contains(target)
+        ) {
+          setMenuOpen(false);
+        }
+
+        if (
+          notificationRef.current &&
+          !notificationRef.current.contains(target)
+        ) {
+          setNotificationsOpen(false);
+        }
+      }
+
       document.addEventListener('mousedown', handleClickOutside);
-    }
 
-    return () => {
-      document.removeEventListener(
-        'mousedown',
-        handleClickOutside,
-      );
-    };
-  }, [menuOpen]);
+      return () => {
+        document.removeEventListener(
+          'mousedown',
+          handleClickOutside
+        );
+      };
+    }, []);
 
   const handleLogout = async () => {
     try {
@@ -56,6 +84,20 @@ export default function Navbar({
       console.error("Logout error:", error);
       toast.error("Logout failed");
     }
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen((prev) => {
+      if (!prev) setMenuOpen(false);
+      return !prev;
+    });
+  };
+
+  const toggleProfile = () => {
+    setMenuOpen((prev) => {
+      if (!prev) setNotificationsOpen(false);
+      return !prev;
+    });
   };
 
   if (loading) return null;
@@ -145,19 +187,36 @@ export default function Navbar({
                       Join as Doctor
                     </button>
                   )}
-                  <div className="relative" ref={menuRef}>
+                  <div className="relative" ref={notificationRef}>
                     <button
-                      onClick={() => setMenuOpen(!menuOpen)}
-                      className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all"
+                      onClick={toggleNotifications}
+                      className="relative w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all"
                     >
-                      <span className="material-symbols-outlined">account_circle</span>
+                      <span className="material-symbols-outlined">
+                        notifications
+                      </span>
+
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
                     </button>
-                    {menuOpen && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+
+                    {notificationsOpen && <NotificationBell onUnreadCountChange={setUnreadCount} /> }
+                  </div>
+                  <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={toggleProfile}
+                    className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-all"
+                  >
+                    <span className="material-symbols-outlined">
+                      account_circle
+                    </span>
+                  </button>
+                    {menuOpen && 
                         <ProfileMenu user={user} onLogout={handleLogout} />
-                      </>
-                    )}
+                    }
                   </div>
                 </>
               )}

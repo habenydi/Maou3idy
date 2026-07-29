@@ -5,3 +5,6 @@ ins:
 
 build: ins
 	$(APP)
+
+start:
+	$(APP)

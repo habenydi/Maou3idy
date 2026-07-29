@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   return (
     <AdminShell activePage="dashboard">
       <AdminHeader />
-      <main className="pt-16 p-4 sm:p-8 min-h-screen">
+      <main className="mt-16 p-4 sm:p-8 min-h-screen">
         <DashboardHeader />
         <MetricsGrid />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
