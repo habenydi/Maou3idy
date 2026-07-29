@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  api-gateway:
+    build: ../apps/api
+    container_name: api-gateway
+    ports: ["8080:8080"]
+    # environment:
+    #   - PORT=8080
+    #   - AUTH_SERVICE_URL=http://auth-service:3001
+    #   - USER_SERVICE_URL=http://user-service:3002
+    # depends_on: [auth-service, user-service]
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    networks: [app-net]
+  # for notification i think
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    # environment:
+    #   RABBITMQ_DEFAULT_USER: yassir
+    #   RABBITMQ_DEFAULT_PASS: yassir123
+    networks: [app-net]
+
+networks:
+  app-net:
+    driver: bridge
