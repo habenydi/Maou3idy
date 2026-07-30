@@ -1,5 +1,6 @@
 'use client';
 
+import axios from 'axios';
 import { useState } from 'react';
 
 interface Props {
@@ -19,9 +20,25 @@ export default function EditProfileModal({
   const [phone, setPhone] = useState('');
 
   const handleSave = async () => {
-    // axios.patch(...)
-    onClose();
-  };
+    try {
+      const body : {
+        name : string,
+        phone?: string,
+      } = { name };
+      if (phone) {
+        body['phone'] = phone;
+      }
+      console.log(body);
+      await axios.patch(`http://localhost:1337/users/my-data`,
+        body, {
+          withCredentials: true,
+        }
+      );
+      onClose();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

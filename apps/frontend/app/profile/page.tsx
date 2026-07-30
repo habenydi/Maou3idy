@@ -14,6 +14,14 @@ interface User {
   role: string;
   image?: string | null;
   phone?: string | null;
+  stats: {
+    Appointments: number;
+    completedAppointments: number;
+    cancelledAppointments: number;
+    pendingAppointments: number;
+    Reviews: number;
+  };
+  
 }
 
 export default function ProfilePage() {
@@ -45,13 +53,6 @@ export default function ProfilePage() {
     );
   }
 
-  const stats = [
-    { label: "Appointments", value: 18, icon: "calendar_month" },
-    { label: "Favorite Doctors", value: 6, icon: "favorite" },
-    { label: "Reviews", value: 12, icon: "star" },
-    { label: "Medical Records", value: 24, icon: "folder_open" },
-  ];
-
   return (
     <main className="min-h-screen bg-surface p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -65,7 +66,7 @@ export default function ProfilePage() {
           setEditOpen={setEditOpen}
         />
 
-        <PatientStats stats={stats} />
+        <PatientStats stats={user.stats} />
 
         <div className="grid lg:grid-cols-2 gap-8">
           <PersonalInformation
