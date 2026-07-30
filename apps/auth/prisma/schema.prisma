@@ -32,6 +32,7 @@ model User {
   doctor Doctor?
   auditlogs Auditlog[]
   notifications Notification[]
+  stats UserStats?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -103,6 +104,22 @@ model Auditlog {
   details   String?
 
   timestamp DateTime @default(now())
+}
+
+model UserStats {
+  id String @id @default(uuid())
+
+  user_id String @unique()
+  user    User   @relation(fields: [user_id], references: [id])
+
+  Appointments Int @default(0)
+  completedAppointments Int @default(0)
+  cancelledAppointments Int @default(0)
+  pendingAppointments Int @default(0)
+  Reviews Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Stats {

@@ -46,6 +46,58 @@ export class ReviewService {
       },
     });
 
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: createReviewDto.userId,
+        action: `You reviewed Dr. ${createReviewDto.doctorId}`,
+      },
+    });
+
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: createReviewDto.doctorId,
+        action: `You got a new review`,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: createReviewDto.doctorId,
+        message: `${createReviewDto.userId} has left you a review`,
+        title: "New Review",
+        isRead: false,
+      },
+    });
+
+    await this.prisma.userStats.upsert({
+      where: {
+        user_id: createReviewDto.userId,
+      },
+      update: {
+        Reviews: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: createReviewDto.userId,
+        Reviews: 1,
+      },
+    });
+
+    await this.prisma.userStats.upsert({
+      where: {
+        user_id: createReviewDto.doctorId,
+      },
+      update: {
+        Reviews: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: createReviewDto.doctorId,
+        Reviews: 1,
+      },
+    });
     return {
       message: "Review created successfully",
       status: 201,
@@ -75,13 +127,74 @@ export class ReviewService {
   }
 
   async update(id: string, updateReviewDto: UpdateReviewDto) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+    });
+
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: review.userId,
+        action: `You updated your review for Dr. ${review.doctorId}`,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: review.doctorId,
+        message: `${review.userId} has updated their review`,
+        title: "Review Updated",
+        isRead: false,
+      },
+    });
+
+    await this.prisma.notification.create({
+      data: {
+        user_id: review.userId,
+        message: `Your review for Dr. ${review.doctorId} has been updated`,
+        title: "Review Updated",
+        isRead: false,
+      },
+    });
+
+    await this.prisma.userStats.upsert({
+      where: {
+        user_id: review.userId,
+      },
+      update: {
+        Reviews: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: review.userId,
+        Reviews: 1,
+      },
+    });
+
+    await this.prisma.userStats.upsert({
+      where: {
+        user_id: review.doctorId,
+      },
+      update: {
+        Reviews: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: review.doctorId,
+        Reviews: 1,
+      },
+    });
+
     return this.prisma.review.update({
       where: {
         id,
       },
       data: {
-        doctorId: updateReviewDto.doctorId,
-        userId: updateReviewDto.userId,
         rating: updateReviewDto.rating,
         comment: updateReviewDto.comment,
       },

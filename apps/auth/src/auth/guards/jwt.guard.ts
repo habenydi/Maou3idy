@@ -20,7 +20,7 @@ export interface JwtPayload {
   image?: string;
 }
 
-interface RequestWithUser extends Request {
+export interface RequestWithUser extends Request {
   user: JwtPayload;
 }
 

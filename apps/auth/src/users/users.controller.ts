@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -19,6 +18,12 @@ import { Role } from "@prisma/client";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Public } from "src/auth/decorator/public.decorator";
+import type { RequestWithUser } from "src/auth/guards/jwt.guard";
+export type UpdateUser = {
+  name?: string;
+  email?: string;
+  phone?: string;
+};
 
 @Controller("users")
 export class UsersController {
@@ -31,8 +36,20 @@ export class UsersController {
   }
 
   @Get("my-data")
-  getMyData(@Req() req: any) {
-    return this.usersService.findById(req.user.sub);
+  async getMyData(@Req() req: RequestWithUser) {
+    const user = await this.usersService.findById(req.user.sub);
+
+    const stats = await this.usersService.getStats(req.user.sub);
+
+    return {
+      ...user,
+      stats,
+    };
+  }
+
+  @Patch("my-data")
+  UpdateMyData(@Req() req: RequestWithUser, @Body() body: UpdateUser) {
+    return this.usersService.updateMyData(req.user.sub, body);
   }
   @Public()
   @Get("next-session")
@@ -49,7 +66,7 @@ export class UsersController {
   @UseInterceptors(FileInterceptor("image"))
   updateProfileImage(
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
+    @Req() req: RequestWithUser,
   ) {
     return this.usersService.updateProfileImage(req.user.sub, file);
   }
@@ -64,10 +81,6 @@ export class UsersController {
   @Get(":id")
   findById(@Param("id") id: string) {
     return this.usersService.findById(id);
-  }
-  @Put(":id")
-  Update(@Param("id") id: string, @Body() body: Partial<CreateUserDto>) {
-    return this.usersService.update(id, body);
   }
   @Delete(":id")
   remove(@Param("id") id: string) {

@@ -12,6 +12,7 @@ import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
 import { AuthEventListenerModule } from './auth-event-listener/auth-event-listener.module';
 import { ReviewModule } from './review/review.module';
 import { NotificationModule } from './notification/notification.module';
+import { UserStatsModule } from './user-stats/user-stats.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { NotificationModule } from './notification/notification.module';
     AuthEventListenerModule,
     ReviewModule,
     NotificationModule,
+    UserStatsModule,
   ],
 })
 export class AppModule {}

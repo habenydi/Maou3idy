@@ -3,6 +3,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 import { Role } from "@prisma/client/edge";
+import { UpdateUser } from "./users.controller";
 
 @Injectable()
 export class UsersService {
@@ -11,6 +12,9 @@ export class UsersService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
+  async getStats(id: string) {
+    return this.prisma.userStats.findUnique({ where: { user_id: id } });
+  }
   create(data: CreateUserDto) {
     return this.prisma.user.create({ data });
   }
@@ -116,5 +120,23 @@ export class UsersService {
         image: imageUrl,
       },
     };
+  }
+
+  async updateMyData(userId: string, data: UpdateUser) {
+    await this.prisma.auditlog.create({
+      data: {
+        user_id: userId,
+        action: "UPDATE_MY_DATA",
+        timestamp: new Date(),
+      },
+    });
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data?.name,
+        phone: data?.phone,
+      },
+    });
   }
 }

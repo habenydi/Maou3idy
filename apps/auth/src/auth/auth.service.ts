@@ -237,6 +237,14 @@ export class AuthService {
         },
       });
 
+      await this.prisma.notification.create({
+        data: {
+          user_id: user.id,
+          message: `Your email has been verified successfully.`,
+          title: "Email Verified",
+          isRead: false,
+        },
+      });
       return {
         statusCode: 200,
         message: "Email verified successfully",

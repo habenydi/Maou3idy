@@ -112,6 +112,36 @@ export class AuthEventListenerService {
       },
     });
 
+    await this.prismaService.userStats.upsert({
+      where: {
+        user_id: user.id,
+      },
+      update: {
+        cancelledAppointments: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: user.id,
+        cancelledAppointments: 1,
+      },
+    });
+
+    await this.prismaService.userStats.upsert({
+      where: {
+        user_id: doctor.id,
+      },
+      update: {
+        cancelledAppointments: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: doctor.id,
+        cancelledAppointments: 1,
+      },
+    });
+
     await this.prismaService.notification.create({
       data: {
         user_id: doctor.id,
@@ -149,7 +179,6 @@ export class AuthEventListenerService {
         action: `Appointment rescheduled with ${user.name}`,
       },
     });
-
     await this.prismaService.notification.create({
       data: {
         user_id: doctor.id,
@@ -189,6 +218,35 @@ export class AuthEventListenerService {
       },
     });
 
+    await this.prismaService.userStats.upsert({
+      where: {
+        user_id: user.id,
+      },
+      update: {
+        Appointments: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: user.id,
+        Appointments: 1,
+      },
+    });
+
+    await this.prismaService.userStats.upsert({
+      where: {
+        user_id: doctor.id,
+      },
+      update: {
+        Appointments: {
+          increment: 1,
+        },
+      },
+      create: {
+        user_id: doctor.id,
+        Appointments: 1,
+      },
+    });
     await this.prismaService.notification.create({
       data: {
         user_id: user.id,
