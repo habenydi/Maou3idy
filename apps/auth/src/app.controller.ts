@@ -14,4 +14,10 @@ export class AppController {
   getTest(): string {
     return this.appService.getTest();
   }
+
+  @Get("health")
+  @Public()
+  healthCheck(): { status: string } {
+    return { status: "ok" };
+  }
 }
