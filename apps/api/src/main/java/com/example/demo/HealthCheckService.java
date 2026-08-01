@@ -1,3 +1,5 @@
+package com.example.demo;
+
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.RestTemplate;
@@ -9,8 +11,8 @@ public class HealthCheckService {
     private final RestTemplate restTemplate =
             new RestTemplate();
 
-    private boolean authHealthy = false;
-    private boolean appointmentHealthy = false;
+    private volatile boolean authHealthy = false;
+    private volatile boolean appointmentHealthy = false;
 
     @Scheduled(fixedRate = 10000)
     public void checkServices() {

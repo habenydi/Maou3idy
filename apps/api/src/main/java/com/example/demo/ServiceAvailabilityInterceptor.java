@@ -1,16 +1,17 @@
+package com.example.demo;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class ServiceAvailabilityFilter
+public class ServiceAvailabilityInterceptor
         implements HandlerInterceptor {
 
     private final HealthCheckService health;
 
-    public ServiceAvailabilityFilter(
+    public ServiceAvailabilityInterceptor(
             HealthCheckService health) {
         this.health = health;
     }
@@ -25,7 +26,8 @@ public class ServiceAvailabilityFilter
 
         if (path.startsWith("/auth")
                 || path.startsWith("/users")
-                || path.startsWith("/doctor")) {
+                || path.startsWith("/doctor")
+                || path.startsWith("/admin")) {
 
             if (!health.isAuthHealthy()) {
                 response.sendError(
