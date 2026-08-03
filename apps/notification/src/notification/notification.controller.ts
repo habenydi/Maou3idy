@@ -6,7 +6,7 @@ type UserCreatedEvent = {
   id: string;
   email: string;
   name: string;
-  verificationToken: string;
+  token: string;
 };
 
 export type AppointmentCreatedEvent = {

@@ -10,11 +10,11 @@ export class NotificationService {
     id: string;
     email: string;
     name: string;
-    verificationToken: string;
+    token: string;
   }) {
     try {
       const url = `${process.env.FRONTEND_URL}/verification-email?token=${encodeURIComponent(
-        data.verificationToken,
+        data.token,
       )}`;
 
       await this.mailService.sendMail({
