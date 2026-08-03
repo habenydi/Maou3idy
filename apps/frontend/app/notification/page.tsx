@@ -87,7 +87,7 @@ export default function ViewAllNotifications() {
   return (
     <div className="mx-auto max-w-4xl p-6 grid gap-6">
       <BackButton />
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">
             Notifications
@@ -101,7 +101,7 @@ export default function ViewAllNotifications() {
         {unreadCount > 0 && (
           <button
             onClick={markAllRead}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="self-start sm:self-auto rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Mark all as read
           </button>

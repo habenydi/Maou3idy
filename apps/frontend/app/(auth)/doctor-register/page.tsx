@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ import MedicalLicenseUpload from "./components/MedicalLicenseUpload";
 import SubmitSection from "./components/Submit";
 import { registerDoctorSchema } from "@/app/schema/doctor-register";
 import { RegisterDoctorForm } from "@/types/doctor-register";
+import { useAuth } from "@/app/layout";
 
 function RegisterDoctor() {
   const {
@@ -25,6 +26,8 @@ function RegisterDoctor() {
     resolver: zodResolver(registerDoctorSchema),
   });
 
+  const { user, loading} = useAuth();
+
   const [isLoading, setIsLoading] = useState(false);
   const [medicalLicense, setMedicalLicense] =
     useState<File | null>(null);
@@ -32,6 +35,17 @@ function RegisterDoctor() {
     useState<string | null>(null);
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      toast.error("You must be logged in to register as a doctor");
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center">Loading...</div>;
+  }
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -89,7 +103,10 @@ function RegisterDoctor() {
 
       payload.append("name", data.name);
       payload.append("email", data.email);
-      payload.append("password", data.password);
+      payload.append("location", data.location);
+      data.languages.forEach((language) => {
+        payload.append("languages", language);
+      });
       payload.append("speciality", data.speciality);
       payload.append(
         "license_number",

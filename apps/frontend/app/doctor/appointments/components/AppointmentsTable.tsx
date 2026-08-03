@@ -15,7 +15,7 @@ export default function AppointmentsTable({
 }: AppointmentsTableProps) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-12 px-6 text-[10px] font-black uppercase tracking-widest text-outline">
+      <div className="hidden lg:grid lg:grid-cols-12 px-6 text-[10px] font-black uppercase tracking-widest text-outline">
         <div className="col-span-4">Patient Name</div>
         <div className="col-span-2">Service</div>
         <div className="col-span-3">Date & Time</div>

@@ -54,7 +54,7 @@ export default function AppointmentCard({
         </div>
       </div>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         {appointment.status === 'CONFIRMED' && (
           <>
             <button className="px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100">

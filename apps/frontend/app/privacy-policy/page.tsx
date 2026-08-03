@@ -9,15 +9,7 @@ export default function PrivacyPolicy() {
   <div className="bg-surface text-on-surface antialiased">
     <BackButton />
   </div>
-  <main
-    style={{
-      maxWidth: 900,
-      margin: "auto",
-      padding: 40,
-      fontFamily: "Arial, sans-serif",
-      lineHeight: "1.8"
-    }}
-  >
+  <main className="max-w-4xl mx-auto px-4 sm:px-10 py-8 sm:py-12 font-inter leading-relaxed">
     <h1>Privacy Policy</h1>
     <p>
       <strong>Last Updated:</strong> June 29, 2026

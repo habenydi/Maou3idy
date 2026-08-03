@@ -6,6 +6,7 @@ import { useAuth } from '@/app/layout';
 import { useEffect, useRef, useState } from 'react';
 import ProfileMenu from './components/ProfileMenu';
 import NotificationBell from './NotificationBell';
+import Link from 'next/link';
 
 interface NavbarProps {
   activeLink?: 'doctors' | 'specialties' | 'about';
@@ -18,12 +19,16 @@ export default function Navbar({
   showAuthButtons = true,
 }: NavbarProps) {
   const profileRef = useRef<HTMLDivElement>(null);
+  const mobileProfileRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const mobileNotificationRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [mobileNotificationsOpen, setMobileNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
@@ -55,10 +60,24 @@ export default function Navbar({
         }
 
         if (
+          mobileProfileRef.current &&
+          !mobileProfileRef.current.contains(target)
+        ) {
+          setMobileMenuOpen(false);
+        }
+
+        if (
           notificationRef.current &&
           !notificationRef.current.contains(target)
         ) {
           setNotificationsOpen(false);
+        }
+
+        if (
+          mobileNotificationRef.current &&
+          !mobileNotificationRef.current.contains(target)
+        ) {
+          setMobileNotificationsOpen(false);
         }
       }
 
@@ -100,6 +119,36 @@ export default function Navbar({
     });
   };
 
+  const [DoctorButton, setDoctorButton] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const fetchHideDoctorButton = async () => {
+      try {
+        const response = await axios.get("http://localhost:1337/auth/hide_doctor_button", {
+          withCredentials: true,
+        });
+        setDoctorButton(response.data.hide_doctor_button);
+      } catch (error) {
+        console.error("Error fetching hide doctor button status:", error);
+      }
+    };
+
+    if (user) {
+      fetchHideDoctorButton();
+    }
+  }, [user]);
+
+  const handleHideDoctorButtonClick = async () => {
+    try {
+      await axios.patch("http://localhost:1337/auth/update_hide_doctor_button", {}, {
+        withCredentials: true,
+      });
+      setDoctorButton((prev) => !prev);
+      router.refresh();
+    } catch (error) {
+      console.error("Error updating hide doctor button status:", error);
+    }
+  };
   if (loading) return null;
 
   return (
@@ -113,17 +162,18 @@ export default function Navbar({
             Maou<span className="text-blue-500">3</span>idy
           </span>
           <nav className="hidden md:flex items-center gap-6 font-manrope tracking-tight font-semibold">
-            <a
-              onClick={() => router.push('/')}
-              className={`transition-colors cursor-pointer py-1 ${
-                activeLink === 'doctors'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-600 hover:text-blue-700'
-              }`}
-            >
-              Find Doctors
-            </a>
-            <a
+          <Link
+            href="/"
+            className={`transition-colors cursor-pointer py-1 ${
+              activeLink === 'doctors'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-slate-600 hover:text-blue-700'
+            }`}
+          >
+            Find Doctors
+          </Link>
+            <Link
+              href={'/specialties'}
               onClick={() => router.push('/specialties')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'specialties'
@@ -132,8 +182,9 @@ export default function Navbar({
               }`}
             >
               Specialties
-            </a>
-            <a
+            </Link>
+            <Link
+              href={'/about-us'}
               onClick={() => router.push('/about-us')}
               className={`transition-colors cursor-pointer py-1 ${
                 activeLink === 'about'
@@ -142,7 +193,7 @@ export default function Navbar({
               }`}
             >
               About Us
-            </a>
+            </Link>
           </nav>
         </div>
 
@@ -158,35 +209,46 @@ export default function Navbar({
                     Sign In
                   </button>
                   <button
-                    onClick={() => router.push('/doctor-register')}
+                    onClick={() => router.push('/register')}
                     className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                   >
-                    Join as Doctor
+                    Sign Up
                   </button>
                 </>
               ) : (
                 <>
-                  {(user.role === 'ADMIN' || user.role === 'DOCTOR') ? (
-                    <button
-                      onClick={() =>
-                        router.push(
-                          user.role === 'ADMIN'
-                            ? '/admin/dashboard'
-                            : '/doctor/dashboard'
-                        )
-                      }
-                      className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-                    >
-                      {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => router.push('/doctor-register')}
-                      className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
-                    >
-                      Join as Doctor
-                    </button>
-                  )}
+                {(user.role === 'ADMIN' || user.role === 'DOCTOR') ? (
+                  <button
+                    onClick={() =>
+                      router.push(
+                        user.role === 'ADMIN'
+                          ? '/admin/dashboard'
+                          : '/doctor/dashboard'
+                      )
+                    }
+                    className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+                  >
+                    {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
+                  </button>
+                ) : (
+                  DoctorButton === false && (
+                    <div className="relative">
+                      <button
+                        onClick={() => router.push('/doctor-register')}
+                        className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
+                      >
+                        Join as Doctor
+                      </button>
+                      <button
+                        onClick={handleHideDoctorButtonClick}
+                        className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold flex items-center justify-center transition-all"
+                        title="Don't show this again"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )
+                )}
                   <div className="relative" ref={notificationRef}>
                     <button
                       onClick={toggleNotifications}
@@ -223,6 +285,24 @@ export default function Navbar({
             </div>
           )}
 
+          {/* Mobile notification bell */}
+          {user && (
+            <div className="md:hidden relative" ref={mobileNotificationRef}>
+              <button
+                onClick={() => setMobileNotificationsOpen((prev) => !prev)}
+                className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <span className="material-symbols-outlined">notifications</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              {mobileNotificationsOpen && <NotificationBell onUnreadCountChange={setUnreadCount} />}
+            </div>
+          )}
+
           {/* Mobile hamburger */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
@@ -239,9 +319,9 @@ export default function Navbar({
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
         <div className="md:hidden bg-slate-50 border-t border-slate-200 px-4 py-4 space-y-2">
-          <a onClick={() => { router.push('/'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Find Doctors</a>
-          <a onClick={() => { router.push('/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Specialties</a>
-          <a onClick={() => { router.push('/about-us'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">About Us</a>
+          <Link href={'/'} onClick={() => { router.push('/'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Find Doctors</Link>
+          <Link href={'/specialties'} onClick={() => { router.push('/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Specialties</Link>
+          <Link href={'about-us'} onClick={() => { router.push('/about-us'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">About Us</Link>
           {showAuthButtons && (
             <div className="pt-2 border-t border-slate-200 space-y-2">
               {!user ? (
@@ -251,13 +331,42 @@ export default function Navbar({
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => { router.push(user.role === 'ADMIN' ? '/admin/dashboard' : user.role === 'DOCTOR' ? '/doctor/dashboard' : '/doctor-register'); setMobileNavOpen(false); }}
-                    className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold"
-                  >
-                    {(user.role === 'ADMIN' || user.role === 'DOCTOR') ? 'Dashboard' : 'Join as Doctor'}
-                  </button>
+                  {(user.role === 'ADMIN' || user.role === 'DOCTOR') ? (
+                    <button
+                      onClick={() => { router.push(user.role === 'ADMIN' ? '/admin/dashboard' : '/doctor/dashboard'); setMobileNavOpen(false); }}
+                      className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold"
+                    >
+                      {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
+                    </button>
+                  ) : (
+                    DoctorButton === false && (
+                      <div className="relative w-full">
+                        <button
+                          onClick={() => { router.push('/doctor-register'); setMobileNavOpen(false); }}
+                          className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold"
+                        >
+                          Join as Doctor
+                        </button>
+                        <button
+                          onClick={handleHideDoctorButtonClick}
+                          className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold flex items-center justify-center transition-all"
+                          title="Don't show this again"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )
+                  )}
                   <button onClick={() => { handleLogout(); setMobileNavOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50">Logout</button>
+                  <div className="relative" ref={mobileProfileRef}>
+                    <button
+                      onClick={() => setMobileMenuOpen((prev) => !prev)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100"
+                    >
+                      <span className="material-symbols-outlined">account_circle</span>
+                    </button>
+                    {mobileMenuOpen && <ProfileMenu user={user} onLogout={handleLogout} />}
+                  </div>
                 </>
               )}
             </div>

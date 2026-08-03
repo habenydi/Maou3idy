@@ -46,20 +46,18 @@ return (
   <>
     <Navbar activeLink="doctors" />
 
-    <main className="pt-24 pb-20 max-w-screen-2xl mx-auto px-6">
+    <main className="pt-24 pb-20 max-w-screen-2xl mx-auto px-4 sm:px-6">
       <DoctorHero doctor={doctor} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         <div className="lg:col-span-8 space-y-12">
           <DoctorAbout doctor={doctor} />
-
           <DoctorServices services={services} />
-
           <DoctorLocations locations={locations} />
         </div>
 
         <aside className="lg:col-span-4">
-          <div className="sticky top-28 space-y-6">
+          <div className="lg:sticky lg:top-28 space-y-6">
             <BookingSidebar doctorId={doctorId} doctorName={`${doctor.firstName} ${doctor.lastName}`} />
             <ReviewsTeaser />
           </div>

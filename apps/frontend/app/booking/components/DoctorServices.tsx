@@ -17,9 +17,9 @@ export default function DoctorServices({ services }: Props) {
               </div>
               <div className="grid gap-3">
                 {services.map((service) => (
-                  <div key={service.id} className="bg-surface-container-lowest p-5 rounded-2xl flex items-center justify-between group hover:bg-surface-bright transition-colors">
+                  <div key={service.id} className="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 group hover:bg-surface-bright transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary">
+                      <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center text-primary shrink-0">
                         <span className="material-symbols-outlined">{service.icon}</span>
                       </div>
                       <div>
@@ -27,8 +27,8 @@ export default function DoctorServices({ services }: Props) {
                         <p className="text-xs text-on-surface-variant">{service.description}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="block font-headline font-extrabold text-lg">${service.price}</span>
+                    <div className="sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+                      <span className="font-headline font-extrabold text-lg">${service.price}</span>
                       <span className="text-[10px] uppercase tracking-wider text-on-surface-variant">
                         Out of pocket
                       </span>

@@ -39,7 +39,21 @@ export default function NotificationBell({ onUnreadCountChange }: { onUnreadCoun
   const unreadCount = Notifications?.filter(n => !n.isRead).length ?? 0;
 
   return (
-    <div className="absolute right-0 top-14 z-50 w-96 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+        <div
+            className="
+                fixed md:absolute
+                top-16 md:top-14
+                left-2 right-2 md:left-auto md:right-0
+                z-50
+                w-auto md:w-105
+                max-h-[80vh]
+                rounded-2xl
+                border border-slate-200
+                bg-white
+                shadow-xl
+                overflow-hidden
+            "
+            >
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
         <div>
             <h3 className="font-semibold text-slate-900">

@@ -15,14 +15,6 @@ export const registerDoctorSchema = z.object({
       "Email must end with .com or .ma"
     ),
 
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters long")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-    ),
-
   speciality: z.string().min(1, "Specialty is required"),
 
   license_number: z.string().min(1, "License number is required"),
@@ -32,4 +24,8 @@ export const registerDoctorSchema = z.object({
   bio: z.string().min(1, "Brief bio is required"),
 
   phone: z.string().min(1, "Phone number is required"),
+
+  location: z.string().min(1, "Location is required"),
+
+  languages: z.array(z.string()).min(1, "Languages are required"),
 });
