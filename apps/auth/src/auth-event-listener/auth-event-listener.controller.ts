@@ -1,6 +1,6 @@
 import { Controller } from "@nestjs/common";
 import { AuthEventListenerService } from "./auth-event-listener.service";
-import { MessagePattern } from "@nestjs/microservices";
+import { EventPattern } from "@nestjs/microservices";
 
 export interface AppointmentEventData {
   userId: string;
@@ -14,31 +14,31 @@ export class AuthEventListenerController {
   ) {}
 
   // Appointment event handlers
-  @MessagePattern("appointment.created")
+  @EventPattern("appointment.created")
   async handleAppointmentCreated(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCreated(data);
   }
 
-  @MessagePattern("appointment.confirmed")
+  @EventPattern("appointment.confirmed")
   async handleAppointmentConfirmed(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentConfirmed(data);
   }
 
-  @MessagePattern("appointment.canceled")
+  @EventPattern("appointment.canceled")
   async handleAppointmentCanceled(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCanceled(data);
   }
 
-  @MessagePattern("appointment.rescheduled")
+  @EventPattern("appointment.rescheduled")
   async handleAppointmentRescheduled(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentRescheduled(data);
   }
 
-  @MessagePattern("appointment.completed")
+  @EventPattern("appointment.completed")
   async handleAppointmentCompleted(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCompleted(data);
   }
-  @MessagePattern("appointment.rejected")
+  @EventPattern("appointment.rejected")
   async handleAppointmentRejected(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentRejected(data);
   }

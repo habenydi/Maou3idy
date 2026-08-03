@@ -291,6 +291,18 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("doctor.created", {
+      id: doctor.user_id,
+      doctorId: doctor.id,
+      email: doctor.user.email,
+      name: doctor.user.name,
+      speciality: doctor.speciality,
+      bio: doctor.bio,
+      location: doctor.location,
+      experience: doctor.experience,
+      rating: doctor.rating,
+      TotalPatients: doctor.TotalPatients,
+    });
     return {
       message: `Doctor with ID ${id} activated.`,
       status: "active",
@@ -350,6 +362,13 @@ export class AdminService {
         title: "Doctor Account Suspended",
         isRead: false,
       },
+    });
+
+    this.rabbitMqService.emit("doctor.suspended", {
+      id: doctor.user_id,
+      doctorId: doctor.id,
+      email: doctor.user.email,
+      name: doctor.user.name,
     });
 
     return {
@@ -449,6 +468,11 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("user.disabled", {
+      id: id,
+      email: user.email,
+      name: user.name,
+    });
     return {
       message: `User with ID ${id} disabled.`,
       status: "disabled",
@@ -484,6 +508,11 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("user.activated", {
+      id: id,
+      email: user.email,
+      name: user.name,
+    });
     return {
       message: `User with ID ${id} activated.`,
       status: "active",
@@ -505,6 +534,11 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("user.deleted", {
+      id: id,
+      email: user.email,
+      name: user.name,
+    });
     await this.prisma.doctor.deleteMany({ where: { user_id: id } });
     await this.prisma.auditlog.deleteMany({ where: { user_id: id } });
     await this.prisma.user.delete({ where: { id } });
@@ -533,6 +567,11 @@ export class AdminService {
       },
     });
 
+    this.rabbitMqService.emit("user.banned", {
+      id: id,
+      email: user.email,
+      name: user.name,
+    });
     return {
       message: `User with ID ${id} banned.`,
       status: "banned",

@@ -34,6 +34,8 @@ model User {
   notifications Notification[]
   stats UserStats?
 
+  hide_doctor_button Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   image     String    @default("https://res.cloudinary.com/zh887hwp/image/upload/v1784712025/default-image-for-my-users.svg")
@@ -45,10 +47,10 @@ model Doctor {
   user_id String @unique()
   user    User   @relation(fields: [user_id], references: [id])
 
-  location      String @default("")
+  location      String
   experience    Int    @default(0)
   TotalPatients Int    @default(0)
-  Languages     String @default("")
+  languages     String[]
   CompletedAppointments Int @default(0)
   rating        Float  @default(0)
   reviewCount   Int    @default(0)

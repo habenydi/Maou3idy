@@ -66,6 +66,15 @@ export class AuthController {
     private MetricsService: MetricsService,
   ) {}
 
+  @Get("hide_doctor_button")
+  hideDoctorButton(@Req() req: RequestWithUser) {
+    return this.Authservice.hideDoctorButton(req.user.sub);
+  }
+
+  @Patch("update_hide_doctor_button")
+  updateHideDoctorButton(@Req() req: RequestWithUser) {
+    return this.Authservice.updateHideDoctorButton(req.user.sub);
+  }
   @Public()
   @Get("test")
   test() {

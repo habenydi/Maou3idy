@@ -7,4 +7,5 @@ export class CreateUserDto {
   phone?: string = "";
   verified?: boolean = false;
   role?: Role = Role.USER;
+  hide_doctor_button?: boolean = false;
 }

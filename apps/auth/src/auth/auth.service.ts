@@ -10,8 +10,7 @@ import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { ForgetPasswordDto } from "./dto/forget_password.dto";
-import { MailerService } from "@nestjs-modules/mailer";
-import { Role } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 import { DoctorRegisterDto } from "./dto/DoctorRegister.dto";
 import { DoctorService } from "src/doctor/doctor.service";
 import { JwtPayload } from "./guards/jwt.guard";
@@ -24,7 +23,6 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     private UserService: UsersService,
-    private readonly email: MailerService,
     private readonly doctorService: DoctorService,
     private readonly prisma: PrismaService,
     private readonly rabbitMqService: RabbitMqService,
@@ -89,7 +87,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      verificationToken: token,
+      token: token,
     });
 
     await this.prisma.notification.create({
@@ -365,6 +363,9 @@ export class AuthService {
         doctorEmail: user.email,
         licenseNumber: body.license_number,
         licenseUrl: uploadedLicense,
+        speciality: body.speciality,
+        userId: user.id,
+        doctorId: doctor.id,
       });
     }
 
@@ -392,6 +393,7 @@ export class AuthService {
   async validateGoogleUser(profile: any) {
     const email = this.normalizeEmail((profile.emails as any[])[0].value);
     let user = await this.UserService.findByEmail(email);
+    let NewUser = false;
 
     if (!user) {
       user = await this.UserService.create({
@@ -400,6 +402,7 @@ export class AuthService {
         password: await this.hashPassword(Math.random().toString(36)),
         verified: true,
       });
+      NewUser = true;
     }
 
     const payload: JwtPayload = {
@@ -409,8 +412,31 @@ export class AuthService {
       role: user.role,
       verified: user.verified,
     };
+
     const token = this.signToken(payload, "1d");
 
+    if (NewUser) {
+      await this.prisma.auditlog.create({
+        data: {
+          user_id: user.id,
+          action: "New user registered with Google",
+        },
+      });
+      await this.prisma.notification.create({
+        data: {
+          user_id: user.id,
+          message: `Welcome ${user.name}! Thank you for registering with Google. Please verify your email to access all features.`,
+          title: "Welcome to Our Platform!",
+          isRead: false,
+        },
+      });
+      this.emitEvent("google.user", {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        token: token,
+      });
+    }
     return {
       token,
       user: {
@@ -471,5 +497,32 @@ export class AuthService {
       console.error("Error verifying JWT token:", error);
       return false;
     }
+  }
+
+  async hideDoctorButton(userId: string) {
+    const user: User | null = await this.UserService.findById(userId);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+    return {
+      statusCode: 200,
+      message: "Doctor button hidden successfully",
+      hide_doctor_button: user.hide_doctor_button,
+    };
+  }
+
+  async updateHideDoctorButton(userId: string) {
+    const user = await this.UserService.findById(userId);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+    await this.UserService.update(userId, {
+      hide_doctor_button: !user.hide_doctor_button,
+    });
+    return {
+      statusCode: 200,
+      message: "Hide doctor button updated successfully",
+      hide_doctor_button: !user.hide_doctor_button,
+    };
   }
 }

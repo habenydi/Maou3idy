@@ -3,6 +3,7 @@ export class CreateDoctorDto {
   location: string;
   experience: number;
   bio: string;
+  languages: string[];
   license_number: string;
   medical_license_url: string;
 }

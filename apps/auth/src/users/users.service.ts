@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateUserDto } from "./dto/createUser.dto";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
-import { Role } from "@prisma/client/edge";
+import { Role, User } from "@prisma/client/edge";
 import { UpdateUser } from "./users.controller";
 
 @Injectable()
@@ -23,7 +23,7 @@ export class UsersService {
     return this.prisma.user.findMany();
   }
 
-  findById(id: string) {
+  findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
 

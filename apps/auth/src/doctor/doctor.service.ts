@@ -8,12 +8,9 @@ export class DoctorService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateDoctorDto, userId: string) {
-    return this.prisma.doctor.create({
+    return await this.prisma.doctor.create({
       data: {
-        speciality: body.speciality,
-        bio: body.bio,
-        license_number: body.license_number,
-        medical_license_url: body.medical_license_url,
+        ...body,
         user: {
           connect: {
             id: userId,
@@ -42,8 +39,8 @@ export class DoctorService {
     });
   }
 
-  findById(id: string) {
-    return this.prisma.doctor.findUnique({ where: { id } });
+  async findById(id: string) {
+    return await this.prisma.doctor.findUnique({ where: { id } });
   }
 
   async update(id: string, data: Partial<CreateDoctorDto>) {
@@ -54,7 +51,7 @@ export class DoctorService {
         timestamp: new Date(),
       },
     });
-    return this.prisma.doctor.update({
+    return await this.prisma.doctor.update({
       where: { id },
       data,
     });
@@ -71,8 +68,8 @@ export class DoctorService {
     return this.prisma.doctor.delete({ where: { id } });
   }
 
-  search(specialty: string, location: string) {
-    return this.prisma.doctor.findMany({
+  async search(specialty: string, location: string) {
+    return await this.prisma.doctor.findMany({
       where: {
         speciality: specialty,
         location: location,
@@ -115,8 +112,8 @@ export class DoctorService {
       },
     });
   }
-  approve(id: string) {
-    return this.prisma.doctor.update({
+  async approve(id: string) {
+    return await this.prisma.doctor.update({
       where: { id },
       data: { verified: true },
     });
