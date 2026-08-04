@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// ✅ Points to port 4000 where NestJS is running
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api',
   headers: {
@@ -45,157 +44,232 @@ axiosInstance.interceptors.response.use(
   },
 );
 
-// ─── Types ────────────────────────────────────────────────────────────────
-export type CreateServicePayload = {
-  name: string;
-  categoryId: number;
-  price: number;
-  duration: number;
-  description?: string;
-};
-
-export type UpdateServicePayload = Partial<CreateServicePayload>;
-
-export type CreateWorkHourPayload = {
-  dayOfWeek: string;
-  startTime: string; // HH:MM
-  endTime: string;   // HH:MM
-};
-
-export type UpdateWorkHourPayload = Partial<CreateWorkHourPayload>;
-
-// ─── API Service ──────────────────────────────────────────────────────────
-class ApiService {
-  // ── Services (/api/services) ────────────────────────────────────────────
-
-  /** GET /api/services/doctor/:doctorId */
-  getDoctorServices<T>(doctorId: string | number) {
-    return axiosInstance.get<T>(`/services/doctor/${doctorId}`).then((r) => r.data);
-  }
-
-  /** GET /api/services/category/:categoryId */
-  getServicesByCategory<T>(categoryId: string | number) {
-    return axiosInstance.get<T>(`/services/category/${categoryId}`).then((r) => r.data);
-  }
-
-  /** GET /api/services/:id */
-  getService<T>(serviceId: string | number) {
-    return axiosInstance.get<T>(`/services/${serviceId}`).then((r) => r.data);
-  }
-
-  /** POST /api/services */
-  createService<T>(serviceData: CreateServicePayload) {
-    return axiosInstance.post<T>('/services', serviceData).then((r) => r.data);
-  }
-
-  /** PUT /api/services/:id */
-  updateService<T>(serviceId: string | number, serviceData: UpdateServicePayload) {
-    return axiosInstance.put<T>(`/services/${serviceId}`, serviceData).then((r) => r.data);
-  }
-
-  /** DELETE /api/services/:id */
-  deleteService<T>(serviceId: string | number) {
-    return axiosInstance.delete<T>(`/services/${serviceId}`).then((r) => r.data);
-  }
-
-  // ── Work Hours (/api/work-hours) ────────────────────────────────────────
-
-  /** POST /api/work-hours */
-  addWorkHour<T>(data: CreateWorkHourPayload) {
-    return axiosInstance.post<T>('/work-hours', data).then((r) => r.data);
-  }
-
-  /** GET /api/work-hours/doctor/:doctorId */
-  getWorkHoursByDoctor<T>(doctorId: string | number) {
-    return axiosInstance.get<T>(`/work-hours/doctor/${doctorId}`).then((r) => r.data);
-  }
-
-  /** PUT /api/work-hours/:id */
-  updateWorkHour<T>(workHourId: string | number, data: UpdateWorkHourPayload) {
-    return axiosInstance.put<T>(`/work-hours/${workHourId}`, data).then((r) => r.data);
-  }
-
-  /** DELETE /api/work-hours/:id */
-  deleteWorkHour<T>(workHourId: string | number) {
-    return axiosInstance.delete<T>(`/work-hours/${workHourId}`).then((r) => r.data);
-  }
-
-  /** GET /api/work-hours/check-availability */
-  checkAvailability<T>(doctorId: number, dayOfWeek: string, time: string) {
-    return axiosInstance
-      .get<T>('/work-hours/check-availability', {
-        params: { doctorId, dayOfWeek, time },
-      })
-      .then((r) => r.data);
-  }
-
-  // ── Appointments (/api/appointments) ────────────────────────────────────
-
-  getAppointments<T>() {
-    return axiosInstance.get<T>('/appointments').then((r) => r.data);
-  }
-
-  acceptAppointment<T>(appointmentId: string) {
-    return axiosInstance
-      .post<T>(`/appointments/${appointmentId}/accept`)
-      .then((r) => r.data);
-  }
-
-  rejectAppointment<T>(appointmentId: string) {
-    return axiosInstance
-      .post<T>(`/appointments/${appointmentId}/reject`)
-      .then((r) => r.data);
-  }
-
-  // ── Dashboard (/api/dashboard) ───────────────────────────────────────────
-
-  getDashboardStats<T>() {
-    return axiosInstance.get<T>('/dashboard/stats').then((r) => r.data);
-  }
-
-  getTodaySchedule<T>() {
-    return axiosInstance.get<T>('/schedule/today').then((r) => r.data);
-  }
-
-  // ── Schedule (/api/schedule) ─────────────────────────────────────────────
-
-  getWeeklySchedule<T>(startDate: string) {
-    return axiosInstance
-      .get<T>('/schedule/weekly', { params: { date: startDate } })
-      .then((r) => r.data);
-  }
-
-  addSlot<T>(slotData: unknown) {
-    return axiosInstance.post<T>('/schedule/slots', slotData).then((r) => r.data);
-  }
-
-  deleteSlot<T>(slotId: string) {
-    return axiosInstance.delete<T>(`/schedule/slots/${slotId}`).then((r) => r.data);
-  }
-}
-
-export const api = new ApiService();
-
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:1337";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token") || localStorage.getItem("token");
-}
+const API_BASE = 'http://localhost:1339';
 
 export async function apiFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
-  const token = getToken();
-  return fetch(`${API_BASE}${path}`, {
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('access_token') || localStorage.getItem('token')
+      : null;
+
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+  return fetch(`${API_BASE}${cleanPath}`, {
     ...init,
-    credentials: "include",
+    credentials: 'include',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },
   });
+}
+
+export async function fetchServices(doctorId: string) {
+  const res = await apiFetch(`/services/${doctorId}`);
+  if (!res.ok) throw new Error('Failed to fetch services');
+  return res.json();
+}
+
+export async function createServiceApi(doctorId: string, data: any) {
+  const res = await apiFetch('/services', {
+    method: 'POST',
+    body: JSON.stringify({ ...data, doctorId }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to create service');
+  }
+  return res.json();
+}
+
+export async function deleteServiceApi(doctorId: string, serviceId: string) {
+  const res = await apiFetch(`/services/${doctorId}/${serviceId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete service');
+  return res.json();
+}
+
+export async function updateServiceApi(doctorId: string, serviceId: string, data: any) {
+  const res = await apiFetch(`/services/${doctorId}/${serviceId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to update service');
+  }
+  return res.json();
+}
+
+// ─── Categories API Helpers ───────────────────────────────────────────────
+
+// Add to your API helper file
+export async function fetchCategories() {
+  try {
+    const res = await apiFetch('/categories');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch categories, returning fallback empty list", err);
+    return [];
+  }
+}
+
+export async function createCategoryApi(data: { name: string; description?: string }) {
+  const res = await apiFetch('/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to create category');
+  return res.json();
+}
+
+export async function updateCategoryApi(id: string, data: { name?: string; description?: string }) {
+  const res = await apiFetch(`/categories/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Failed to update category');
+  return res.json();
+}
+
+export async function deleteCategoryApi(id: string) {
+  const res = await apiFetch(`/categories/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete category');
+  return res.json();
+}
+
+
+// ------------- slots API Helpers -------------
+
+export async function fetchAvailableWindows(
+  doctorId: string,
+  serviceId: string,
+  date: string,
+) {
+  const params = new URLSearchParams({ doctorId, serviceId, date });
+  const res = await apiFetch(`/slots/available?${params.toString()}`);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch available times');
+  }
+  return res.json();
+}
+
+export async function bookServiceSlotApi(data: {
+  doctorId: string;
+  serviceId: string;
+  date: string;
+  start_time: string;
+}) {
+  const res = await apiFetch('/slots/book-service', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to book appointment');
+  }
+  return res.json();
+}
+
+export type UserBooking = {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  status: 'AVAILABLE' | 'UNAVAILABLE' | 'BOOKED' | 'CANCELLED' | 'COMPLETED';
+  doctor?: {
+    id: string;
+    user?: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  } | null;
+  service?: {
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+    description?: string | null;
+  } | null;
+};
+
+export async function fetchMyBookingsApi(): Promise<UserBooking[]> {
+  const res = await apiFetch('/slots/me/bookings');
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch bookings');
+  }
+  return res.json();
+}
+
+export async function cancelMyBookingApi(id: string) {
+  const res = await apiFetch(`/slots/me/bookings/${id}/cancel`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to cancel booking');
+  }
+  return res.json();
+}
+
+export type DoctorBooking = {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  status: 'BOOKED' | 'COMPLETED' | 'CANCELLED';
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  service?: {
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+    description?: string | null;
+  } | null;
+};
+
+export async function fetchDoctorBookingsApi(): Promise<DoctorBooking[]> {
+  const res = await apiFetch('/slots/doctor/me/bookings');
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch doctor appointments');
+  }
+  return res.json();
+}
+
+export async function completeDoctorBookingApi(id: string) {
+  const res = await apiFetch(`/slots/doctor/me/bookings/${id}/complete`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to complete appointment');
+  }
+  return res.json();
+}
+
+export async function cancelDoctorBookingApi(id: string) {
+  const res = await apiFetch(`/slots/doctor/me/bookings/${id}/cancel`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to cancel appointment');
+  }
+  return res.json();
 }

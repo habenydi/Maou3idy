@@ -1,12 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import DoctorShell from '../components/DoctorShell';
-import AppointmentsHeader from './components/AppointmentsHeader';
-import AppointmentsFilters from './components/AppointmentsFilters';
-import AppointmentsTable from './components/AppointmentsTable';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import DoctorShell from "../components/DoctorShell";
+import AppointmentsHeader from "./components/AppointmentsHeader";
+import AppointmentsFilters from "./components/AppointmentsFilters";
+import AppointmentsTable from "./components/AppointmentsTable";
+import EmptyState from "./components/EmptyState";
+import { useAuth } from "@/app/layout";
+import {
+  cancelDoctorBookingApi,
+  completeDoctorBookingApi,
+  fetchDoctorBookingsApi,
+  type DoctorBooking,
+} from "@/lib/api";
+
+export type AppointmentStatus = "BOOKED" | "COMPLETED" | "CANCELLED";
 
 export interface Appointment {
   id: string;
@@ -14,124 +24,148 @@ export interface Appointment {
   service: string;
   date: string;
   time: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: AppointmentStatus;
 }
 
-// Status color configuration - matches HTML design exactly
 export const STATUS_COLORS = {
-  pending: {
-    bg: 'bg-tertiary-container/20',
-    text: 'text-tertiary',
+  BOOKED: {
+    bg: "bg-tertiary-container/20",
+    text: "text-tertiary",
   },
-  accepted: {
-    bg: 'bg-green-500/10',
-    text: 'text-green-600',
+  COMPLETED: {
+    bg: "bg-green-500/10",
+    text: "text-green-600",
   },
-  rejected: {
-    bg: 'bg-error-container/20',
-    text: 'text-error',
+  CANCELLED: {
+    bg: "bg-error-container/20",
+    text: "text-error",
   },
-};
+} as const;
 
-const Appointments = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: 'RE-2931',
-      patientName: 'Eleanor Pena',
-      service: 'Cardiology Consultation',
-      date: 'Oct 24, 2024',
-      time: '10:30 AM — 11:00 AM',
-      status: 'pending',
-    },
-    {
-      id: 'RE-2844',
-      patientName: 'Robert Fox',
-      service: 'Post-Op Review',
-      date: 'Oct 24, 2024',
-      time: '11:30 AM — 12:00 PM',
-      status: 'accepted',
-    },
-    {
-      id: 'RE-2955',
-      patientName: 'Albert Flores',
-      service: 'Echocardiogram',
-      date: 'Oct 25, 2024',
-      time: '09:00 AM — 10:00 AM',
-      status: 'pending',
-    },
-    {
-      id: 'RE-2712',
-      patientName: 'Jane Cooper',
-      service: 'Blood Pressure Check',
-      date: 'Oct 22, 2024',
-      time: '02:00 PM — 02:15 PM',
-      status: 'rejected',
-    },
-    {
-      id: 'RE-3001',
-      patientName: 'Guy Hawkins',
-      service: 'Stress Test',
-      date: 'Oct 26, 2024',
-      time: '11:00 AM — 12:00 PM',
-      status: 'accepted',
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
+function formatDate(dateValue: string) {
+  const date = new Date(dateValue);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatTime(timeValue: string) {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function toAppointment(booking: DoctorBooking): Appointment {
+  return {
+    id: booking.id,
+    patientName: booking.user?.name || "Unknown patient",
+    service: booking.service?.name || "Service",
+    date: formatDate(booking.date),
+    time: `${formatTime(booking.start_time)} — ${formatTime(booking.end_time)}`,
+    status: booking.status,
+  };
+}
+
+export default function Appointments() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [actionId, setActionId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Uncomment when backend is ready
-    // fetchAppointments();
-  }, []);
-
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await api.getAppointments();
-      setAppointments(data as Appointment[]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch appointments');
-    } finally {
-      setLoading(false);
+    if (authLoading) {
+      return;
     }
-  };
 
-  const handleAccept = async (appointmentId: string) => {
-    try {
-      await api.acceptAppointment(appointmentId);
-      setAppointments(
-        appointments.map((apt) =>
-          apt.id === appointmentId ? { ...apt, status: 'accepted' } : apt
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept appointment');
+    if (!user) {
+      router.push("/login");
+      return;
     }
-  };
 
-  const handleReject = async (appointmentId: string) => {
-    try {
-      await api.rejectAppointment(appointmentId);
-      setAppointments(
-        appointments.map((apt) =>
-          apt.id === appointmentId ? { ...apt, status: 'rejected' } : apt
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject appointment');
-    }
-  };
+    const loadAppointments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchDoctorBookingsApi();
+        setAppointments(data.map(toAppointment));
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch appointments",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredAppointments = appointments.filter((apt) =>
-    apt.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.id?.toLowerCase().includes(searchTerm.toLowerCase())
+    void loadAppointments();
+  }, [authLoading, router, user]);
+
+  const filteredAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) =>
+        [appointment.patientName, appointment.service, appointment.id]
+          .join(" ")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()),
+      ),
+    [appointments, searchTerm],
   );
 
-  const pendingCount = appointments.filter((a) => a.status === 'pending').length;
-  const acceptedCount = appointments.filter((a) => a.status === 'accepted').length;
+  const bookedCount = appointments.filter(
+    (item) => item.status === "BOOKED",
+  ).length;
+  const completedCount = appointments.filter(
+    (item) => item.status === "COMPLETED",
+  ).length;
+
+  const handleComplete = async (appointmentId: string) => {
+    try {
+      setActionId(appointmentId);
+      await completeDoctorBookingApi(appointmentId);
+      setAppointments((current) =>
+        current.map((item) =>
+          item.id === appointmentId ? { ...item, status: "COMPLETED" } : item,
+        ),
+      );
+      toast.success("Appointment marked as completed");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to complete appointment",
+      );
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleCancel = async (appointmentId: string) => {
+    try {
+      setActionId(appointmentId);
+      await cancelDoctorBookingApi(appointmentId);
+      setAppointments((current) =>
+        current.map((item) =>
+          item.id === appointmentId ? { ...item, status: "CANCELLED" } : item,
+        ),
+      );
+      toast.success("Appointment cancelled and slot returned to availability");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to cancel appointment",
+      );
+    } finally {
+      setActionId(null);
+    }
+  };
+
   if (loading) {
     return (
       <DoctorShell>
@@ -145,17 +179,32 @@ const Appointments = () => {
   return (
     <DoctorShell>
       <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
-        <AppointmentsHeader pendingCount={pendingCount} acceptedCount={acceptedCount} />
+        <AppointmentsHeader
+          bookedCount={bookedCount}
+          completedCount={completedCount}
+        />
         <section className="px-4 sm:px-8 pb-12">
-          <AppointmentsFilters searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <AppointmentsFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
           {error && (
-            <div className="mb-4 p-4 bg-error/10 text-error rounded-lg border border-error/20">{error}</div>
+            <div className="mb-4 p-4 bg-error/10 text-error rounded-lg border border-error/20">
+              {error}
+            </div>
           )}
-          <AppointmentsTable appointments={filteredAppointments} onAccept={handleAccept} onReject={handleReject} />
+          {filteredAppointments.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <AppointmentsTable
+              appointments={filteredAppointments}
+              onComplete={handleComplete}
+              onCancel={handleCancel}
+              actionId={actionId}
+            />
+          )}
         </section>
       </main>
     </DoctorShell>
   );
-};
-
-export default Appointments;
+}

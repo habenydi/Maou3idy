@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import Img from 'next/image';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import Img from "next/image";
 
 type SidebarProps = {
   isOpen?: boolean;
@@ -16,28 +16,43 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const isActive = (activePath: string) => pathname === activePath;
 
   const navItems = [
-    { path: '/doctor/dashboard', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/doctor/appointments', icon: 'calendar_today', label: 'Appointments' },
-    { path: '/doctor/schedule', icon: 'schedule', label: 'Schedule' },
-    { path: '/doctor/services', icon: 'medical_services', label: 'Services' },
-    { path: '/doctor/settings', icon: 'settings', label: 'Settings' },
+    { path: "/doctor/dashboard", icon: "dashboard", label: "Dashboard" },
+    {
+      path: "/doctor/appointments",
+      icon: "calendar_today",
+      label: "Appointments",
+    },
+    { path: "/doctor/schedule", icon: "schedule", label: "Schedule" },
+    { path: "/doctor/categories", icon: "category", label: "Categories" },
+    { path: "/doctor/services", icon: "medical_services", label: "Services" },
+    { path: "/doctor/settings", icon: "settings", label: "Settings" },
   ];
 
   return (
     <>
       {/* Overlay for mobile */}
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={onClose}
+        />
       )}
 
-      <aside className={`fixed top-0 left-0 z-50 h-screen w-64 bg-slate-100 flex flex-col py-6 font-inter text-sm font-medium border-r-0 transition-transform duration-300
-        ${ isOpen ? 'translate-x-0' : '-translate-x-full' } lg:translate-x-0 lg:sticky`}>
+      <aside
+        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-slate-100 flex flex-col py-6 font-inter text-sm font-medium border-r-0 transition-transform duration-300
+        ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:sticky`}
+      >
         <div className="flex items-center justify-between px-4 mb-8">
           <div className="text-lg font-black font-manrope text-blue-700">
             Maou<span className="text-blue-500">3</span>idy
           </div>
-          <button onClick={onClose} className="lg:hidden p-1 rounded-lg hover:bg-slate-200">
-            <span className="material-symbols-outlined text-slate-500">close</span>
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1 rounded-lg hover:bg-slate-200"
+          >
+            <span className="material-symbols-outlined text-slate-500">
+              close
+            </span>
           </button>
         </div>
 
@@ -51,8 +66,12 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1ZqETx9_RaazbfBUW5ZRV_2W2vPgBDwAceiiKcnOlPTtOWfn2bPOLIndSHqLQcSXyWg4esxd6baEAEt66oj3QDqVOlHAHl4LfjfgU-mrTW_tknyMDmQqArNxvOJRCm-3AjS4Uw1URqWd8cRWBLMp4GVV04Pgvur2gqbI-VK-dI0k620bUxGoR5py15JaEClW_73JsOZSxSm8O9tUaRVmCviAiPDDmykBZa6kBgi0cRATE3UhSNhZuEbiwQlEwP2v5RSewDpCoP0Y"
             />
             <div>
-              <p className="text-on-surface font-bold text-xs truncate">Dr. James Wilson</p>
-              <p className="text-slate-500 text-[10px] uppercase tracking-wider">Cardiologist</p>
+              <p className="text-on-surface font-bold text-xs truncate">
+                Dr. James Wilson
+              </p>
+              <p className="text-slate-500 text-[10px] uppercase tracking-wider">
+                Cardiologist
+              </p>
             </div>
           </div>
         </div>
@@ -65,13 +84,17 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200 ${
                 isActive(item.path)
-                  ? 'bg-white text-blue-600 shadow-sm font-bold'
-                  : 'text-slate-500 hover:bg-slate-200/50'
+                  ? "bg-white text-blue-600 shadow-sm font-bold"
+                  : "text-slate-500 hover:bg-slate-200/50"
               }`}
             >
               <span
                 className="material-symbols-outlined"
-                style={isActive(item.path) ? { fontVariationSettings: "'FILL' 1" } : {}}
+                style={
+                  isActive(item.path)
+                    ? { fontVariationSettings: "'FILL' 1" }
+                    : {}
+                }
               >
                 {item.icon}
               </span>
@@ -89,13 +112,18 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <span>New Appointment</span>
           </Link>
           <div className="space-y-1">
-            <Link className="flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-200/50 rounded-lg transition-all" href="/help">
+            <Link
+              className="flex items-center gap-3 text-slate-500 px-4 py-2 hover:bg-slate-200/50 rounded-lg transition-all"
+              href="/help"
+            >
               <span className="material-symbols-outlined text-lg">help</span>
               <span>Help Center</span>
             </Link>
             <Link
               className="flex items-center gap-3 text-error px-4 py-2 hover:bg-error-container/10 rounded-lg transition-all"
-              onClick={() => { router.push('/logout'); }}
+              onClick={() => {
+                router.push("/logout");
+              }}
               href="/logout"
             >
               <span className="material-symbols-outlined text-lg">logout</span>
@@ -106,6 +134,6 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </aside>
     </>
   );
-};
+}
 
 export default Sidebar;

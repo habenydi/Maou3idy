@@ -4,18 +4,20 @@ import { Appointment } from "../page";
 
 type AppointmentsTableProps = {
   appointments: Appointment[];
-  onAccept: (id: string) => void;
-  onReject: (id: string) => void;
+  onComplete: (id: string) => void;
+  onCancel: (id: string) => void;
+  actionId: string | null;
 };
 
 export default function AppointmentsTable({
   appointments,
-  onAccept,
-  onReject,
+  onComplete,
+  onCancel,
+  actionId,
 }: AppointmentsTableProps) {
   return (
     <div className="space-y-4">
-      <div className="hidden lg:grid lg:grid-cols-12 px-6 text-[10px] font-black uppercase tracking-widest text-outline">
+      <div className="grid grid-cols-12 px-6 text-[10px] font-black uppercase tracking-widest text-outline">
         <div className="col-span-4">Patient Name</div>
         <div className="col-span-2">Service</div>
         <div className="col-span-3">Date & Time</div>
@@ -28,8 +30,9 @@ export default function AppointmentsTable({
           <AppointmentsRow
             key={appointment.id}
             appointment={appointment}
-            onAccept={onAccept}
-            onReject={onReject}
+            onComplete={onComplete}
+            onCancel={onCancel}
+            actionId={actionId}
           />
         ))
       ) : (

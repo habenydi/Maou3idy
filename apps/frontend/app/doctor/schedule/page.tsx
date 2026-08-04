@@ -21,6 +21,11 @@ function toLocalDateStr(date: Date): string {
 
 type SlotStatus = "available" | "unavailable" | "booked";
 
+type Shift = {
+  start_hour: string;
+  end_hour: string;
+};
+
 type CalendarEvent = {
   id: string;
   title: string;
@@ -44,12 +49,12 @@ type Slot = {
 };
 
 const DEFAULT_SETTINGS = {
-  duration: 30,
-  buffer: 5,
   start_date: toLocalDateStr(new Date()),
   numberOfDays: 3,
-  startHour: "09:00",
-  endHour: "09:30",
+  shifts: [
+    { start_hour: "08:00", end_hour: "12:00" },
+    { start_hour: "14:00", end_hour: "16:00" },
+  ] as Shift[],
 };
 
 const SLOT_COLORS: Record<SlotStatus, string> = {
@@ -138,9 +143,12 @@ const Schedule = () => {
       return;
     }
 
-    if (settings.startHour >= settings.endHour) {
-      toast.error("End time must be after start time");
-      return;
+    // Validate shifts
+    for (const shift of settings.shifts) {
+      if (shift.start_hour >= shift.end_hour) {
+        toast.error("Shift end time must be after start time");
+        return;
+      }
     }
 
     setLoading(true);
@@ -152,10 +160,7 @@ const Schedule = () => {
         body: JSON.stringify({
           start_date: settings.start_date,
           number_of_days: settings.numberOfDays,
-          start_hour: settings.startHour,
-          end_hour: settings.endHour,
-          duration: settings.duration,
-          buffer_time: settings.buffer,
+          shifts: settings.shifts,
         }),
       });
 
@@ -183,21 +188,28 @@ const Schedule = () => {
     }
 
     const event = events.find((e) => e.id === eventId);
-    if (event?.extendedProps?.isBooked) {
-      toast.warning("Booked slots cannot be deleted");
-      return;
-    }
 
     try {
-      const res = await apiFetch(`/slots/${eventId}`, { method: "DELETE" });
+      const res = await apiFetch(
+        event?.extendedProps?.isBooked
+          ? `/slots/${eventId}/release`
+          : `/slots/${eventId}`,
+        {
+          method: event?.extendedProps?.isBooked ? "POST" : "DELETE",
+        },
+      );
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? "Delete failed");
+        throw new Error(body.message ?? "Action failed");
       }
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
-      toast.success("Slot removed");
+      toast.success(
+        event?.extendedProps?.isBooked
+          ? "Slot released back to availability"
+          : "Slot removed",
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Delete failed");
+      toast.error(err instanceof Error ? err.message : "Action failed");
     }
   };
 
@@ -450,82 +462,77 @@ const Schedule = () => {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                          Duration
+                    {/* Shifts Management Configuration */}
+                    <div className="space-y-2 pt-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                          Working Shifts (Blocks)
                         </label>
-                        <select
-                          value={settings.duration}
-                          onChange={(e) =>
-                            setSettings({
-                              ...settings,
-                              duration: parseInt(e.target.value, 10),
-                            })
-                          }
-                          className={inputClass}
-                        >
-                          <option value={15}>15 min</option>
-                          <option value={30}>30 min</option>
-                          <option value={45}>45 min</option>
-                          <option value={60}>1 hour</option>
-                        </select>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                          Buffer
-                        </label>
-                        <select
-                          value={settings.buffer}
-                          onChange={(e) =>
-                            setSettings({
-                              ...settings,
-                              buffer: parseInt(e.target.value, 10),
-                            })
-                          }
-                          className={inputClass}
-                        >
-                          <option value={0}>None</option>
-                          <option value={5}>5 min</option>
-                          <option value={10}>10 min</option>
-                          <option value={15}>15 min</option>
-                        </select>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                          Start Time
-                        </label>
-                        <input
-                          type="time"
-                          value={settings.startHour}
-                          onChange={(e) =>
-                            setSettings({
-                              ...settings,
-                              startHour: e.target.value,
-                            })
-                          }
-                          className={inputClass}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                          End Time
-                        </label>
-                        <input
-                          type="time"
-                          value={settings.endHour}
-                          onChange={(e) =>
-                            setSettings({
-                              ...settings,
-                              endHour: e.target.value,
-                            })
-                          }
-                          className={inputClass}
-                        />
-                      </div>
+                      {settings.shifts.map((shift, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={shift.start_hour}
+                            onChange={(e) => {
+                              const newShifts = [...settings.shifts];
+                              newShifts[index].start_hour = e.target.value;
+                              setSettings({ ...settings, shifts: newShifts });
+                            }}
+                            className={inputClass}
+                          />
+                          <span className="text-xs text-on-surface-variant font-medium">
+                            to
+                          </span>
+                          <input
+                            type="time"
+                            value={shift.end_hour}
+                            onChange={(e) => {
+                              const newShifts = [...settings.shifts];
+                              newShifts[index].end_hour = e.target.value;
+                              setSettings({ ...settings, shifts: newShifts });
+                            }}
+                            className={inputClass}
+                          />
+                          {settings.shifts.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newShifts = settings.shifts.filter(
+                                  (_, i) => i !== index,
+                                );
+                                setSettings({ ...settings, shifts: newShifts });
+                              }}
+                              className="text-error p-2 hover:bg-error-container/20 rounded-lg transition-colors"
+                              title="Remove shift"
+                            >
+                              <span className="material-symbols-outlined text-base">
+                                delete
+                              </span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            shifts: [
+                              ...settings.shifts,
+                              { start_hour: "16:00", end_hour: "18:00" },
+                            ],
+                          })
+                        }
+                        className="w-full mt-1 py-2 border border-dashed border-outline-variant/60 rounded-xl text-xs font-semibold text-primary hover:bg-surface-container-low transition-colors flex items-center justify-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          add
+                        </span>
+                        Add Shift Window
+                      </button>
                     </div>
 
                     <div className="flex flex-col gap-2 pt-2">
@@ -538,7 +545,7 @@ const Schedule = () => {
                         <span className="material-symbols-outlined text-lg">
                           {loading ? "hourglass_top" : "auto_fix_high"}
                         </span>
-                        {loading ? "Generating…" : "Generate Slots"}
+                        {loading ? "Generating…" : "Generate Shift Blocks"}
                       </button>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -600,8 +607,8 @@ const Schedule = () => {
                   ))}
                 </div>
                 <p className="mt-4 text-xs text-outline leading-relaxed">
-                  Click an available slot to remove it. Drag to reschedule open
-                  slots.
+                  Click an available shift block to remove it. Drag to
+                  reschedule open blocks.
                 </p>
               </div>
             </div>

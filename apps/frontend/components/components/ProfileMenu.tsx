@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import ProfileMenuHeader from './ProfileMenuHeader';
-import ProfileMenuItem from './ProfileMenuItem';
-import ProfileMenuFooter from './ProfileMenuFooter';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import ProfileMenuHeader from "./ProfileMenuHeader";
+import ProfileMenuItem from "./ProfileMenuItem";
+import ProfileMenuFooter from "./ProfileMenuFooter";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 interface User {
   name: string;
@@ -20,42 +20,40 @@ interface ProfileMenuProps {
   onLogout: () => void;
 }
 
-export default function ProfileMenu({
-  user,
-  onLogout,
-}: ProfileMenuProps) {
+export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
   const router = useRouter();
-  const [image , setImage] = useState(user.image || null);
+  const [image, setImage] = useState(user.image || null);
 
   const handleImageChange = async (file: File) => {
-  const formData = new FormData();
+    const formData = new FormData();
 
-  formData.append('image', file);
+    formData.append("image", file);
 
-  try {
-    const response = await axios.patch(
-      'http://localhost:1337/users/profile-image',
-      formData,
-      {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'multipart/form-data',
+    try {
+      const response = await axios.patch(
+        "http://localhost:1337/users/profile-image",
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      }
-    );
+      );
 
-    // Refresh user data
-    setImage(response.data.image);
-    router.refresh();
-    toast.success('Profile image updated successfully');
-  } catch (error) {
-    console.error(error);
-    toast.error('Failed to update profile image');
-  }
-};
+      // Refresh user data
+      setImage(response.data.image);
+      router.refresh();
+      toast.success("Profile image updated successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update profile image");
+    }
+  };
 
   return (
-    <div className="
+    <div
+      className="
       absolute
       right-0
       top-14
@@ -67,25 +65,25 @@ export default function ProfileMenu({
       shadow-xl
       overflow-hidden
       z-50
-    ">
+    "
+    >
       <ProfileMenuHeader
         name={user.name}
         email={user.email}
         image={image}
         onImageChange={handleImageChange}
-
       />
 
       <div className="border-t border-slate-200 py-2">
-        {(user.role === 'ADMIN' || user.role === 'DOCTOR') && (
+        {(user.role === "ADMIN" || user.role === "DOCTOR") && (
           <ProfileMenuItem
             icon="dashboard"
             label="Dashboard"
             onClick={() =>
               router.push(
-                user.role === 'ADMIN'
-                  ? '/admin/dashboard'
-                  : '/doctor/dashboard'
+                user.role === "ADMIN"
+                  ? "/admin/dashboard"
+                  : "/doctor/dashboard",
               )
             }
           />
@@ -93,34 +91,28 @@ export default function ProfileMenu({
         <ProfileMenuItem
           icon="person"
           label="Profile"
-          onClick={() =>
-            router.push('/profile'
-            )
-          }
-          />
+          onClick={() => router.push("/profile")}
+        />
         <ProfileMenuItem
           icon="dashboard_customize"
           label="Your Dashboard"
-          onClick={() => router.push("/patients/dashboard")}
+          onClick={() => router.push("/dashboard/appointments")}
         />
         <ProfileMenuItem
           icon="lock"
           label="Change Password"
-          onClick={() =>
-            router.push('/change-password'
-            )
-          }
+          onClick={() => router.push("/change-password")}
         />
         <ProfileMenuItem
           icon="settings"
           label="Settings"
           onClick={() =>
             router.push(
-              user.role === 'ADMIN'
-                ? '/admin/settings'
-                : user.role === 'DOCTOR'
-                ? '/settings'
-                : '/settings'
+              user.role === "ADMIN"
+                ? "/admin/settings"
+                : user.role === "DOCTOR"
+                  ? "/settings"
+                  : "/settings",
             )
           }
         />
@@ -128,9 +120,7 @@ export default function ProfileMenu({
         <ProfileMenuItem
           icon="help"
           label="Help Center"
-          onClick={() =>
-            router.push('/help')
-          }
+          onClick={() => router.push("/help")}
         />
       </div>
 

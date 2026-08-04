@@ -1,248 +1,343 @@
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-toastify';
-import { bookSlot, getDoctorSlots, type DoctorSlot } from '@/services/bookingService';
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/layout";
+import { toast } from "react-toastify";
+import { useCallback } from "react";
+import { fetchServices, apiFetch, bookServiceSlotApi } from "@/lib/api";
 
 type Props = {
-    doctorId: string;
-    doctorName?: string;
+  doctorId: string;
+  doctorName?: string;
 };
 
+type ServiceItem = {
+  id: string;
+  name: string;
+  price: number;
+  duration: number; // e.g., 60 mins
+};
+
+type TimeWindow = {
+  start_time: string; // "08:00"
+  end_time: string; // "09:00"
+  slot_id: string; // Parent shift block id
+};
+
+// Format UTC/Date helpers safely
 function formatDateLabel(dateKey: string) {
-    const [year, month, day] = dateKey.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return new Intl.DateTimeFormat('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-    }).format(date);
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }
 
 function formatTime(time: string) {
-    const [hours, minutes] = time.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-    return new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-    }).format(date);
+  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
 
-function statusLabel(slot: DoctorSlot) {
-    if (slot.is_booked || slot.status === 'BOOKED') return 'Booked';
-    if (slot.status === 'UNAVAILABLE') return 'Unavailable';
-    return 'Available';
+function toLocalDateStr(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 export default function BookingSidebar({ doctorId, doctorName }: Props) {
-    const [slots, setSlots] = useState<DoctorSlot[]>([]);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [booking, setBooking] = useState(false);
+  const router = useRouter();
+  const auth = useAuth() as { user: { id?: string } | null; loading: boolean };
 
-    const loadSlots = async () => {
-        if (!doctorId) return;
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>(
+    toLocalDateStr(new Date()),
+  );
 
-        setLoading(true);
-        try {
-            const data = await getDoctorSlots(doctorId);
-            setSlots(data);
-            setSelectedSlotId((current) => (current && data.some((slot) => slot.id === current) ? current : null));
-            if (!selectedDate && data.length) {
-                setSelectedDate(data[0].date);
-            }
-        } catch (error) {
-            console.error('Error loading slots:', error);
-        } finally {
-            setLoading(false);
+  const [windows, setWindows] = useState<TimeWindow[]>([]);
+  const [selectedWindow, setSelectedWindow] = useState<TimeWindow | null>(null);
+
+  const [loadingServices, setLoadingServices] = useState(true);
+  const [loadingWindows, setLoadingWindows] = useState(false);
+  const [booking, setBooking] = useState(false);
+
+  // 1. Fetch available services for this doctor on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoadingServices(true);
+        const data = await fetchServices(doctorId);
+        const list = Array.isArray(data) ? data : data?.services || [];
+        setServices(list);
+        if (list.length > 0) {
+          setSelectedServiceId(list[0].id);
         }
-    };
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load doctor services");
+      } finally {
+        setLoadingServices(false);
+      }
+    }
+    if (doctorId) loadData();
+  }, [doctorId]);
 
-    useEffect(() => {
-        loadSlots();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [doctorId]);
+  // 2. Fetch sliced time windows when service or date changes
+  useEffect(() => {
+    async function fetchWindows() {
+      if (!selectedServiceId || !selectedDate) {
+        setWindows([]);
+        return;
+      }
 
-    const dates = useMemo(
-        () => Array.from(new Set(slots.map((slot) => slot.date))).sort(),
-        [slots],
+      try {
+        setLoadingWindows(true);
+        setSelectedWindow(null); // Reset choice on change
+
+        const res = await apiFetch(
+          `/slots/available?doctorId=${doctorId}&serviceId=${selectedServiceId}&date=${selectedDate}`,
+        );
+
+        if (!res.ok) throw new Error("Failed to check availability");
+        const data = await res.json();
+
+        setWindows(data.windows || []);
+      } catch (err) {
+        console.error(err);
+        setWindows([]);
+      } finally {
+        setLoadingWindows(false);
+      }
+    }
+
+    fetchWindows();
+  }, [doctorId, selectedServiceId, selectedDate]);
+
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === selectedServiceId),
+    [services, selectedServiceId],
+  );
+
+  const refetchWindows = useCallback(async () => {
+  if (!selectedServiceId || !selectedDate) {
+    setWindows([]);
+    return;
+  }
+  try {
+    setLoadingWindows(true);
+    const res = await apiFetch(
+      `/slots/available?doctorId=${doctorId}&serviceId=${selectedServiceId}&date=${selectedDate}`
     );
+    if (!res.ok) throw new Error("Failed to check availability");
+    const data = await res.json();
+    const freshWindows: TimeWindow[] = data.windows || [];
+    setWindows(freshWindows);
 
-    useEffect(() => {
-        if (!selectedDate && dates.length) {
-            setSelectedDate(dates[0]);
-            return;
-        }
-
-        if (selectedDate && !dates.includes(selectedDate) && dates.length) {
-            setSelectedDate(dates[0]);
-        }
-    }, [dates, selectedDate]);
-
-    const selectedSlots = useMemo(
-        () => slots.filter((slot) => slot.date === selectedDate),
-        [slots, selectedDate],
+    // If the user's current pick fell out of the fresh list, clear it
+    setSelectedWindow((prev) =>
+      prev && !freshWindows.some((w) => w.start_time === prev.start_time) ? null : prev
     );
+  } catch (err) {
+    console.error(err);
+    setWindows([]);
+  } finally {
+    setLoadingWindows(false);
+  }
+}, [doctorId, selectedServiceId, selectedDate]);
 
-    const availableSlots = selectedSlots.filter(
-        (slot) => !slot.is_booked && slot.status === 'AVAILABLE',
-    );
+useEffect(() => {
+  refetchWindows();
+}, [refetchWindows]);
 
-    const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) ?? null;
+// Keep availability honest while the user is deciding
+useEffect(() => {
+  const interval = setInterval(refetchWindows, 60_000); // every 60s
+  return () => clearInterval(interval);
+}, [refetchWindows]);
 
-    const handleBook = async () => {
-        if (!selectedSlot) {
-            toast.error('Select a slot first');
-            return;
-        }
+  const handleBook = async () => {
+    if (!auth?.user) {
+      toast.error("Please log in to book an appointment");
+      router.push("/login");
+      return;
+    }
 
-        setBooking(true);
-        try {
-            const result = await bookSlot(selectedSlot.id);
-            if (!result.success) {
-                throw new Error('Booking failed');
-            }
+    if (!selectedService || !selectedWindow) {
+      toast.warning("Please select a service and an available time window");
+      return;
+    }
 
-            toast.success('Slot booked successfully');
-            setSelectedSlotId(null);
-            await loadSlots();
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Booking failed');
-        } finally {
-            setBooking(false);
-        }
-    };
+    try {
+      setBooking(true);
 
-    return (
-        <div className="bg-surface-container-lowest p-8 rounded-4xl shadow-xl shadow-primary/5 border border-surface-container space-y-8">
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h4 className="text-xl font-headline font-extrabold text-on-surface">
-                        Book Appointment
-                    </h4>
-                    <p className="text-sm text-on-surface-variant mt-1">
-                        {doctorName ? `Choose a time with ${doctorName}` : 'Choose an available time slot'}
-                    </p>
-                </div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mt-2" />
-            </div>
+      await bookServiceSlotApi({
+        doctorId,
+        serviceId: selectedService.id,
+        date: selectedDate,
+        start_time: selectedWindow.start_time,
+      });
 
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <label className="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant">
-                        Available Dates
-                    </label>
-                    <span className="text-[10px] font-medium text-on-surface-variant">
-                        {slots.filter((slot) => !slot.is_booked && slot.status === 'AVAILABLE').length} open slots
-                    </span>
-                </div>
+      toast.success("Appointment booked successfully!");
+      router.push("/dashboard/appointments");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Booking failed");
+      setSelectedWindow(null);
+      await refetchWindows(); // ← pull fresh availability so the dead slot is gone
+    } finally {
+      setBooking(false);
+    }
+  };
 
-                {loading ? (
-                    <div className="rounded-2xl border border-dashed border-outline-variant/40 p-6 text-center text-sm text-on-surface-variant">
-                        Loading slots...
-                    </div>
-                ) : dates.length ? (
-                    <div className="grid grid-cols-2 gap-2">
-                        {dates.map((date) => {
-                            const isSelected = selectedDate === date;
-                            const dateSlots = slots.filter((slot) => slot.date === date);
-                            const openCount = dateSlots.filter((slot) => !slot.is_booked && slot.status === 'AVAILABLE').length;
+  return (
+    <div className="bg-surface-container-lowest rounded-3xl p-6 border border-outline-variant/20 shadow-xl shadow-surface-container/5 space-y-6">
+      <div>
+        <h3 className="text-xl font-extrabold text-on-surface tracking-tight">
+          Book Appointment
+        </h3>
+        <p className="text-xs text-on-surface-variant mt-1">
+          {doctorName ? `With Dr. ${doctorName}` : "Select service and time"}
+        </p>
+      </div>
 
-                            return (
-                                <button
-                                    key={date}
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedDate(date);
-                                        setSelectedSlotId(null);
-                                    }}
-                                    className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
-                                        isSelected
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-outline-variant/30 bg-surface-container-low text-on-surface hover:border-primary/40'
-                                    }`}
-                                >
-                                    <div className="text-sm font-bold">{formatDateLabel(date)}</div>
-                                    <div className="text-[11px] text-on-surface-variant mt-1">
-                                        {openCount} available
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="rounded-2xl border border-dashed border-outline-variant/40 p-6 text-center text-sm text-on-surface-variant">
-                        No slots found for this doctor yet.
-                    </div>
-                )}
-            </div>
+      {/* Service Selection */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+          Select Service
+        </label>
+        {loadingServices ? (
+          <div className="text-xs text-outline py-2">Loading services...</div>
+        ) : services.length === 0 ? (
+          <div className="text-xs text-error py-2">No services available</div>
+        ) : (
+          <select
+            value={selectedServiceId}
+            onChange={(e) => setSelectedServiceId(e.target.value)}
+            className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.duration} min) — ${s.price}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <label className="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant">
-                        Time Slots
-                    </label>
-                    <span className="text-[10px] font-medium text-on-surface-variant">
-                        {availableSlots.length} open today
-                    </span>
-                </div>
+      {/* Date Selection */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+          Date
+        </label>
+        <input
+          type="date"
+          value={selectedDate}
+          min={toLocalDateStr(new Date())}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                    {selectedSlots.map((slot) => {
-                        const isBooked = slot.is_booked || slot.status === 'BOOKED';
-                        const isSelected = selectedSlotId === slot.id;
-
-                        return (
-                            <button
-                                key={slot.id}
-                                type="button"
-                                disabled={isBooked}
-                                onClick={() => setSelectedSlotId(slot.id)}
-                                className={`rounded-xl border px-4 py-3 text-sm font-bold transition-all ${
-                                    isBooked
-                                        ? 'cursor-not-allowed border-outline-variant/20 bg-surface-container-low text-on-surface-variant line-through opacity-70'
-                                        : isSelected
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-outline-variant/30 text-on-surface hover:border-primary hover:bg-primary/5'
-                                }`}
-                            >
-                                <div>{formatTime(slot.start_time)}</div>
-                                <div className="mt-1 text-[10px] font-medium uppercase tracking-wider opacity-70">
-                                    {statusLabel(slot)}
-                                </div>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            <div className="rounded-3xl bg-surface-container-low p-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-on-surface-variant">Selected slot</span>
-                    <span className="font-semibold text-on-surface">
-                        {selectedSlot ? formatDateLabel(selectedSlot.date) : 'None'}
-                    </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-on-surface-variant">Time</span>
-                    <span className="font-semibold text-on-surface">
-                        {selectedSlot ? `${formatTime(selectedSlot.start_time)} - ${formatTime(selectedSlot.end_time)}` : '--'}
-                    </span>
-                </div>
-            </div>
-
-            <button
-                type="button"
-                onClick={handleBook}
-                disabled={booking || !selectedSlot || selectedSlot.is_booked || selectedSlot.status !== 'AVAILABLE'}
-                className="w-full bg-linear-to-r from-primary to-primary-container text-on-primary py-4 rounded-2xl font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {booking ? 'Booking...' : 'Book Appointment'}
-            </button>
-
-            <p className="text-[10px] text-center text-on-surface-variant px-6">
-                By booking, you reserve one available slot. You can book only open slots.
-            </p>
+      {/* Dynamic Sliced Time Windows */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+            Available Slots ({formatDateLabel(selectedDate)})
+          </label>
+          {selectedService && (
+            <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+              {selectedService.duration} min duration
+            </span>
+          )}
         </div>
-    );
+
+        {loadingWindows ? (
+          <div className="text-center py-6 text-xs text-on-surface-variant">
+            Calculating available times...
+          </div>
+        ) : windows.length === 0 ? (
+          <div className="bg-surface-container-low rounded-2xl p-4 text-center space-y-2 border border-outline-variant/10">
+            <span className="material-symbols-outlined text-outline text-2xl">
+              event_busy
+            </span>
+            <p className="text-xs font-medium text-on-surface-variant">
+              No available time for this service on this day.
+            </p>
+            <p className="text-[11px] text-primary font-semibold">
+              Please choose another day or service.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+            {windows.map((w, index) => {
+              const isSelected = selectedWindow?.start_time === w.start_time;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setSelectedWindow(w)}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center justify-center gap-0.5 ${
+                    isSelected
+                      ? "bg-primary text-on-primary border-primary shadow-sm"
+                      : "bg-surface-container-low border-outline-variant/30 text-on-surface hover:border-primary/50"
+                  }`}
+                >
+                  <span>{formatTime(w.start_time)}</span>
+                  <span className="text-[10px] opacity-80">
+                    to {formatTime(w.end_time)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Summary Card */}
+      <div className="rounded-2xl bg-surface-container-low p-4 space-y-2 border border-outline-variant/10">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-on-surface-variant">Service</span>
+          <span className="font-semibold text-on-surface truncate max-w-40">
+            {selectedService?.name || "None"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-on-surface-variant">Time Slot</span>
+          <span className="font-semibold text-on-surface">
+            {selectedWindow
+              ? `${formatTime(selectedWindow.start_time)} - ${formatTime(selectedWindow.end_time)}`
+              : "None selected"}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-xs pt-2 border-t border-outline-variant/20">
+          <span className="text-on-surface-variant font-bold">Total Price</span>
+          <span className="font-black text-primary text-sm">
+            {selectedService ? `$${selectedService.price}` : "$0"}
+          </span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleBook}
+        disabled={booking || !selectedServiceId || !selectedWindow}
+        className="w-full bg-primary text-on-primary py-3.5 rounded-2xl font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary-container transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {booking ? "Booking..." : "Confirm & Book Appointment"}
+      </button>
+
+      <p className="text-[10px] text-center text-outline leading-tight">
+        Your slot will be reserved instantly out of the doctor's active shift
+        block.
+      </p>
+    </div>
+  );
 }
