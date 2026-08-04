@@ -5,7 +5,7 @@ import { DoctorRegisteredEvent } from './notification.controller';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly mailService: MailerService) {}
+  constructor(private readonly mailService: MailerService) { }
   async handleUserCreatedEvent(data: {
     id: string;
     email: string;
@@ -315,6 +315,23 @@ export class NotificationService {
       });
     } catch (error) {
       console.error('Failed to process doctor.registered event:', error);
+    }
+  }
+
+  async handleDoctorCreated(data: DoctorRegisteredEvent) {
+    try {
+      await this.mailService.sendMail({
+        to: data.email,
+        subject: 'Doctor Profile Created',
+        html: `
+        <h2>Doctor Profile Created</h2>
+        <p>Hello Dr. ${data.name},</p>
+        <p>Your doctor profile has been successfully created.</p>
+        <p>Thank you for joining our platform!</p>
+      `,
+      });
+    } catch (error) {
+      console.error('Failed to process doctor.created event:', error);
     }
   }
 }

@@ -94,4 +94,8 @@ export class NotificationController {
   async handleDoctorRegistered(@Payload() data: DoctorRegisteredEvent) {
     await this.notificationService.handleDoctorRegistered(data);
   }
+
+  async handleDoctorCreated(@Payload() data: DoctorRegisteredEvent) {
+    await this.notificationService.handleDoctorCreated(data);
+  }
 }
