@@ -22,6 +22,9 @@ export interface JwtPayload {
 
 export interface RequestWithUser extends Request {
   user: JwtPayload;
+  cookies: {
+    access_token: string;
+  };
 }
 
 @Injectable()
@@ -72,6 +75,7 @@ export class JwtGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException("Invalid token");
     }
   }

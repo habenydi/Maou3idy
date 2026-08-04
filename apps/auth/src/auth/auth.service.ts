@@ -17,6 +17,7 @@ import { JwtPayload } from "./guards/jwt.guard";
 import { PrismaService } from "src/prisma/prisma.service";
 import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
+import { GoogleProfile } from "./strategies/google.strategy";
 
 @Injectable()
 export class AuthService {
@@ -390,15 +391,17 @@ export class AuthService {
       doctor,
     };
   }
-  async validateGoogleUser(profile: any) {
-    const email = this.normalizeEmail((profile.emails as any[])[0].value);
+  async validateGoogleUser(profile: GoogleProfile) {
+    const email = this.normalizeEmail(
+      (profile.emails && profile.emails[0]?.value) || "",
+    );
     let user = await this.UserService.findByEmail(email);
     let NewUser = false;
 
     if (!user) {
       user = await this.UserService.create({
         email,
-        name: (profile.displayName as string) || "User",
+        name: profile.displayName || "User",
         password: await this.hashPassword(Math.random().toString(36)),
         verified: true,
       });

@@ -17,7 +17,7 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         const responseTime = Date.now() - start;
-        this.metricsService.recordRequest(responseTime);
+        void this.metricsService.recordRequest(responseTime);
       }),
     );
   }

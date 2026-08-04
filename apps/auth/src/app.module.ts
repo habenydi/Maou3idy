@@ -9,10 +9,10 @@ import { DoctorModule } from "./doctor/doctor.module";
 import { AdminModule } from "./admin/admin.module";
 import { MetricsModule } from "./metrics/metrics.module";
 import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
-import { AuthEventListenerModule } from './auth-event-listener/auth-event-listener.module';
-import { ReviewModule } from './review/review.module';
-import { NotificationModule } from './notification/notification.module';
-import { UserStatsModule } from './user-stats/user-stats.module';
+import { AuthEventListenerModule } from "./auth-event-listener/auth-event-listener.module";
+import { ReviewModule } from "./review/review.module";
+import { NotificationModule } from "./notification/notification.module";
+import { UserStatsModule } from "./user-stats/user-stats.module";
 
 @Module({
   imports: [
