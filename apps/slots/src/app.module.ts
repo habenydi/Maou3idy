@@ -1,3 +1,4 @@
+// src/app.module.ts
 import { Module } from "@nestjs/common";
 import { AuthModule } from "./auth/auth.module";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -6,17 +7,17 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config";
 import { SlotsModule } from './slots/slots.module';
+import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
+import { AuthSyncController } from './auth/auth-sync.controller';
+import { ServicesModule } from './services/services.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-
+    ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     PrismaModule,
     UsersModule,
-
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -31,13 +32,15 @@ import { SlotsModule } from './slots/slots.module';
           },
         },
         defaults: {
-          from:
-            configService.get<string>("EMAIL_FROM") ??
-            `"Authentication App" <${configService.get<string>("EMAIL_USER")}>`,
+          from: configService.get<string>("EMAIL_FROM") ?? `"Authentication App" <${configService.get<string>("EMAIL_USER")}>`,
         },
       }),
     }),
     SlotsModule,
+    RabbitMqModule,
+    ServicesModule,
+    CategoriesModule,
   ],
+  controllers: [AuthSyncController],
 })
-export class AppModule {}
+export class AppModule { }

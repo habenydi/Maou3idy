@@ -6,9 +6,9 @@ import { CreateUserDto } from "./dto/createUser.dto";
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: CreateUserDto) {
-    return this.prisma.user.create({ data });
-  }
+  // create(data: CreateUserDto) {
+  //   return this.prisma.user.create({ data });
+  // }
 
   findAll() {
     return this.prisma.user.findMany();

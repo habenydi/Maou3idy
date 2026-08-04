@@ -13,11 +13,8 @@ import { Reflector } from "@nestjs/core";
 
 export interface JwtPayload {
   sub: string;
-  role: Role;
   name: string;
   email: string;
-  verified: boolean;
-  image?: string;
 }
 
 interface RequestWithUser extends Request {
@@ -30,48 +27,61 @@ export class JwtGuard implements CanActivate {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private reflector: Reflector,
-  ) {}
+  ) { }
+
+  private extractTokenFromRequest(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    if (type === 'Bearer' && token) {
+      return token;
+    }
+    return request.cookies?.access_token;
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) {
       return true;
     }
+
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-    const token = request.cookies?.access_token;
+    const token = this.extractTokenFromRequest(request);
 
     if (!token) {
-      throw new UnauthorizedException("Unauthorized! sdfnur askdn");
+      throw new UnauthorizedException("Authentication token missing");
     }
+
+    // Inside jwt.guard.ts
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
 
-      const user = await this.prisma.user.findUnique({
+      let user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
       });
 
-      if (
-        !user ||
-        user.verified !== payload.verified ||
-        user?.role === Role.BANNED
-      ) {
-        throw new UnauthorizedException("User not found");
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            id: payload.sub,
+            email: payload.email,
+            name: payload.name || "User",
+          },
+        });
+        console.log(`Auto-created user ${payload.sub} locally from JWT payload.`);
       }
 
       request.user = {
         sub: user.id,
-        role: user.role,
         name: user.name,
         email: user.email,
-        verified: user.verified,
       };
 
       return true;
     } catch (error) {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException("Unauthorized or invalid token");
     }
   }
 }

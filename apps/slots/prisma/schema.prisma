@@ -29,37 +29,33 @@ enum SlotsStatus {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  verified Boolean @default(false)
-  email    String  @unique()
-  name     String
-  password String  @default("")
-  role     Role    @default(USER)
-  phone    String  @default("")
-
-  doctor Doctor?
-
+  id        String   @id
+  name      String
+  doctor    Doctor?
+  email     String   @unique()
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   slots     Slots[]
 }
 
 model Doctor {
-  id String @id @default(uuid())
-
-  user_id   String   @unique()
-  user      User     @relation(fields: [user_id], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id
+  user_id   String    @unique()
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   slots     Slots[]
+  services  Service[]
 }
 
 model Slots {
   id         String      @id @default(uuid())
-  doctor_id  String?
-  doctor     Doctor?     @relation(fields: [doctor_id], references: [id])
+  doctor_id  String
+  doctor     Doctor     @relation(fields: [doctor_id], references: [id])
   user_id    String?
   user       User?       @relation(fields: [user_id], references: [id])
+  service_id String?
+  service    Service?    @relation(fields: [service_id], references: [id])
   date       DateTime
   start_time String
   end_time   String
@@ -67,4 +63,32 @@ model Slots {
   status     SlotsStatus @default(AVAILABLE)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@unique([doctor_id, date, start_time])
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  price       Float
+  duration    Int
+  category_id String
+  doctor_id   String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [category_id], references: [id])
+  doctor   Doctor   @relation(fields: [doctor_id], references: [id])
+  slots    Slots[]
+
+  @@unique([doctor_id, name])
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  Service   Service[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

@@ -12,7 +12,7 @@ export class PrismaService
       adapter: new PrismaPg({
         connectionString:
           process.env.DATABASE_URL ??
-          "postgresql://yassir:123@127.0.0.1:5432/nest_db",
+          "postgresql://yassir:123@127.0.0.1:5434/nest_db",
       }),
     });
   }

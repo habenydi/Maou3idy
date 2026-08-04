@@ -19,10 +19,10 @@ import { RolesGuard } from "src/auth/guards/roles.guard";
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Post()
-  create(@Body() body: CreateUserDto) {
-    return this.usersService.create(body);
-  }
+  // @Post()
+  // create(@Body() body: CreateUserDto) {
+  //   return this.usersService.create(body);
+  // }
   // Note: @Roles is enforced only when RolesGuard is included in @UseGuards
   // Role comes from JwtStrategy validate() -> request.user
   @UseGuards(JwtGuard, RolesGuard)
