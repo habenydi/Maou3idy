@@ -343,6 +343,14 @@ export class AuthService {
       user.id,
     );
 
+    this.emitEvent("doctor.created", {
+      id: user.id,
+      userId: user.id,
+      doctorId: doctor.id,
+      email: user.email,
+      name: user.name,
+    });
+
     await this.prisma.auditlog.create({
       data: {
         user_id: user.id,
