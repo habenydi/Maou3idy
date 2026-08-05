@@ -5,13 +5,14 @@ import { DoctorRegisteredEvent } from './notification.controller';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly mailService: MailerService) { }
+  constructor(private readonly mailService: MailerService) {}
   async handleUserCreatedEvent(data: {
     id: string;
     email: string;
     name: string;
     token: string;
   }) {
+    console.log('Handling user.created event for:', data.email);
     try {
       const url = `${process.env.FRONTEND_URL}/verification-email?token=${encodeURIComponent(
         data.token,

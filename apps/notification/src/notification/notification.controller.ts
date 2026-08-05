@@ -95,6 +95,7 @@ export class NotificationController {
     await this.notificationService.handleDoctorRegistered(data);
   }
 
+  @EventPattern('doctor.created')
   async handleDoctorCreated(@Payload() data: DoctorRegisteredEvent) {
     await this.notificationService.handleDoctorCreated(data);
   }
