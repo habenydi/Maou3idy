@@ -568,7 +568,8 @@ export class SlotsService {
             throw new BadRequestException("Cannot book slots in the past");
         }
 
-        return this.prisma.$transaction(async (tx) => {
+        // 1. Execute DB transaction
+        const result = await this.prisma.$transaction(async (tx) => {
             const nextDay = new Date(date);
             nextDay.setDate(date.getDate() + 1);
 
@@ -597,7 +598,21 @@ export class SlotsService {
             const blockStartMinutes = this.parseTimeToMinutes(targetBlock.start_time);
             const blockEndMinutes = this.parseTimeToMinutes(targetBlock.end_time);
 
-            // 1. Create leftover block BEFORE booking (if any)
+            // 🟢 FIX: UPDATE targetBlock FIRST to move its start_time to booking start_time.
+            // This frees up targetBlock.start_time in the unique index so step 2 doesn't clash.
+            const bookedSlot = await tx.slots.update({
+                where: { id: targetBlock.id },
+                data: {
+                    start_time: start_time,
+                    end_time: bookingEndStr,
+                    is_booked: true,
+                    status: "BOOKED",
+                    user_id: userId,
+                    service_id: serviceId,
+                },
+            });
+
+            // 2. Create leftover block BEFORE booking (if any)
             if (blockStartMinutes < bookingStartMinutes) {
                 await tx.slots.create({
                     data: {
@@ -611,7 +626,7 @@ export class SlotsService {
                 });
             }
 
-            // 2. Create leftover block AFTER booking (if any)
+            // 3. Create leftover block AFTER booking (if any)
             if (bookingEndMinutes < blockEndMinutes) {
                 await tx.slots.create({
                     data: {
@@ -625,20 +640,9 @@ export class SlotsService {
                 });
             }
 
-            // 3. Convert target block into the BOOKED record
-            const bookedSlot = await tx.slots.update({
-                where: { id: targetBlock.id },
-                data: {
-                    start_time: start_time,
-                    end_time: bookingEndStr,
-                    is_booked: true,
-                    status: "BOOKED",
-                    user_id: userId,
-                    service_id: serviceId,
-                },
-            });
-
             return { success: true, booked_slot: bookedSlot };
         });
+
+        return result;
     }
 }
