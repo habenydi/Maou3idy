@@ -1,4 +1,4 @@
-import { Module, forwardRef } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { JwtGuard } from "./guards/jwt.guard";
 import { PrismaModule } from "src/prisma/prisma.module";

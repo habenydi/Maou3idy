@@ -6,11 +6,11 @@ import { UsersModule } from "./users/users.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { ConfigModule } from "@nestjs/config";
 import { ConfigService } from "@nestjs/config";
-import { SlotsModule } from './slots/slots.module';
-import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
-import { AuthSyncController } from './auth/auth-sync.controller';
-import { ServicesModule } from './services/services.module';
-import { CategoriesModule } from './categories/categories.module';
+import { SlotsModule } from "./slots/slots.module";
+import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
+import { AuthSyncController } from "./auth/auth-sync.controller";
+import { ServicesModule } from "./services/services.module";
+import { CategoriesModule } from "./categories/categories.module";
 
 @Module({
   imports: [
@@ -32,7 +32,9 @@ import { CategoriesModule } from './categories/categories.module';
           },
         },
         defaults: {
-          from: configService.get<string>("EMAIL_FROM") ?? `"Authentication App" <${configService.get<string>("EMAIL_USER")}>`,
+          from:
+            configService.get<string>("EMAIL_FROM") ??
+            `"Authentication App" <${configService.get<string>("EMAIL_USER")}>`,
         },
       }),
     }),
@@ -43,4 +45,4 @@ import { CategoriesModule } from './categories/categories.module';
   ],
   controllers: [AuthSyncController],
 })
-export class AppModule { }
+export class AppModule {}

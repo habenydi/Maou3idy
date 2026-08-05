@@ -19,7 +19,7 @@ import { Public } from "src/auth/decorator/public.decorator";
 
 @Controller("slots")
 export class SlotsController {
-  constructor(private readonly slotsService: SlotsService) { }
+  constructor(private readonly slotsService: SlotsService) {}
 
   @UseGuards(JwtGuard)
   @Get("me")
@@ -34,7 +34,11 @@ export class SlotsController {
     @Query("serviceId") serviceId: string,
     @Query("date") date: string,
   ) {
-    return this.slotsService.getAvailableWindowsForService(doctorId, serviceId, date);
+    return this.slotsService.getAvailableWindowsForService(
+      doctorId,
+      serviceId,
+      date,
+    );
   }
 
   @Get()
@@ -65,7 +69,11 @@ export class SlotsController {
     @Param("id") id: string,
     @Body() dto: UpdateSlotDto,
   ) {
-    return this.slotsService.updateCurrentDoctorSlot(req.user.sub, String(id), dto);
+    return this.slotsService.updateCurrentDoctorSlot(
+      req.user.sub,
+      String(id),
+      dto,
+    );
   }
 
   @UseGuards(JwtGuard)
@@ -88,19 +96,28 @@ export class SlotsController {
 
   @UseGuards(JwtGuard)
   @Post("me/bookings/:id/cancel")
-  cancelMyBooking(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
+  cancelMyBooking(
+    @Req() req: { user: { sub: string } },
+    @Param("id") id: string,
+  ) {
     return this.slotsService.cancelCurrentUserBooking(req.user.sub, id);
   }
 
   @UseGuards(JwtGuard)
   @Post("doctor/me/bookings/:id/complete")
-  completeDoctorBooking(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
+  completeDoctorBooking(
+    @Req() req: { user: { sub: string } },
+    @Param("id") id: string,
+  ) {
     return this.slotsService.completeCurrentDoctorBooking(req.user.sub, id);
   }
 
   @UseGuards(JwtGuard)
   @Post("doctor/me/bookings/:id/cancel")
-  cancelDoctorBooking(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
+  cancelDoctorBooking(
+    @Req() req: { user: { sub: string } },
+    @Param("id") id: string,
+  ) {
     return this.slotsService.cancelCurrentDoctorBooking(req.user.sub, id);
   }
 

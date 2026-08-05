@@ -1,6 +1,5 @@
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
-import { Role } from "@prisma/client";
 import {
   CanActivate,
   ExecutionContext,
@@ -27,11 +26,11 @@ export class JwtGuard implements CanActivate {
     private jwtService: JwtService,
     private prisma: PrismaService,
     private reflector: Reflector,
-  ) { }
+  ) {}
 
   private extractTokenFromRequest(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    if (type === 'Bearer' && token) {
+    const [type, token] = request.headers.authorization?.split(" ") ?? [];
+    if (type === "Bearer" && token) {
       return token;
     }
     return request.cookies?.access_token;
@@ -70,7 +69,9 @@ export class JwtGuard implements CanActivate {
             name: payload.name || "User",
           },
         });
-        console.log(`Auto-created user ${payload.sub} locally from JWT payload.`);
+        console.log(
+          `Auto-created user ${payload.sub} locally from JWT payload.`,
+        );
       }
 
       request.user = {

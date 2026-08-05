@@ -1,16 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
+import { CreateServiceDto } from "./dto/create-service.dto";
+import { UpdateServiceDto } from "./dto/update-service.dto";
+import { PrismaService } from "src/prisma/prisma.service";
+import { NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ServicesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   private async resolveDoctor(doctorIdentifier: string) {
     const doctor = await this.prisma.doctor.findFirst({
@@ -87,7 +83,6 @@ export class ServicesService {
     return service;
   }
 
-
   async updateService(
     doctorId: string,
     serviceId: string,
@@ -153,5 +148,4 @@ export class ServicesService {
       },
     });
   }
-
 }

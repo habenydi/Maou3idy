@@ -1,8 +1,8 @@
-import { Global, Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RabbitMqService } from './rabbitmq.service';
-import { ConfigService } from '@nestjs/config/dist/config.service';
-import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { Global, Module } from "@nestjs/common";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { RabbitMqService } from "./rabbitmq.service";
+import { ConfigService } from "@nestjs/config/dist/config.service";
+import { ConfigModule } from "@nestjs/config/dist/config.module";
 
 @Global()
 @Module({
@@ -10,14 +10,14 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
   imports: [
     ClientsModule.registerAsync([
       {
-        name: 'RABBITMQ_SERVICE',
+        name: "RABBITMQ_SERVICE",
         imports: [ConfigModule],
         inject: [ConfigService],
         useFactory: (config: ConfigService) => ({
           transport: Transport.RMQ,
           options: {
-            urls: [config.get<string>('RABBITMQ_URL')!],
-            queue: 'events',
+            urls: [config.get<string>("RABBITMQ_URL")!],
+            queue: "events",
             queueOptions: {
               durable: true,
             },
