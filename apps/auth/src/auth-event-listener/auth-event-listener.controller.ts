@@ -29,11 +29,6 @@ export class AuthEventListenerController {
     await this.authEventListenerService.handleAppointmentCanceled(data);
   }
 
-  @EventPattern("appointment.rescheduled")
-  async handleAppointmentRescheduled(data: AppointmentEventData) {
-    await this.authEventListenerService.handleAppointmentRescheduled(data);
-  }
-
   @EventPattern("appointment.completed")
   async handleAppointmentCompleted(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCompleted(data);

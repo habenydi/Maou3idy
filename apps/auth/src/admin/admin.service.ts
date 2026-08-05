@@ -154,9 +154,31 @@ export class AdminService {
         ? Math.round((approved / (approved + rejected)) * 100)
         : 0;
 
+    const reviewedDoctors = await this.prisma.doctor.findMany({
+      where: {
+        user: {
+          role: {
+            in: [Role.DOCTOR, Role.REJECTED],
+          },
+        },
+      },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    const averageResponseTime =
+      reviewedDoctors.length === 0
+        ? 0
+        : reviewedDoctors.reduce(
+            (sum, doctor) =>
+              sum + (doctor.updatedAt.getTime() - doctor.createdAt.getTime()),
+            0,
+          ) / reviewedDoctors.length;
     return {
       newSubmissions,
-      averageResponseTime: 4.2, // calculate if you store review dates
+      averageResponseTime: averageResponseTime,
       verifiedRate,
     };
   }
@@ -179,21 +201,54 @@ export class AdminService {
       };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: doctor.user_id },
-      data: { role: Role.DOCTOR },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: doctor.user_id },
+        data: { role: Role.DOCTOR },
+      });
 
-    await this.prisma.doctor.update({
-      where: { user_id: id },
-      data: { verified: true },
-    });
+      await tx.doctor.update({
+        where: { user_id: id },
+        data: {
+          verified: true,
+          user: {
+            update: {
+              verified: true,
+            },
+          },
+        },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: doctor.user_id,
-        action: `Doctor ${doctor.user.name} approved`,
-      },
+      await tx.auditlog.create({
+        data: {
+          user_id: doctor.user_id,
+          action: `Doctor ${doctor.user.name} approved`,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          user_id: doctor.user_id,
+          message:
+            "Congratulations! Your doctor application has been approved. You can now access all the features available to doctors.",
+          title: "Doctor Application Approved",
+          isRead: false,
+        },
+      });
+
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            ActiveDoctors: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      return user;
     });
 
     this.rabbitMqService.emit("doctor.approved", {
@@ -201,14 +256,6 @@ export class AdminService {
       doctorId: doctor.id,
       email: doctor.user.email,
       name: doctor.user.name,
-    });
-    await this.prisma.notification.create({
-      data: {
-        user_id: doctor.user_id,
-        message: `Congratulations! Your doctor application has been approved. You can now access all the features available to doctors.`,
-        title: "Doctor Application Approved",
-        isRead: false,
-      },
     });
     return {
       message: `Doctor with ID ${id} approved.`,
@@ -227,16 +274,28 @@ export class AdminService {
       return { message: `Doctor with ID ${id} not found.`, status: "error" };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: doctor.user_id },
-      data: { role: Role.REJECTED },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: doctor.user_id },
+        data: { role: Role.REJECTED },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: doctor.user_id,
-        action: `Doctor ${doctor.user.name} rejected`,
-      },
+      await tx.auditlog.create({
+        data: {
+          user_id: doctor.user_id,
+          action: `Doctor ${doctor.user.name} rejected`,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          user_id: doctor.user_id,
+          message: `We regret to inform you that your doctor application has been rejected. Please review the feedback provided and consider reapplying in the future.`,
+          title: "Doctor Application Rejected",
+          isRead: false,
+        },
+      });
+      return user;
     });
 
     this.rabbitMqService.emit("doctor.rejected", {
@@ -244,14 +303,6 @@ export class AdminService {
       doctorId: doctor.id,
       email: doctor.user.email,
       name: doctor.user.name,
-    });
-    await this.prisma.notification.create({
-      data: {
-        user_id: doctor.user_id,
-        message: `We regret to inform you that your doctor application has been rejected. Please review the feedback provided and consider reapplying in the future.`,
-        title: "Doctor Application Rejected",
-        isRead: false,
-      },
     });
     return {
       message: `Doctor with ID ${id} rejected.`,
@@ -270,25 +321,48 @@ export class AdminService {
       return { message: `Doctor with ID ${id} not found.`, status: "error" };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: doctor.user_id },
-      data: { role: Role.DOCTOR },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: doctor.user_id },
+        data: { role: Role.DOCTOR },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: doctor.user_id,
-        action: `Doctor ${doctor.user.name} activated`,
-      },
-    });
+      await tx.doctor.update({
+        where: { user_id: id },
+        data: {
+          verified: true,
+        },
+      });
 
-    await this.prisma.notification.create({
-      data: {
-        user_id: doctor.user_id,
-        message: `Your account has been activated. You can now access all the features available to doctors.`,
-        title: "Doctor Account Activated",
-        isRead: false,
-      },
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            ActiveDoctors: {
+              increment: 1,
+            },
+          },
+        });
+      }
+
+      await tx.auditlog.create({
+        data: {
+          user_id: doctor.user_id,
+          action: `Doctor ${doctor.user.name} activated`,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          user_id: doctor.user_id,
+          message: `Your account has been activated. You can now access all the features available to doctors.`,
+          title: "Doctor Account Activated",
+          isRead: false,
+        },
+      });
+
+      return user;
     });
 
     this.rabbitMqService.emit("doctor.created", {
@@ -343,25 +417,39 @@ export class AdminService {
       });
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: doctor.user_id },
-      data: { role: Role.BANNED },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: doctor.user_id },
+        data: { role: Role.BANNED },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: doctor.user_id,
-        action: `Doctor ${doctor.user.name} suspended`,
-      },
-    });
+      await tx.auditlog.create({
+        data: {
+          user_id: doctor.user_id,
+          action: `Doctor ${doctor.user.name} suspended`,
+        },
+      });
 
-    await this.prisma.notification.create({
-      data: {
-        user_id: doctor.user_id,
-        message: `Your account has been suspended. Please contact support for more information.`,
-        title: "Doctor Account Suspended",
-        isRead: false,
-      },
+      await tx.notification.create({
+        data: {
+          user_id: doctor.user_id,
+          message: `Your account has been suspended. Please contact support for more information.`,
+          title: "Doctor Account Suspended",
+          isRead: false,
+        },
+      });
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            ActiveDoctors: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+      return user;
     });
 
     this.rabbitMqService.emit("doctor.suspended", {
@@ -447,27 +535,41 @@ export class AdminService {
       return { message: `User with ID ${id} not found.`, status: "error" };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { verified: false },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id },
+        data: { verified: false },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: id,
-        action: `User ${user.name} disabled`,
-      },
-    });
+      await tx.auditlog.create({
+        data: {
+          user_id: id,
+          action: `User ${user.name} disabled`,
+        },
+      });
 
-    await this.prisma.notification.create({
-      data: {
-        user_id: id,
-        message: `Your account has been disabled. Please contact support for more information.`,
-        title: "Account Disabled",
-        isRead: false,
-      },
-    });
+      await tx.notification.create({
+        data: {
+          user_id: id,
+          message: `Your account has been disabled. Please contact support for more information.`,
+          title: "Account Disabled",
+          isRead: false,
+        },
+      });
 
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            TotalUsers: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+      return user;
+    });
     this.rabbitMqService.emit("user.disabled", {
       id: id,
       email: user.email,
@@ -487,25 +589,40 @@ export class AdminService {
       return { message: `User with ID ${id} not found.`, status: "error" };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { role: Role.USER, verified: true },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: { role: Role.USER, verified: true },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: id,
-        action: `User ${user.name} activated`,
-      },
-    });
+      await tx.auditlog.create({
+        data: {
+          user_id: id,
+          action: `User ${user.name} activated`,
+        },
+      });
 
-    await this.prisma.notification.create({
-      data: {
-        user_id: id,
-        message: `Your account has been activated. You can now access all the features available to users.`,
-        title: "Account Activated",
-        isRead: false,
-      },
+      await tx.notification.create({
+        data: {
+          user_id: id,
+          message: `Your account has been activated. You can now access all the features available to users.`,
+          title: "Account Activated",
+          isRead: false,
+        },
+      });
+
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            TotalUsers: {
+              increment: 1,
+            },
+          },
+        });
+      }
+      return user;
     });
 
     this.rabbitMqService.emit("user.activated", {
@@ -527,21 +644,34 @@ export class AdminService {
       return { message: `User with ID ${id} not found.`, status: "error" };
     }
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: id,
-        action: `User ${user.name} deleted`,
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.auditlog.create({
+        data: {
+          user_id: id,
+          action: `User ${user.name} deleted`,
+        },
+      });
 
+      await tx.doctor.deleteMany({ where: { user_id: id } });
+      await tx.user.delete({ where: { id } });
+
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            TotalUsers: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+    });
     this.rabbitMqService.emit("user.deleted", {
       id: id,
       email: user.email,
       name: user.name,
     });
-    await this.prisma.doctor.deleteMany({ where: { user_id: id } });
-    await this.prisma.auditlog.deleteMany({ where: { user_id: id } });
-    await this.prisma.user.delete({ where: { id } });
     return {
       message: `User with ID ${id} deleted.`,
       status: "deleted",
@@ -555,18 +685,33 @@ export class AdminService {
       return { message: `User with ID ${id} not found.`, status: "error" };
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { role: Role.BANNED },
-    });
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id },
+        data: { role: Role.BANNED },
+      });
 
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: id,
-        action: `User ${user.name} banned`,
-      },
-    });
+      await tx.auditlog.create({
+        data: {
+          user_id: id,
+          action: `User ${user.name} banned`,
+        },
+      });
 
+      const stats = await tx.stats.findFirst();
+      if (stats) {
+        await tx.stats.update({
+          where: { id: stats?.id },
+          data: {
+            TotalUsers: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+
+      return user;
+    });
     this.rabbitMqService.emit("user.banned", {
       id: id,
       email: user.email,

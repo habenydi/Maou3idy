@@ -64,40 +64,61 @@ export class AuthService {
     if (await this.UserService.findByEmail(email)) {
       throw new BadRequestException("Email already exists");
     }
-    const user = await this.UserService.create({
-      ...body,
-      email,
-      password: hashedPassword,
+    const [user, token] = await this.prisma.$transaction(async (tx) => {
+      const updateUser = await this.UserService.create({
+        ...body,
+        email,
+        password: hashedPassword,
+      });
+
+      const payload: JwtPayload = {
+        sub: String(updateUser.id),
+        name: updateUser.name,
+        email: updateUser.email,
+        role: updateUser.role,
+        verified: updateUser.verified,
+      };
+      const token = this.signToken(payload, "1d");
+      await tx.auditlog.create({
+        data: {
+          user_id: updateUser.id,
+          action: "User registered with email: " + updateUser.email,
+        },
+      });
+
+      const stats = await tx.stats.findFirst();
+      if (!stats) {
+        await tx.stats.create({
+          data: {
+            TotalUsers: 1,
+          },
+        });
+      } else {
+        await tx.stats.update({
+          where: { id: stats.id },
+          data: {
+            TotalUsers: {
+              increment: 1,
+            },
+          },
+        });
+      }
+      await tx.notification.create({
+        data: {
+          user_id: updateUser.id,
+          message: `Welcome ${updateUser.name}! Thank you for registering. Please verify your email to access all features.`,
+          title: "Welcome to Our Platform!",
+          isRead: false,
+        },
+      });
+      return [updateUser, token];
     });
 
-    const payload: JwtPayload = {
-      sub: String(user.id),
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      verified: user.verified,
-    };
-    const token = this.signToken(payload, "1d");
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: user.id,
-        action: "User registered with email: " + user.email,
-      },
-    });
     this.emitEvent("user.created", {
       id: user.id,
       email: user.email,
       name: user.name,
       token: token,
-    });
-
-    await this.prisma.notification.create({
-      data: {
-        user_id: user.id,
-        message: `Welcome ${user.name}! Thank you for registering. Please verify your email to access all features.`,
-        title: "Welcome to Our Platform!",
-        isRead: false,
-      },
     });
     return {
       statusCode: 201,
@@ -131,6 +152,25 @@ export class AuthService {
       verified: user.verified,
     };
     const token = this.signToken(payload, "1d");
+
+    const stats = await this.prisma.stats.findFirst();
+    if (!stats) {
+      await this.prisma.stats.create({
+        data: {
+          activeSessions: 1,
+        },
+      });
+    } else {
+      await this.prisma.stats.update({
+        where: { id: stats.id },
+        data: {
+          activeSessions: {
+            increment: 1,
+          },
+        },
+      });
+    }
+
     return {
       statusCode: 200,
       Message: "Login success",
@@ -183,10 +223,12 @@ export class AuthService {
         throw new BadRequestException("User not found");
       }
       const hashedPassword = await this.hashPassword(new_password);
-      await this.UserService.update(user.id, {
-        password: hashedPassword,
+      await this.prisma.$transaction(async () => {
+        await this.UserService.update(user.id, {
+          password: hashedPassword,
+        });
+        await this.verify_email(token);
       });
-      await this.verify_email(token);
       return {
         statusCode: 200,
         message: "Password reset successful",
@@ -215,39 +257,45 @@ export class AuthService {
         throw new BadRequestException("User not found");
       }
 
-      const updatedUser = await this.UserService.update(user.id, {
-        verified: true,
-      });
+      const [updatedUser, Token] = await this.prisma.$transaction(
+        async (tx) => {
+          const userReturn = await this.UserService.update(user.id, {
+            verified: true,
+          });
 
-      const payload: JwtPayload = {
-        sub: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        verified: true,
-      };
+          const payload: JwtPayload = {
+            sub: updatedUser.id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            verified: true,
+          };
 
-      const newToken = this.signToken(payload, "1d");
+          const newToken = this.signToken(payload, "1d");
 
-      await this.prisma.auditlog.create({
-        data: {
-          user_id: user.id,
-          action: "User verified their email: " + user.email,
+          await tx.auditlog.create({
+            data: {
+              user_id: user.id,
+              action: "User verified their email: " + user.email,
+            },
+          });
+
+          await tx.notification.create({
+            data: {
+              user_id: user.id,
+              message: `Your email has been verified successfully.`,
+              title: "Email Verified",
+              isRead: false,
+            },
+          });
+          return [userReturn, newToken];
         },
-      });
+      );
 
-      await this.prisma.notification.create({
-        data: {
-          user_id: user.id,
-          message: `Your email has been verified successfully.`,
-          title: "Email Verified",
-          isRead: false,
-        },
-      });
       return {
         statusCode: 200,
         message: "Email verified successfully",
-        token: newToken,
+        token: Token,
         user: {
           id: updatedUser.id,
           name: updatedUser.name,
@@ -277,20 +325,22 @@ export class AuthService {
       throw new UnauthorizedException("Wrong password");
     }
     const hashedPassword = await this.hashPassword(new_password);
-    await this.UserService.update(user.id, { password: hashedPassword });
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: user.id,
-        action: "User changed their password",
-      },
-    });
-    await this.prisma.notification.create({
-      data: {
-        user_id: user.id,
-        message: `Your password has been changed successfully.`,
-        title: "Password Changed",
-        isRead: false,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      await this.UserService.update(user.id, { password: hashedPassword });
+      await tx.auditlog.create({
+        data: {
+          user_id: user.id,
+          action: "User changed their password",
+        },
+      });
+      await tx.notification.create({
+        data: {
+          user_id: user.id,
+          message: `Your password has been changed successfully.`,
+          title: "Password Changed",
+          isRead: false,
+        },
+      });
     });
     return {
       statusCode: 200,
@@ -331,37 +381,47 @@ export class AuthService {
       file.buffer,
     );
 
-    await this.UserService.update(user.id, {
-      role: Role.PENDING_DOCTOR,
+    const doctorRetrun = await this.prisma.$transaction(async (tx) => {
+      await this.UserService.update(user.id, {
+        role: Role.PENDING_DOCTOR,
+      });
+
+      const doctor = await this.doctorService.create(
+        {
+          ...body,
+          medical_license_url: uploadedLicense,
+        },
+        user.id,
+      );
+      await tx.auditlog.create({
+        data: {
+          user_id: user.id,
+          action: `New medical license verification pending for Dr. ${user.name}`,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          user_id: user.id,
+          message: `Your doctor registration request has been submitted successfully. Our team will review your application and notify you once it's approved.`,
+          title: "Doctor Registration Request Submitted",
+          isRead: false,
+        },
+      });
+      return doctor;
     });
-
-    const doctor = await this.doctorService.create(
-      {
-        ...body,
-        medical_license_url: uploadedLicense,
-      },
-      user.id,
-    );
-
-    this.emitEvent("doctor.created", {
-      id: user.id,
-      userId: user.id,
-      doctorId: doctor.id,
-      email: user.email,
-      name: user.name,
-    });
-
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: user.id,
-        action: `New medical license verification pending for Dr. ${user.name}`,
-      },
-    });
-
     const AdminEmail = await this.prisma.user.findFirst({
       where: {
         role: Role.ADMIN,
       },
+    });
+
+    this.emitEvent("doctor.created", {
+      id: user.id,
+      userId: user.id,
+      doctorId: doctorRetrun.id,
+      email: user.email,
+      name: user.name,
     });
 
     if (AdminEmail) {
@@ -374,18 +434,9 @@ export class AuthService {
         licenseUrl: uploadedLicense,
         speciality: body.speciality,
         userId: user.id,
-        doctorId: doctor.id,
+        doctorId: doctorRetrun.id,
       });
     }
-
-    await this.prisma.notification.create({
-      data: {
-        user_id: user.id,
-        message: `Your doctor registration request has been submitted successfully. Our team will review your application and notify you once it's approved.`,
-        title: "Doctor Registration Request Submitted",
-        isRead: false,
-      },
-    });
     return {
       statusCode: 200,
       message: "Doctor registration request submitted successfully",
@@ -396,7 +447,7 @@ export class AuthService {
         phone: user.phone,
         role: Role.PENDING_DOCTOR,
       },
-      doctor,
+      doctorRetrun,
     };
   }
   async validateGoogleUser(profile: GoogleProfile) {
@@ -406,56 +457,59 @@ export class AuthService {
     let user = await this.UserService.findByEmail(email);
     let NewUser = false;
 
-    if (!user) {
-      user = await this.UserService.create({
-        email,
-        name: profile.displayName || "User",
-        password: await this.hashPassword(Math.random().toString(36)),
-        verified: true,
-      });
-      NewUser = true;
-    }
+    const [token, userReturn] = await this.prisma.$transaction(async (tx) => {
+      if (!user) {
+        user = await this.UserService.create({
+          email,
+          name: profile.displayName || "User",
+          password: await this.hashPassword(Math.random().toString(36)),
+          verified: true,
+        });
+        NewUser = true;
+      }
 
-    const payload: JwtPayload = {
-      sub: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      verified: user.verified,
-    };
-
-    const token = this.signToken(payload, "1d");
-
-    if (NewUser) {
-      await this.prisma.auditlog.create({
-        data: {
-          user_id: user.id,
-          action: "New user registered with Google",
-        },
-      });
-      await this.prisma.notification.create({
-        data: {
-          user_id: user.id,
-          message: `Welcome ${user.name}! Thank you for registering with Google. Please verify your email to access all features.`,
-          title: "Welcome to Our Platform!",
-          isRead: false,
-        },
-      });
-      this.emitEvent("google.user", {
-        id: user.id,
-        email: user.email,
+      const payload: JwtPayload = {
+        sub: user.id,
         name: user.name,
-        token: token,
-      });
-    }
+        email: user.email,
+        role: user.role,
+        verified: user.verified,
+      };
+
+      const token = this.signToken(payload, "1d");
+
+      if (NewUser) {
+        await tx.auditlog.create({
+          data: {
+            user_id: user.id,
+            action: "New user registered with Google",
+          },
+        });
+        await tx.notification.create({
+          data: {
+            user_id: user.id,
+            message: `Welcome ${user.name}! Thank you for registering with Google. Please verify your email to access all features.`,
+            title: "Welcome to Our Platform!",
+            isRead: false,
+          },
+        });
+        this.emitEvent("google.user", {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          token: token,
+        });
+      }
+      return [token, user];
+    });
     return {
       token,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: String(user.role),
-        verified: user.verified,
+        id: userReturn.id,
+        email: userReturn.email,
+        name: userReturn.name,
+        role: String(userReturn.role),
+        verified: userReturn.verified,
       },
     };
   }

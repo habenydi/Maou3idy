@@ -55,21 +55,23 @@ export class UsersService {
 
     const imageUrl = await this.cloudinaryService.uploadImage(file.buffer);
 
-    await this.prisma.auditlog.create({
-      data: {
-        action: "UPDATE_PROFILE_IMAGE",
-        user_id: userId,
-        timestamp: new Date(),
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.auditlog.create({
+        data: {
+          action: "UPDATE_PROFILE_IMAGE",
+          user_id: userId,
+          timestamp: new Date(),
+        },
+      });
 
-    return await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        image: imageUrl,
-      },
+      return await tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          image: imageUrl,
+        },
+      });
     });
   }
 
@@ -123,20 +125,22 @@ export class UsersService {
   }
 
   async updateMyData(userId: string, data: UpdateUser) {
-    await this.prisma.auditlog.create({
-      data: {
-        user_id: userId,
-        action: "UPDATE_MY_DATA",
-        timestamp: new Date(),
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.auditlog.create({
+        data: {
+          user_id: userId,
+          action: "UPDATE_MY_DATA",
+          timestamp: new Date(),
+        },
+      });
 
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        name: data?.name,
-        phone: data?.phone,
-      },
+      return tx.user.update({
+        where: { id: userId },
+        data: {
+          name: data?.name,
+          phone: data?.phone,
+        },
+      });
     });
   }
 }

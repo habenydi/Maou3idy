@@ -29,16 +29,19 @@ model User {
   role     Role    @default(USER)
   phone    String  @default("")
 
-  doctor Doctor?
-  auditlogs Auditlog[]
+  doctor        Doctor?
+  auditlogs     Auditlog[]
   notifications Notification[]
-  stats UserStats?
+  stats         UserStats?
 
   hide_doctor_button Boolean @default(false)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  image     String    @default("https://res.cloudinary.com/zh887hwp/image/upload/v1784712025/default-image-for-my-users.svg")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  image          String          @default("https://res.cloudinary.com/zh887hwp/image/upload/v1784712025/default-image-for-my-users.svg")
+  doctorPatients DoctorPatient[]
+
+  @@index([email, name])
 }
 
 model Doctor {
@@ -48,64 +51,87 @@ model Doctor {
   user    User   @relation(fields: [user_id], references: [id])
 
   location      String
-  experience    Int    @default(0)
-  TotalPatients Int    @default(0)
+  experience    Int      @default(0)
+  TotalPatients Int      @default(0)
   languages     String[]
-  CompletedAppointments Int @default(0)
-  rating        Float  @default(0)
-  reviewCount   Int    @default(0)
-  profileImage  String @default("")
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0)
+  profileImage  String   @default("")
 
   speciality     String
   bio            String
   license_number String
+  score          Float  @default(0)
 
   medical_license_url String
+  totalAppointments   Int    @default(0)
+  totalPatients      Int    @default(0)
 
-  verified Boolean @default(false)
+  verified Boolean  @default(false)
   reviews  Review[]
 
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  doctorPatients DoctorPatient[]
+
+  @@index([user_id, speciality, location])
+}
+
+model DoctorPatient {
+  id String @id @default(uuid())
+
+  doctor_id  String
+  patient_id String
+
+  doctor  Doctor @relation(fields: [doctor_id], references: [id])
+  patient User   @relation(fields: [patient_id], references: [id])
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@unique([doctor_id, patient_id])
+  @@index([doctor_id, patient_id])
 }
 
 model Notification {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  user_id   String
-  user      User     @relation(fields: [user_id], references: [id])
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id])
 
-  title     String
-  message   String
+  title   String
+  message String
 
-  isRead    Boolean  @default(false)
+  isRead Boolean @default(false)
 
   createdAt DateTime @default(now())
+  @@index([user_id, isRead])
 }
 
 model Review {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  doctorId  String
-  doctor    Doctor   @relation(fields: [doctorId], references: [id])
-  userId    String
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+  userId   String
 
-  rating    Int
-  comment   String?
+  rating  Int
+  comment String?
 
   createdAt DateTime @default(now())
+  @@index([doctorId, userId])
 }
 
 model Auditlog {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  user_id   String?
-  user      User?    @relation(fields: [user_id], references: [id])
+  user_id String?
+  user    User?   @relation(fields: [user_id], references: [id])
 
-  action    String
-  details   String?
+  action  String
+  details String?
 
   timestamp DateTime @default(now())
+  @@index([user_id, action])
 }
 
 model UserStats {
@@ -114,14 +140,15 @@ model UserStats {
   user_id String @unique()
   user    User   @relation(fields: [user_id], references: [id])
 
-  Appointments Int @default(0)
+  Appointments          Int @default(0)
   completedAppointments Int @default(0)
   cancelledAppointments Int @default(0)
-  pendingAppointments Int @default(0)
-  Reviews Int @default(0)
+  pendingAppointments   Int @default(0)
+  Reviews               Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([user_id])
 }
 
 model Stats {
@@ -145,4 +172,5 @@ model Stats {
 
   NewSubmissions Int   @default(0)
   verifiedRate   Float @default(0)
+  @@index([TotalUsers, TotalDoctors, TotalAppointments])
 }

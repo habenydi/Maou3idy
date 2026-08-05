@@ -6,4 +6,5 @@ export class CreateDoctorDto {
   languages: string[];
   license_number: string;
   medical_license_url: string;
+  years_of_experience: number;
 }

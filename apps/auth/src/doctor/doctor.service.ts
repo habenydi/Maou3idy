@@ -10,7 +10,14 @@ export class DoctorService {
   async create(body: CreateDoctorDto, userId: string) {
     return await this.prisma.doctor.create({
       data: {
-        ...body,
+        location: body.location,
+        experience: Number(body.years_of_experience),
+        languages: body.languages,
+        speciality: body.speciality,
+        bio: body.bio,
+        license_number: body.license_number,
+        medical_license_url: body.medical_license_url,
+
         user: {
           connect: {
             id: userId,
@@ -93,19 +100,19 @@ export class DoctorService {
       where: {
         verified: true,
       },
+      orderBy: {
+        score: "desc",
+      },
       select: {
         id: true,
         location: true,
-        verified: true,
         rating: true,
+        score: true,
         speciality: true,
-
         user: {
           select: {
             id: true,
             name: true,
-            email: true,
-            phone: true,
             image: true,
           },
         },
@@ -115,7 +122,7 @@ export class DoctorService {
   async approve(id: string) {
     return await this.prisma.doctor.update({
       where: { id },
-      data: { verified: true },
+      data: { verified: true, user: { update: { verified: true } } },
     });
   }
 
@@ -125,80 +132,59 @@ export class DoctorService {
     const limit = 12;
     const skip = (page - 1) * limit;
 
+    const where = {
+      AND: [
+        search
+          ? {
+              OR: [
+                {
+                  user: {
+                    name: {
+                      contains: search,
+                      mode: "insensitive" as const,
+                    },
+                  },
+                },
+                {
+                  speciality: {
+                    contains: search,
+                    mode: "insensitive" as const,
+                  },
+                },
+              ],
+            }
+          : {},
+        location
+          ? {
+              location: {
+                contains: location,
+                mode: "insensitive" as const,
+              },
+            }
+          : {},
+      ],
+    };
+
     const [doctors, total] = await Promise.all([
       this.prisma.doctor.findMany({
-        where: {
-          AND: [
-            search
-              ? {
-                  OR: [
-                    {
-                      user: {
-                        name: {
-                          contains: search,
-                          mode: "insensitive",
-                        },
-                      },
-                    },
-                    {
-                      speciality: {
-                        contains: search,
-                        mode: "insensitive",
-                      },
-                    },
-                  ],
-                }
-              : {},
-            location
-              ? {
-                  location: {
-                    contains: location,
-                    mode: "insensitive",
-                  },
-                }
-              : {},
-          ],
-        },
+        where,
         include: {
           user: true,
         },
+        orderBy: [
+          {
+            score: "desc",
+          },
+          {
+            rating: "desc",
+          },
+        ],
         skip,
         take: limit,
       }),
 
       this.prisma.doctor.count({
-        where: {
-          AND: [
-            search
-              ? {
-                  OR: [
-                    {
-                      user: {
-                        name: {
-                          contains: search,
-                          mode: "insensitive",
-                        },
-                      },
-                    },
-                    {
-                      speciality: {
-                        contains: search,
-                        mode: "insensitive",
-                      },
-                    },
-                  ],
-                }
-              : {},
-            location
-              ? {
-                  location: {
-                    contains: location,
-                    mode: "insensitive",
-                  },
-                }
-              : {},
-          ],
-        },
+        where,
       }),
     ]);
 
@@ -210,13 +196,37 @@ export class DoctorService {
         speciality: doctor.speciality,
         experience: doctor.experience,
         rating: Number(doctor.rating.toFixed(1)),
-        reviwcount: doctor.reviewCount,
+        reviewCount: doctor.reviewCount,
         location: doctor.location,
+        score: doctor.score,
       })),
       total,
       page,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateDoctorScore(doctorId: string) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id: doctorId },
+    });
+
+    if (!doctor) {
+      return;
+    }
+
+    const score =
+      doctor.rating * 40 +
+      Math.log10(doctor.totalPatients + 1) * 20 +
+      Math.log10(doctor.totalAppointments + 1) * 30 +
+      doctor.experience * 2;
+
+    await this.prisma.doctor.update({
+      where: { id: doctorId },
+      data: {
+        score,
+      },
+    });
   }
 
   async getSpecialties() {
