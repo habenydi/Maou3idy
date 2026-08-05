@@ -251,12 +251,22 @@ export class AdminService {
       return user;
     });
 
-    this.rabbitMqService.emit("doctor.approved", {
-      id: doctor.user_id,
+    this.rabbitMqService.emit("doctor.created", {
+      id: doctor.user.id,
+      userId: doctor.user.id,
       doctorId: doctor.id,
       email: doctor.user.email,
       name: doctor.user.name,
     });
+
+    this.rabbitMqService.emit("docotor.approved", {
+      id: doctor.user.id,
+      userId: doctor.user.id,
+      doctorId: doctor.id,
+      email: doctor.user.email,
+      name: doctor.user.name,
+    });
+
     return {
       message: `Doctor with ID ${id} approved.`,
       status: "approved",
@@ -652,7 +662,11 @@ export class AdminService {
         },
       });
 
-      await tx.doctor.deleteMany({ where: { user_id: id } });
+      await tx.doctorPatient.deleteMany({ where: { patient_id: id } });
+      if (user.role === Role.DOCTOR) {
+        await tx.doctor.delete({ where: { user_id: id } });
+      }
+      await tx.notification.deleteMany({ where: { user_id: id } });
       await tx.user.delete({ where: { id } });
 
       const stats = await tx.stats.findFirst();

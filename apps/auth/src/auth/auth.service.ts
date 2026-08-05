@@ -264,10 +264,10 @@ export class AuthService {
           });
 
           const payload: JwtPayload = {
-            sub: updatedUser.id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
+            sub: userReturn.id,
+            name: userReturn.name,
+            email: userReturn.email,
+            role: userReturn.role,
             verified: true,
           };
 
@@ -414,14 +414,6 @@ export class AuthService {
       where: {
         role: Role.ADMIN,
       },
-    });
-
-    this.emitEvent("doctor.created", {
-      id: user.id,
-      userId: user.id,
-      doctorId: doctorRetrun.id,
-      email: user.email,
-      name: user.name,
     });
 
     if (AdminEmail) {
