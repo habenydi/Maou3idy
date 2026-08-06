@@ -49,47 +49,7 @@ export class AuthEventListenerService {
       });
     });
   }
-  async handleAppointmentConfirmed(data: AppointmentEventData) {
-    const user = await this.prismaService.user.findUnique({
-      where: { id: data.userId },
-    });
 
-    if (!user) {
-      throw new Error(`User with ID ${data.userId} not found`);
-    }
-    const doctor = await this.prismaService.user.findUnique({
-      where: { id: data.doctorId },
-    });
-
-    if (!doctor) {
-      throw new Error(`Doctor with ID ${data.doctorId} not found`);
-    }
-
-    await this.prismaService.$transaction(async (tx) => {
-      await tx.auditlog.create({
-        data: {
-          user_id: user.id,
-          action: `Dr. ${doctor.name} confirmed your appointment`,
-        },
-      });
-
-      await tx.auditlog.create({
-        data: {
-          user_id: doctor.id,
-          action: `You confirmed an appointment with ${user.name}`,
-        },
-      });
-
-      await tx.notification.create({
-        data: {
-          user_id: user.id,
-          message: `Dr. ${doctor.name} has confirmed your appointment.`,
-          title: "Appointment Confirmed",
-          isRead: false,
-        },
-      });
-    });
-  }
   async handleAppointmentCanceled(data: AppointmentEventData) {
     const user = await this.prismaService.user.findUnique({
       where: { id: data.userId },

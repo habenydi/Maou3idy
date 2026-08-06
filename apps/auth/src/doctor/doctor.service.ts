@@ -2,21 +2,32 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { CreateDoctorDto } from "./dto/createDoctor.dto";
 import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
+import { DoctorLocation } from "src/doctor-location/type";
 
 @Injectable()
 export class DoctorService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateDoctorDto, userId: string) {
-    return await this.prisma.doctor.create({
+    await this.prisma.doctor.create({
       data: {
-        location: body.location,
-        experience: Number(body.years_of_experience),
-        languages: body.languages,
         speciality: body.speciality,
         bio: body.bio,
         license_number: body.license_number,
+        languages: body.languages,
         medical_license_url: body.medical_license_url,
+
+        location: {
+          create: {
+            address: body.location.address,
+            city: body.location.city,
+            state: body.location.state,
+            zip_code: body.location.zip_code,
+            country: body.location.country,
+            latitude: body.location.latitude ?? 0,
+            longitude: body.location.longitude ?? 0,
+          },
+        },
 
         user: {
           connect: {
@@ -47,10 +58,14 @@ export class DoctorService {
   }
 
   async findById(id: string) {
-    return await this.prisma.doctor.findUnique({ where: { id } });
+    return await this.prisma.doctor.findUnique({
+      where: { id },
+      include: { location: true },
+    });
   }
 
   async update(id: string, data: Partial<CreateDoctorDto>) {
+    const { location, ...rest } = data;
     await this.prisma.auditlog.create({
       data: {
         action: "Dr Profile Updated",
@@ -60,7 +75,22 @@ export class DoctorService {
     });
     return await this.prisma.doctor.update({
       where: { id },
-      data,
+      data: {
+        ...rest,
+        ...(location && {
+          location: {
+            create: {
+              address: location.address,
+              city: location.city,
+              state: location.state,
+              zip_code: location.zip_code,
+              country: location.country,
+              latitude: location.latitude ?? 0,
+              longitude: location.longitude ?? 0,
+            },
+          },
+        }),
+      },
     });
   }
 
@@ -75,11 +105,17 @@ export class DoctorService {
     return this.prisma.doctor.delete({ where: { id } });
   }
 
-  async search(specialty: string, location: string) {
+  async search(specialty: string, location: DoctorLocation) {
     return await this.prisma.doctor.findMany({
       where: {
         speciality: specialty,
-        location: location,
+        location: {
+          some: {
+            city: location.city,
+            state: location.state,
+            country: location.country,
+          },
+        },
         verified: true,
       },
       include: {
@@ -157,8 +193,34 @@ export class DoctorService {
         location
           ? {
               location: {
-                contains: location,
-                mode: "insensitive" as const,
+                some: {
+                  OR: [
+                    {
+                      city: {
+                        contains: location,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      state: {
+                        contains: location,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      country: {
+                        contains: location,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      address: {
+                        contains: location,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
               },
             }
           : {},
@@ -169,7 +231,13 @@ export class DoctorService {
       this.prisma.doctor.findMany({
         where,
         include: {
-          user: true,
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          location: true,
         },
         orderBy: [
           {
@@ -191,8 +259,8 @@ export class DoctorService {
     return {
       doctors: doctors.map((doctor) => ({
         id: doctor.id,
-        name: doctor.user.name,
-        image: doctor.user.image,
+        name: (doctor.user as { name: string; image: string }).name,
+        image: (doctor.user as { name: string; image: string }).image,
         speciality: doctor.speciality,
         experience: doctor.experience,
         rating: Number(doctor.rating.toFixed(1)),

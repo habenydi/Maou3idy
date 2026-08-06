@@ -357,6 +357,15 @@ export class AuthService {
   async doctor_register(body: DoctorRegisterDto, file: Express.Multer.File) {
     const email = this.normalizeEmail(body.email);
 
+    // location arrives as a JSON string from multipart/form-data
+    if (typeof body.location === "string") {
+      try {
+        body.location = JSON.parse(body.location) as typeof body.location;
+      } catch {
+        throw new BadRequestException("Invalid location format");
+      }
+    }
+
     const user = await this.UserService.findByEmail(email);
 
     if (!user) {
@@ -426,7 +435,6 @@ export class AuthService {
         licenseUrl: uploadedLicense,
         speciality: body.speciality,
         userId: user.id,
-        doctorId: doctorRetrun.id,
       });
     }
     return {

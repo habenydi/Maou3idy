@@ -41,10 +41,18 @@ export class DoctorController {
   @Public()
   @Get("search")
   search(
-    @Param("specialty") specialty: string,
-    @Param("location") location: string,
+    @Query("specialty") specialty: string,
+    @Query("city") city: string,
+    @Query("state") state: string,
+    @Query("country") country: string,
   ) {
-    return this.doctorService.search(specialty, location);
+    return this.doctorService.search(specialty, {
+      city,
+      state,
+      country,
+      address: "",
+      zip_code: "",
+    });
   }
   @Post()
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {

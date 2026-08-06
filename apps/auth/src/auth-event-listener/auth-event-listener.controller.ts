@@ -19,11 +19,6 @@ export class AuthEventListenerController {
     await this.authEventListenerService.handleAppointmentCreated(data);
   }
 
-  @EventPattern("appointment.confirmed")
-  async handleAppointmentConfirmed(data: AppointmentEventData) {
-    await this.authEventListenerService.handleAppointmentConfirmed(data);
-  }
-
   @EventPattern("appointment.canceled")
   async handleAppointmentCanceled(data: AppointmentEventData) {
     await this.authEventListenerService.handleAppointmentCanceled(data);

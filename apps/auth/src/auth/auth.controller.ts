@@ -24,6 +24,7 @@ import { AuthGuard } from "@nestjs/passport/dist/auth.guard";
 import { MetricsService } from "src/metrics/metrics.service";
 import { Public } from "src/auth/decorator/public.decorator";
 import { FileInterceptor } from "@nestjs/platform-express/multer/interceptors/file.interceptor";
+import { DoctorLocation } from "src/doctor-location/type";
 
 interface UserAuth {
   sub: string;
@@ -37,7 +38,7 @@ interface UserAuth {
   doctor?: {
     id: number;
     specialty: string;
-    location: string;
+    locations: DoctorLocation[];
     experience: number;
     bio: string;
     rating: number;

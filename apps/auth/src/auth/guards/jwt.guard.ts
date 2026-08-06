@@ -56,11 +56,7 @@ export class JwtGuard implements CanActivate {
         where: { id: payload.sub },
       });
 
-      if (
-        !user ||
-        user.verified !== payload.verified ||
-        user?.role === Role.BANNED
-      ) {
+      if (!user || user?.role === Role.BANNED) {
         throw new UnauthorizedException("User not found");
       }
 
@@ -76,6 +72,9 @@ export class JwtGuard implements CanActivate {
       return true;
     } catch (error) {
       console.log(error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException("Invalid token");
     }
   }

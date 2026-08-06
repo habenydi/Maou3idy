@@ -382,10 +382,9 @@ export class AdminService {
       name: doctor.user.name,
       speciality: doctor.speciality,
       bio: doctor.bio,
-      location: doctor.location,
       experience: doctor.experience,
       rating: doctor.rating,
-      TotalPatients: doctor.TotalPatients,
+      TotalPatients: doctor.totalPatients,
     });
     return {
       message: `Doctor with ID ${id} activated.`,
