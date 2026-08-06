@@ -19,13 +19,24 @@ export const registerDoctorSchema = z.object({
 
   license_number: z.string().min(1, "License number is required"),
 
-  years_of_experience: z.number().min(0),
+  experience: z.number().min(0, "Years of experience is required"),
 
   bio: z.string().min(1, "Brief bio is required"),
 
   phone: z.string().min(1, "Phone number is required"),
 
-  location: z.string().min(1, "Location is required"),
+  languages: z
+    .array(z.string())
+    .min(1, "At least one language is required"),
 
-  languages: z.array(z.string()).min(1, "Languages are required"),
+  location: z.object({
+    address: z.string().min(1, "Address is required"),
+    city: z.string().min(1, "City is required"),
+    state: z.string().min(1, "State is required"),
+    zip_code: z.string().min(1, "Zip code is required"),
+    country: z.string().min(1, "Country is required"),
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
+  }),
+
 });

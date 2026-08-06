@@ -17,6 +17,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.16.1",
+    "country-state-city": "^3.2.1",
     "date-fns": "^4.4.0",
     "jose": "^6.2.3",
     "lucide-react": "^1.22.0",

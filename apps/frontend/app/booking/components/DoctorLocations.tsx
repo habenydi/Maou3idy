@@ -1,4 +1,5 @@
 import { DoctorDetailResponse } from '@/types';
+import Link from 'next/link';
 
 type Props = {
   locations: DoctorDetailResponse['locations'];
@@ -14,24 +15,37 @@ export default function DoctorLocations({ locations }: Props) {
                 {locations.map((location) => (
                   <div key={location.id} className={`bg-surface-container-low p-6 rounded-3xl ${!location.isActive ? 'border border-dashed border-outline-variant/30 opacity-70' : ''}`}>
                     {location.isActive && (
-                      <div className="aspect-video bg-slate-300 rounded-2xl mb-4 overflow-hidden relative">
-                        <div
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{
-                            backgroundImage: `url("${location.mapImageUrl}")`,
-                          }}
-                        />
-                      </div>
+                  <div className="aspect-video rounded-2xl mb-4 overflow-hidden border border-slate-200">
+                    <iframe
+                      title={location.name}
+                      width="100%"
+                      height="100%"
+                      loading="lazy"
+                      className="w-full h-full"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(
+                        `${location.address}, ${location.city}, ${location.state}`
+                      )}&output=embed`}
+                    />
+                  </div>
                     )}
                     <h6 className="font-bold text-on-surface">{location.name}</h6>
                     <p className="text-sm text-on-surface-variant mb-4">
                       {location.address}, {location.city}, {location.state}
                     </p>
                     {location.isActive && (
-                      <button className="text-primary text-sm font-bold flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">directions</span>
-                        Get Directions
-                      </button>
+                    <Link
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        `${location.address}, ${location.city}, ${location.state}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary text-sm font-bold flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">
+                        directions
+                      </span>
+                      Get Directions
+                    </Link>
                     )}
                     {!location.isActive && (
                       <p className="text-sm text-on-surface-variant">Currently no available slots at this location</p>

@@ -70,17 +70,17 @@ function ClinicalDetails({
             id="experience"
             placeholder="10"
             type="number"
-            {...register('years_of_experience', {
+            {...register('experience', {
               valueAsNumber: true,
             })}
           />
 
-          {errors.years_of_experience && (
+          {errors.experience && (
             <p
               className="text-xs"
               style={{ color: '#dc2626' }}
             >
-              {String(errors.years_of_experience.message)}
+              {String(errors.experience.message)}
             </p>
           )}
         </div>

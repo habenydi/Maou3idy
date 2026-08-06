@@ -21,6 +21,7 @@ function RegisterDoctor() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<RegisterDoctorForm>({
     resolver: zodResolver(registerDoctorSchema),
@@ -103,7 +104,7 @@ function RegisterDoctor() {
 
       payload.append("name", data.name);
       payload.append("email", data.email);
-      payload.append("location", data.location);
+      payload.append("location", JSON.stringify(data.location));
       data.languages.forEach((language) => {
         payload.append("languages", language);
       });
@@ -113,8 +114,8 @@ function RegisterDoctor() {
         data.license_number
       );
       payload.append(
-        "years_of_experience",
-        String(data.years_of_experience)
+        "experience",
+        String(data.experience)
       );
       payload.append("bio", data.bio);
       payload.append("phone", data.phone);
@@ -184,6 +185,7 @@ function RegisterDoctor() {
               >
                 <RegistrationDetailsSection
                   register={register}
+                  setValue={setValue}
                   errors={errors}
                 />
 
