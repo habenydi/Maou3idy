@@ -93,36 +93,6 @@ export class NotificationService {
     }
   }
 
-  async handleAppointmentConfirmed(data: AppointmentCreatedEvent) {
-    try {
-      await this.mailService.sendMail({
-        to: data.patientEmail,
-        subject: 'Appointment Confirmed',
-        html: `
-        <h2>Appointment Confirmed</h2>
-        <p>Hello ${data.patientName},</p>
-        <p>Your appointment with <strong>Dr. ${data.doctorName}</strong> has been confirmed.</p>
-        <p>Appointment time: <strong>${data.appointmentTime}</strong></p>
-        <p>Thank you for choosing our service!</p>
-      `,
-      });
-
-      await this.mailService.sendMail({
-        to: data.doctorEmail,
-        subject: 'Appointment Confirmed',
-        html: `
-        <h2>Appointment Confirmed</h2>
-        <p>Hello Dr. ${data.doctorName},</p>
-        <p>Your appointment with <strong>${data.patientName}</strong> has been confirmed.</p>
-        <p>Appointment time: <strong>${data.appointmentTime}</strong></p>
-        <p>Thank you for your availability!</p>
-      `,
-      });
-    } catch (error) {
-      console.error('Failed to process appointment.confirmed event:', error);
-    }
-  }
-
   async handleAppointmentCanceled(data: AppointmentCreatedEvent) {
     try {
       await this.mailService.sendMail({
@@ -148,36 +118,6 @@ export class NotificationService {
       });
     } catch (error) {
       console.error('Failed to process appointment.canceled event:', error);
-    }
-  }
-
-  async handleAppointmentRescheduled(data: AppointmentCreatedEvent) {
-    try {
-      await this.mailService.sendMail({
-        to: data.patientEmail,
-        subject: 'Appointment Rescheduled',
-        html: `
-        <h2>Appointment Rescheduled</h2>
-        <p>Hello ${data.patientName},</p>
-        <p>Your appointment with <strong>Dr. ${data.doctorName}</strong> has been rescheduled.</p>
-        <p>New appointment time: <strong>${data.appointmentTime}</strong></p>
-        <p>Thank you for your understanding.</p>
-      `,
-      });
-
-      await this.mailService.sendMail({
-        to: data.doctorEmail,
-        subject: 'Appointment Rescheduled',
-        html: `
-        <h2>Appointment Rescheduled</h2>
-        <p>Hello Dr. ${data.doctorName},</p>
-        <p>Your appointment with <strong>${data.patientName}</strong> has been rescheduled.</p>
-        <p>New appointment time: <strong>${data.appointmentTime}</strong></p>
-        <p>Thank you for your understanding.</p>
-      `,
-      });
-    } catch (error) {
-      console.error('Failed to process appointment.rescheduled event:', error);
     }
   }
 

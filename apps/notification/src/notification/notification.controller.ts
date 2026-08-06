@@ -30,7 +30,7 @@ export type DoctorRegisteredEvent = {
 
 @Controller()
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) { }
 
   @EventPattern('user.created')
   async handleUserCreatedEvent(@Payload() data: UserCreatedEvent) {
@@ -50,19 +50,9 @@ export class NotificationController {
     await this.notificationService.handleAppointmentCreated(data);
   }
 
-  @EventPattern('appointment.confirmed')
-  async handleAppointmentConfirmed(@Payload() data: AppointmentCreatedEvent) {
-    await this.notificationService.handleAppointmentConfirmed(data);
-  }
-
   @EventPattern('appointment.canceled')
   async handleAppointmentCanceled(@Payload() data: AppointmentCreatedEvent) {
     await this.notificationService.handleAppointmentCanceled(data);
-  }
-
-  @EventPattern('appointment.rescheduled')
-  async handleAppointmentRescheduled(@Payload() data: AppointmentCreatedEvent) {
-    await this.notificationService.handleAppointmentRescheduled(data);
   }
 
   @EventPattern('appointment.completed')
