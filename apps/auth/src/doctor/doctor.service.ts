@@ -60,7 +60,20 @@ export class DoctorService {
   async findById(id: string) {
     return await this.prisma.doctor.findUnique({
       where: { id },
-      include: { location: true },
+      include: {
+        location: true,
+        user: { select: { name: true, image: true } },
+        reviews: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -259,8 +272,8 @@ export class DoctorService {
     return {
       doctors: doctors.map((doctor) => ({
         id: doctor.id,
-        name: (doctor.user as { name: string; image: string }).name,
-        image: (doctor.user as { name: string; image: string }).image,
+        name: doctor.user.name,
+        image: doctor.user.image,
         speciality: doctor.speciality,
         experience: doctor.experience,
         rating: Number(doctor.rating.toFixed(1)),

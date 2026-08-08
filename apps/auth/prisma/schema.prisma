@@ -38,8 +38,9 @@ model User {
 
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @default(now()) @updatedAt
-  image          String          @default("https://res.cloudinary.com/zh887hwp/image/upload/v1784712025/default-image-for-my-users.svg")
+  image          String          @default("https://pin.it/31rp5FZav")
   doctorPatients DoctorPatient[]
+  reviews        Review[]
 
   @@index([email, name])
 }
@@ -132,8 +133,10 @@ model Review {
   id String @id @default(uuid())
 
   doctorId String
-  doctor   Doctor @relation(fields: [doctorId], references: [id])
-  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+  userId String
 
   rating  Int
   comment String?
