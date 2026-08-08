@@ -1,4 +1,6 @@
-import { Doctor } from './types';
+import { Doctor, DoctorLocation } from './types';
+
+export type { Doctor, DoctorLocation };
 
 export interface Service {
   id: string;
@@ -33,10 +35,11 @@ export interface AvailabilitySlot {
 }
 
 export interface Review {
-  id: string;
-  authorImage: string;
+  image: string;
+  name: string;
   rating: number;
-  text: string;
+  comment: string;
+  date: string;
 }
 
 export interface DoctorDetailResponse {

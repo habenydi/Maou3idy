@@ -2,15 +2,16 @@
 
 import Img from 'next/image';
 import { useRouter } from 'next/navigation';
+import { DoctorLocation } from '@/types/doctor';
 
 type DoctorCardProps = {
   id: string;
   name: string;
+  image?: string | null;
   speciality: string;
   experience: number;
   rating: number;
-  location: string;
-  image?: string | null;
+  location: DoctorLocation[];
 };
 
 export default function DoctorCard({
@@ -55,9 +56,9 @@ export default function DoctorCard({
             {experience} years exp
           </span>
 
-          {location && (
+          {location.length > 0 && (
             <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs">
-              {location}
+              {location[0].city}, {location[0].state}
             </span>
           )}
         </div>

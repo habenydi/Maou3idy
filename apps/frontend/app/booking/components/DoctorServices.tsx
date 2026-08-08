@@ -35,6 +35,11 @@ export default function DoctorServices({ services }: Props) {
                     </div>
                   </div>
                 ))}
+                {services.length === 0 && (
+                  <p className="text-sm text-on-surface-variant">
+                    No services available for this doctor.
+                  </p>
+                )}
               </div>
             </section>
     );

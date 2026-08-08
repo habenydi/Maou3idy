@@ -1,4 +1,17 @@
 
+export interface DoctorLocation {
+  id?: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  isPrimary?: boolean;
+}
+
+// Shape returned by GET /doctors/find (list view)
 export interface Doctor {
   id: string;
   name: string;
@@ -6,7 +19,8 @@ export interface Doctor {
   speciality: string;
   experience: number;
   rating: number;
-  location: string;
+  reviewCount: number;
+  location: DoctorLocation[];
 }
 
 

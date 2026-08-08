@@ -8,6 +8,10 @@ type Props = {
 };
 
 export default function DoctorHero({ doctor }: Props) {
+  const primaryLocation = doctor.location.find((l) => l.isPrimary) ?? doctor.location[0] ?? null;
+  const imageSrc = doctor.profileImage || doctor.user.image ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.user.name)}`;
+
     return (
                 <section className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 mb-8 sm:mb-12">
                   <div className="md:col-span-8 bg-surface-container-lowest rounded-3xl overflow-hidden flex flex-col md:flex-row items-center md:items-end p-5 sm:p-8 gap-5 sm:gap-8 relative">
@@ -16,30 +20,36 @@ export default function DoctorHero({ doctor }: Props) {
                       <Img
                         width={400}
                         height={400}
-                        alt={`${doctor.firstName} ${doctor.lastName}`}
+                        alt={`Dr. ${doctor.user.name}`}
                         className="w-full h-full object-cover rounded-2xl shadow-xl shadow-primary/10"
-                        src={doctor.profileImage}
+                        src={imageSrc}
                       />
                     </div>
                     <div className="grow space-y-3 sm:space-y-4 text-center md:text-left">
                       <div className="flex items-center justify-center md:justify-start gap-2">
-                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-1 uppercase">
-                          <span className="material-symbols-outlined text-sm material-fill">verified</span>
-                          Verified Specialist
-                        </span>
+                        {doctor.verified && (
+                          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-1 uppercase">
+                            <span className="material-symbols-outlined text-sm material-fill">verified</span>
+                            Verified Specialist
+                          </span>
+                        )}
                       </div>
                       <div>
                         <h1 className="text-2xl sm:text-4xl md:text-5xl font-headline font-extrabold text-on-surface tracking-tight">
-                          Dr. {doctor.firstName} {doctor.lastName}
+                          Dr. {doctor.user.name}
                         </h1>
                         <p className="text-base sm:text-xl text-secondary font-medium mt-1">
-                          {doctor.specialty} • {doctor.yearsOfExperience}+ Years Experience
+                          {doctor.speciality} • {doctor.experience}+ Years Experience
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-2">
                         <div className="flex items-center gap-2">
                           <span className="material-symbols-outlined text-primary">location_on</span>
-                          <span className="text-sm font-medium text-on-surface-variant">{doctor.location}</span>
+                          <span className="text-sm font-medium text-on-surface-variant">
+                            {primaryLocation
+                              ? `${primaryLocation.city}, ${primaryLocation.state}`
+                              : 'Location not available'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="material-symbols-outlined text-primary">star</span>
@@ -57,10 +67,10 @@ export default function DoctorHero({ doctor }: Props) {
                       </span>
                       <div>
                         <div className="text-2xl font-headline font-bold text-on-primary-fixed">
-                          12k+
+                          {doctor.experience}+
                         </div>
                         <div className="text-xs font-label uppercase tracking-widest text-on-primary-fixed-variant">
-                          Patients Seen
+                          Years Exp.
                         </div>
                       </div>
                     </div>
@@ -70,30 +80,28 @@ export default function DoctorHero({ doctor }: Props) {
                       </span>
                       <div>
                         <div className="text-2xl font-headline font-bold text-on-secondary-fixed">
-                          Top 1%
+                          {doctor.rating.toFixed(1)}
                         </div>
                         <div className="text-xs font-label uppercase tracking-widest text-on-secondary-fixed-variant">
-                          Specialist
+                          Rating
                         </div>
                       </div>
                     </div>
-                    <div className="col-span-2 bg-surface-container-low p-6 rounded-3xl">
-                      <h4 className="font-headline font-bold mb-3 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-sm">language</span>
-                        Languages
-                      </h4>
-                      <div className="flex gap-2">
-                        <span className="px-3 py-1 bg-surface-container-lowest rounded-full text-xs font-medium">
-                          English
-                        </span>
-                        <span className="px-3 py-1 bg-surface-container-lowest rounded-full text-xs font-medium">
-                          Spanish
-                        </span>
-                        <span className="px-3 py-1 bg-surface-container-lowest rounded-full text-xs font-medium">
-                          German
-                        </span>
+                    {doctor.languages.length > 0 && (
+                      <div className="col-span-2 bg-surface-container-low p-6 rounded-3xl">
+                        <h4 className="font-headline font-bold mb-3 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm">language</span>
+                          Languages
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {doctor.languages.map((lang) => (
+                            <span key={lang} className="px-3 py-1 bg-surface-container-lowest rounded-full text-xs font-medium">
+                              {lang}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </section>
     );

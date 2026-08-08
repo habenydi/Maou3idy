@@ -6,6 +6,8 @@ type Props = {
 };
 
 export default function DoctorLocations({ locations }: Props) {
+
+  console.log('locations:', locations); // Debugging line to check the structure of locations
     return (
         <section>
               <h3 className="text-2xl font-headline font-bold mb-6 text-on-surface">

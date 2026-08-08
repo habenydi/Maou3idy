@@ -73,7 +73,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
                 <span className="material-symbols-outlined text-sm">
                   location_on
                 </span>
-                {doctor.location}
+                {doctor.location.address}, {doctor.location.city}, {doctor.location.state}
               </div>
 
               <button

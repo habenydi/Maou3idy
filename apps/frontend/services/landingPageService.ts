@@ -4,7 +4,15 @@ import api from './api';
 
 export type FeaturedDoctor = {
   id: string;
-  location: string;
+  location: {
+        address: string,
+        city: string,
+        state: string,
+        zip_code: string,
+        country: string,
+        latitude?: number,
+        longitude?: number,
+  };
   verified: boolean;
   rating?: number;
   speciality: string;

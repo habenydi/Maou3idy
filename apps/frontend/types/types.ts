@@ -1,13 +1,27 @@
+export interface DoctorLocation {
+  id?: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  isPrimary?: boolean;
+}
+
 export interface Doctor {
   id: string;
-  firstName: string;
-  lastName: string;
-  specialty: string;
-  profileImage: string;
+  user: { name: string; image: string | null };
+  speciality: string;
+  bio: string;
+  experience: number;
   rating: number;
   reviewCount: number;
-  yearsOfExperience: number;
-  location: string;
+  profileImage: string;
+  languages: string[];
+  location: DoctorLocation[];
+  verified: boolean;
 }
 
 export interface Service {

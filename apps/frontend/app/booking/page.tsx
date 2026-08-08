@@ -46,7 +46,7 @@ function Booking() {
   if (!doctorData) {
     return <div>Error loading doctor data</div>;
   }
-  const { doctor, services, locations } = doctorData;
+  const { doctor, services, locations, publications, reviews } = doctorData;
 
   return (
     <>
@@ -57,7 +57,7 @@ function Booking() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-8 space-y-12">
-            <DoctorAbout doctor={doctor} />
+            <DoctorAbout doctor={doctor} publications={publications} />
 
             <DoctorServices services={services} />
 
@@ -68,9 +68,10 @@ function Booking() {
             <div className="sticky top-28 space-y-6">
               <BookingSidebar
                 doctorId={doctorId}
-                doctorName={`${doctor.firstName} ${doctor.lastName}`}
+                doctorName={doctor.user.name}
               />
-              <ReviewsTeaser />
+              <ReviewsTeaser {
+                ...reviews}/>
             </div>
           </aside>
         </div>

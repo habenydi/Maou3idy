@@ -83,7 +83,6 @@ export default function BookingSidebar({ doctorId, doctorName }: Props) {
         }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load doctor services");
       } finally {
         setLoadingServices(false);
       }
@@ -335,7 +334,7 @@ useEffect(() => {
       </button>
 
       <p className="text-[10px] text-center text-outline leading-tight">
-        Your slot will be reserved instantly out of the doctor's active shift
+        Your slot will be reserved instantly out of the doctor&apos;s active shift
         block.
       </p>
     </div>
