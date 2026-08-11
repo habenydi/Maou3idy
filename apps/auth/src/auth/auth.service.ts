@@ -417,6 +417,12 @@ export class AuthService {
           isRead: false,
         },
       });
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          hide_doctor_button: true,
+        },
+      });
       return doctor;
     });
     const AdminEmail = await this.prisma.user.findFirst({
@@ -493,13 +499,13 @@ export class AuthService {
             isRead: false,
           },
         });
-        this.emitEvent("google.user", {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          token: token,
-        });
       }
+      this.emitEvent("google.user", {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        token: token,
+      });
       return [token, user];
     });
     return {
