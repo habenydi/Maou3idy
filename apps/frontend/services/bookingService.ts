@@ -51,23 +51,18 @@ function normalizeSlot(slot: SlotRecord): DoctorSlot {
 export const getDoctorDetail = async (
   doctorId: string
 ): Promise<DoctorDetailResponse> => {
-  const response = await api.get(`/doctors/${doctorId}`);
-  const data = response.data;
+  const [doctorResponse, slotsResponse] = await Promise.all([
+    api.get(`/doctors/${doctorId}`),
+    api.get(`/slots/doctor/${doctorId}`),
+  ]);
+
+  const doctor = doctorResponse.data;
 
   return {
-    doctor: data,
-    services: data.services ?? [],
-    locations: data.location ?? [],
-    availability: data.availability ?? [],
-    reviews: (data.reviews ?? []).map((r: any) => ({
-      image: r.user?.image ?? '',
-      name: r.user?.name ?? 'Anonymous',
-      rating: r.rating,
-      comment: r.comment ?? '',
-      date: r.createdAt ?? '',
-    })),
-    bio: data.bio ?? '',
-    publications: data.publications ?? 0,
+    doctor,
+    location: doctor.location,
+    reviews: doctor.reviews ?? [],
+    availability: slotsResponse.data ?? [],
   };
 };
 

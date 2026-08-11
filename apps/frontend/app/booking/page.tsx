@@ -46,7 +46,9 @@ function Booking() {
   if (!doctorData) {
     return <div>Error loading doctor data</div>;
   }
-  const { doctor, services, locations, publications, reviews } = doctorData;
+const { doctor, location, reviews, availability } = doctorData;
+  const services = doctorData.services || [];
+  const publications = doctorData.publications || 0;
 
   return (
     <>
@@ -61,7 +63,7 @@ function Booking() {
 
             <DoctorServices services={services} />
 
-            <DoctorLocations locations={locations} />
+            <DoctorLocations locations={doctor.location} />
           </div>
 
           <aside className="lg:col-span-4">

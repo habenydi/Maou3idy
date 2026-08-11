@@ -39,17 +39,14 @@ export interface Review {
   name: string;
   rating: number;
   comment: string;
-  date: string;
+  createdAt: string;
 }
 
 export interface DoctorDetailResponse {
   doctor: Doctor;
-  services: Service[];
-  locations: Location[];
+  location: Location;
   availability: AvailabilitySlot[];
   reviews: Review[];
-  bio: string;
-  publications: number;
 }
 
 export interface LandingPageStats {

@@ -12,7 +12,7 @@ export type FeaturedDoctor = {
         country: string,
         latitude?: number,
         longitude?: number,
-  };
+  } [];
   verified: boolean;
   rating?: number;
   speciality: string;
@@ -28,6 +28,8 @@ export type FeaturedDoctor = {
 export const getFeaturedDoctors = async (): Promise<FeaturedDoctor[]> => {
   try {
     const response = await api.get('/doctors/featured');
+
+    console.log('Fetched featured doctors:', response.data);
 
     return response.data;
   } catch (error) {

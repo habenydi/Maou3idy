@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import { Country, State, City } from 'country-state-city';
+import { MOROCCO_REGIONS } from "@/lib/morocco-location";
 
 type location = {
   address: string;
@@ -36,36 +36,12 @@ const selectClass = 'w-full bg-surface-container-low rounded-xl px-4 py-3 border
 const labelClass = 'text-xs font-bold text-on-surface-variant tracking-wider uppercase ml-1';
 
 function RegistrationDetailsSection({ register, setValue, errors }: Props) {
-  const [selectedCountryCode, setSelectedCountryCode] = useState('');
-  const [selectedStateCode, setSelectedStateCode] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const cities = selectedRegion ? MOROCCO_REGIONS[selectedRegion as keyof typeof MOROCCO_REGIONS] : [];
 
-  const countries = Country.getAllCountries();
-  const states = selectedCountryCode ? State.getStatesOfCountry(selectedCountryCode) : [];
-  const cities = selectedCountryCode && selectedStateCode
-    ? City.getCitiesOfState(selectedCountryCode, selectedStateCode)
-    : [];
-
-  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const code = e.target.value;
-    const name = Country.getCountryByCode(code)?.name ?? '';
-    setSelectedCountryCode(code);
-    setSelectedStateCode('');
-    setValue('location.country', name);
-    setValue('location.state', '');
-    setValue('location.city', '');
-  };
-
-  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const code = e.target.value;
-    const name = State.getStateByCodeAndCountry(code, selectedCountryCode)?.name ?? '';
-    setSelectedStateCode(code);
-    setValue('location.state', name);
-    setValue('location.city', '');
-  };
-
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setValue('location.city', e.target.value);
-  };
+  useEffect(() => {
+    setValue('location.country', 'Morocco');
+  }, [setValue]);
 
   return (
     <>
@@ -131,22 +107,27 @@ function RegistrationDetailsSection({ register, setValue, errors }: Props) {
 
         {/* Country */}
         <div className="space-y-2">
-          <label className={labelClass} htmlFor="country">Country</label>
-          <select
+          <label className={labelClass} htmlFor="country">
+            Country
+          </label>
+
+          <input
             id="country"
-            className={selectClass}
-            value={selectedCountryCode}
-            onChange={handleCountryChange}
-          >
-            <option value="">Select Country</option>
-            {countries.map((c) => (
-              <option key={c.isoCode} value={c.isoCode}>
-                {c.flag} {c.name}
-              </option>
-            ))}
-          </select>
+            value="Morocco"
+            readOnly
+            className={`${selectClass} cursor-not-allowed opacity-70`}
+          />
+
+          <input
+            type="hidden"
+            {...register("location.country")}
+            value="Morocco"
+          />
+
           {errors.location?.country && (
-            <p className="text-xs text-red-600">{String(errors.location.country.message)}</p>
+            <p className="text-xs text-red-600">
+              {String(errors.location.country.message)}
+            </p>
           )}
         </div>
 
@@ -154,19 +135,17 @@ function RegistrationDetailsSection({ register, setValue, errors }: Props) {
         <div className="space-y-2">
           <label className={labelClass} htmlFor="state">State / Region</label>
           <select
-            id="state"
             className={selectClass}
-            value={selectedStateCode}
-            onChange={handleStateChange}
-            disabled={!selectedCountryCode}
+            value={selectedRegion}
+            onChange={(e) => {
+              setSelectedRegion(e.target.value);
+              setValue('location.state', e.target.value);
+              setValue('location.city', '');
+            }}
           >
-            <option value="">
-              {selectedCountryCode ? 'Select State' : 'Select a country first'}
-            </option>
-            {states.map((s) => (
-              <option key={s.isoCode} value={s.isoCode}>
-                {s.name}
-              </option>
+            <option value="">Select Region</option>
+            {Object.keys(MOROCCO_REGIONS).map((region) => (
+              <option key={region} value={region}>{region}</option>
             ))}
           </select>
           {errors.location?.state && (
@@ -180,16 +159,12 @@ function RegistrationDetailsSection({ register, setValue, errors }: Props) {
           <select
             id="city"
             className={selectClass}
-            onChange={handleCityChange}
-            disabled={!selectedStateCode}
+            onChange={(e) => setValue('location.city', e.target.value)}
+            disabled={!selectedRegion}
           >
-            <option value="">
-              {selectedStateCode ? 'Select City' : 'Select a state first'}
-            </option>
-            {cities.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
+            <option value="">{selectedRegion ? 'Select City' : 'Select a region first'}</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>{city}</option>
             ))}
           </select>
           {errors.location?.city && (

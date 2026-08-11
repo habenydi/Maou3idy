@@ -7,7 +7,7 @@ export default function CTASection() {
 
   return (
         <section className="py-16 sm:py-20 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto rounded-[1.5rem] sm:rounded-[2.5rem] bg-linear-to-br from-primary to-blue-700 p-6 sm:p-12 lg:p-24 relative overflow-hidden text-center lg:text-left">
+          <div className="max-w-7xl mx-auto rounded-3xl sm:rounded-[2.5rem] bg-linear-to-br from-primary to-blue-700 p-6 sm:p-12 lg:p-24 relative overflow-hidden text-center lg:text-left">
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
             <div className="relative z-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
