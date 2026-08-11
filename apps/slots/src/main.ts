@@ -1,14 +1,15 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { Transport, MicroserviceOptions } from '@nestjs/microservices';
-import cookieParser from 'cookie-parser';
-import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { Transport, MicroserviceOptions } from "@nestjs/microservices";
+import cookieParser from "cookie-parser";
+import { ValidationPipe } from "@nestjs/common";
+import { JwtGuard } from "./auth/guards/jwt.guard";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:3000', // Change this to match your actual frontend URL
+    origin: "http://localhost:3000", // Change this to match your actual frontend URL
     credentials: true,
   });
 
@@ -18,16 +19,16 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
-      queue: 'events',
+      urls: [process.env.RABBITMQ_URL || "amqp://localhost:5672"],
+      queue: "events",
       queueOptions: {
         durable: true,
       },
     },
   });
 
+  app.useGlobalGuards(app.get(JwtGuard));
   await app.startAllMicroservices();
-  console.log('✅ RMQ microservice consumer listening on queue: events');
   await app.listen(process.env.PORT ?? 1339);
 }
 bootstrap();

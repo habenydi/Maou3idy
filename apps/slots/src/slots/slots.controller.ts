@@ -21,7 +21,6 @@ import { Public } from "src/auth/decorator/public.decorator";
 export class SlotsController {
   constructor(private readonly slotsService: SlotsService) {}
 
-  @UseGuards(JwtGuard)
   @Get("me")
   findMySlots(@Req() req: { user: { sub: string } }) {
     return this.slotsService.findCurrentDoctorSlots(req.user.sub);
@@ -56,13 +55,11 @@ export class SlotsController {
     return this.slotsService.findOneSlot(String(id));
   }
 
-  @UseGuards(JwtGuard)
   @Post("generate")
   generate(@Req() req: { user: { sub: string } }, @Body() dto: CreateSlotsDto) {
     return this.slotsService.generateSlotsForCurrentDoctor(req.user.sub, dto);
   }
 
-  @UseGuards(JwtGuard)
   @Patch(":id")
   update(
     @Req() req: { user: { sub: string } },
