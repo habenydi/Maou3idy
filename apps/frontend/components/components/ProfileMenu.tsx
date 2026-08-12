@@ -96,7 +96,7 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
         <ProfileMenuItem
           icon="dashboard_customize"
           label="Your Dashboard"
-          onClick={() => router.push("/dashboard/appointments")}
+          onClick={() => router.push("/appointments")}
         />
         <ProfileMenuItem
           icon="lock"

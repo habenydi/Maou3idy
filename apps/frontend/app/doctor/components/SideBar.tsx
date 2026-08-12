@@ -5,11 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import Img from "next/image";
 
 type SidebarProps = {
+  name: string;
+  image: string;
+  specialty: string;
   isOpen?: boolean;
   onClose?: () => void;
 };
 
-function Sidebar({ isOpen = false, onClose }: SidebarProps) {
+function Sidebar({ isOpen = false, onClose, name, image, specialty }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -63,14 +66,14 @@ function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               width={10}
               height={10}
               className="w-10 h-10 rounded-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1ZqETx9_RaazbfBUW5ZRV_2W2vPgBDwAceiiKcnOlPTtOWfn2bPOLIndSHqLQcSXyWg4esxd6baEAEt66oj3QDqVOlHAHl4LfjfgU-mrTW_tknyMDmQqArNxvOJRCm-3AjS4Uw1URqWd8cRWBLMp4GVV04Pgvur2gqbI-VK-dI0k620bUxGoR5py15JaEClW_73JsOZSxSm8O9tUaRVmCviAiPDDmykBZa6kBgi0cRATE3UhSNhZuEbiwQlEwP2v5RSewDpCoP0Y"
+              src={image}
             />
             <div>
               <p className="text-on-surface font-bold text-xs truncate">
-                Dr. James Wilson
+                Dr. {name}
               </p>
               <p className="text-slate-500 text-[10px] uppercase tracking-wider">
-                Cardiologist
+                {specialty}
               </p>
             </div>
           </div>

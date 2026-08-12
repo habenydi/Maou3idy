@@ -1,10 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from './SideBar';
+import axios from 'axios';
+
+type DoctorData = {
+  user: {
+    name: string;
+    image: string;
+  };
+  speciality: string;
+};
 
 export default function DoctorShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [doctorData, setDoctorData] = useState<DoctorData| null>(null);
+
+  useEffect(() => {
+    const fetchDoctorData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/doctors/me', { withCredentials: true });
+        setDoctorData(response.data);
+      } catch (error) {
+        console.error('Error fetching doctor data:', error);
+      }
+    };
+
+    fetchDoctorData();
+  }, []);
+
+  console.log('Doctor Data:', doctorData);
+
+  if (!doctorData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -22,7 +55,7 @@ export default function DoctorShell({ children }: { children: React.ReactNode })
         </span>
       </div>
 
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} image={doctorData.user.image} name={doctorData.user.name} specialty={doctorData.speciality}/>
 
       {/* Offset content below mobile bar on small screens, no offset on lg */}
       <div className="flex-1 flex flex-col min-h-screen pt-14 lg:pt-0">

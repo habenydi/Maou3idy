@@ -15,8 +15,8 @@ export default function DoctorLocations({ locations }: Props) {
         {locations.map((location, index) => {
           const query = encodeURIComponent(`${location.address}, ${location.city}, ${location.state}`);
           const mapSrc = location.latitude && location.longitude
-            ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}&output=embed`
-            : `https://www.google.com/maps?q=${query}&output=embed`;
+            ? `https://maps.google.com/maps?q=${location.latitude},${location.longitude}&z=15&output=embed`
+            : `https://maps.google.com/maps?q=${query}&z=15&output=embed`;
           const mapsHref = location.latitude && location.longitude
             ? `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`
             : `https://www.google.com/maps/search/?api=1&query=${query}`;

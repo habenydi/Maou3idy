@@ -29,8 +29,6 @@ export const getFeaturedDoctors = async (): Promise<FeaturedDoctor[]> => {
   try {
     const response = await api.get('/doctors/featured');
 
-    console.log('Fetched featured doctors:', response.data);
-
     return response.data;
   } catch (error) {
     console.error('Failed to fetch featured doctors:', error);

@@ -42,7 +42,6 @@ export default function VerificationEmail() {
 				setMessage(data.message || 'Email verified successfully.');
 				toast.success("Email verified successfully");
 				setErrorMessage(null);
-				console.log("User data after verification:", data.user);
 				if (data.user) {
 					setUser(data.user);
 				}

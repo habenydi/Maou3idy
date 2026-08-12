@@ -11,10 +11,15 @@ import DoctorServices from "./components/DoctorServices";
 import DoctorLocations from "./components/DoctorLocations";
 import BookingSidebar from "./components/BookingSidebar";
 import ReviewsTeaser from "./components/ReviewsTeaser";
+import { useAuth } from "../layout";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 function Booking() {
   const searchParams = useSearchParams();
   const doctorId = searchParams.get("doctorId") || "";
+  const { user, loading: Loading } = useAuth();
+  const route = useRouter();
   const [doctorData, setDoctorData] = useState<DoctorDetailResponse | null>(
     null,
   );
@@ -35,6 +40,16 @@ function Booking() {
     fetchDoctorData();
   }, [doctorId]);
 
+
+  useEffect(() => {
+    if (Loading) return;
+
+    if (!user) {
+      toast.error("You must be logged in to book an appointment.");
+      route.push("/login");
+    }
+  }, [user, route, Loading]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -46,9 +61,7 @@ function Booking() {
   if (!doctorData) {
     return <div>Error loading doctor data</div>;
   }
-const { doctor, location, reviews, availability } = doctorData;
-  const services = doctorData.services || [];
-  const publications = doctorData.publications || 0;
+  const { doctor, services, publications, reviews } = doctorData;
 
   return (
     <>
@@ -72,8 +85,7 @@ const { doctor, location, reviews, availability } = doctorData;
                 doctorId={doctorId}
                 doctorName={doctor.user.name}
               />
-              <ReviewsTeaser {
-                ...reviews}/>
+              <ReviewsTeaser reviews={reviews}/>
             </div>
           </aside>
         </div>

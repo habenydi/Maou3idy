@@ -9,7 +9,7 @@ import NotificationBell from './NotificationBell';
 import Link from 'next/link';
 
 interface NavbarProps {
-  activeLink?: 'doctors' | 'specialties' | 'about';
+  activeLink?: 'doctors' | 'specialties' | 'about' | '';
   showAuthButtons?: boolean;
   logoText?: string;
 }

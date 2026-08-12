@@ -47,6 +47,8 @@ export interface DoctorDetailResponse {
   location: Location;
   availability: AvailabilitySlot[];
   reviews: Review[];
+  services: Service[];
+  publications: number;
 }
 
 export interface LandingPageStats {

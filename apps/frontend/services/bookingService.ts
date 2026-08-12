@@ -61,6 +61,8 @@ export const getDoctorDetail = async (
   return {
     doctor,
     location: doctor.location,
+    services: doctor.services ?? [],
+    publications: doctor.publications ?? 0,
     reviews: doctor.reviews ?? [],
     availability: slotsResponse.data ?? [],
   };

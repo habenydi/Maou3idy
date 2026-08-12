@@ -1,7 +1,7 @@
 'use client';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:1337';
+const API_BASE_URL = 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

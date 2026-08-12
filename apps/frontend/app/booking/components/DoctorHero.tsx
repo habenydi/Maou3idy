@@ -20,6 +20,7 @@ export default function DoctorHero({ doctor }: Props) {
                       <Img
                         width={400}
                         height={400}
+                        loading="eager"
                         alt={`Dr. ${doctor.user.name}`}
                         className="w-full h-full object-cover rounded-2xl shadow-xl shadow-primary/10"
                         src={imageSrc}
