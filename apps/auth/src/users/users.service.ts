@@ -4,12 +4,14 @@ import { CreateUserDto } from "./dto/createUser.dto";
 import { CloudinaryService } from "src/cloudinary/cloudinary.service";
 import { Role, User } from "@prisma/client/edge";
 import { UpdateUser } from "./users.controller";
+import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private cloudinaryService: CloudinaryService,
+    private readonly rabbitMQService: RabbitMqService,
   ) {}
 
   async getStats(id: string) {
@@ -132,6 +134,11 @@ export class UsersService {
           action: "UPDATE_MY_DATA",
           timestamp: new Date(),
         },
+      });
+
+      this.rabbitMQService.emit("user.update", {
+        userId,
+        data,
       });
 
       return tx.user.update({

@@ -119,6 +119,8 @@ export class AuthService {
       email: user.email,
       name: user.name,
       token: token,
+      role: String(user.role),
+      verified: user.verified,
     });
     return {
       statusCode: 201,
@@ -494,18 +496,20 @@ export class AuthService {
         await tx.notification.create({
           data: {
             user_id: user.id,
-            message: `Welcome ${user.name}! Thank you for registering with Google. Please verify your email to access all features.`,
+            message: `Welcome ${user.name}! Thank you for registering`,
             title: "Welcome to Our Platform!",
             isRead: false,
           },
         });
+        this.emitEvent("user.created", {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          token: token,
+          role: user.role,
+          verified: user.verified,
+        });
       }
-      this.emitEvent("google.user", {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        token: token,
-      });
       return [token, user];
     });
     return {

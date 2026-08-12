@@ -71,7 +71,6 @@ export class JwtGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      console.log(error);
       if (error instanceof UnauthorizedException) {
         throw error;
       }

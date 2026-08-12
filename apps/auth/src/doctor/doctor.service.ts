@@ -328,4 +328,30 @@ export class DoctorService {
 
     return specialties.map((s) => s.speciality);
   }
+
+  async findMyData(id: string) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { user_id: id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    if (!doctor) {
+      throw new Error("Doctor not found");
+    }
+    return {
+      id: doctor.id,
+      speciality: doctor.speciality,
+      user: {
+        name: doctor.user.name,
+        image: doctor.user.image,
+      },
+    };
+  }
 }

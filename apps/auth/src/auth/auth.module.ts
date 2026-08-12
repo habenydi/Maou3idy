@@ -6,7 +6,7 @@ import { JwtGuard } from "./guards/jwt.guard";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { DoctorModule } from "src/doctor/doctor.module";
 import { RolesGuard } from "./guards/roles.guard";
-import { GoogleStrategy } from "./google.strategy";
+import { GoogleStrategy } from "./strategies/google.strategy";
 import { MetricsService } from "src/metrics/metrics.service";
 
 import { UsersModule } from "src/users/users.module";

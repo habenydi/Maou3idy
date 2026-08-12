@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { DoctorService } from "./doctor.service";
@@ -16,6 +17,18 @@ import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/auth/decorator/roles.decorator";
 import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
 import { Public } from "src/auth/decorator/public.decorator";
+
+export interface RequestDoctor extends Request {
+  user: {
+    sub: string;
+    email: string;
+    verified: boolean;
+    name: string;
+    role: Role;
+    token: string;
+    image: string;
+  };
+}
 
 @Controller("doctors")
 export class DoctorController {
@@ -53,6 +66,13 @@ export class DoctorController {
       address: "",
       zip_code: "",
     });
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.DOCTOR)
+  @Get("me")
+  findMine(@Req() req: RequestDoctor) {
+    return this.doctorService.findMyData(req.user.sub);
   }
   @Post()
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {

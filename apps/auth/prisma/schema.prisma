@@ -133,7 +133,7 @@ model Review {
   id String @id @default(uuid())
 
   doctorId String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id])
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   userId String
