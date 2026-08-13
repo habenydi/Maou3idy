@@ -13,7 +13,7 @@ export default function FilterSidebar() {
   useEffect(() => {
     const fetchSpecialities = async () => {
       try {
-        const response = await axios.get('http://localhost:1337/doctors/specialities');
+        const response = await axios.get(process.env.NEXT_PUBLIC_URL + '/doctor/specialities');
         setSpecialities(response.data.specialties);
       } catch (error) {
         console.error('Failed to load specialities:', error);

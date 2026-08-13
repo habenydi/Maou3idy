@@ -31,7 +31,7 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
 
     try {
       const response = await axios.patch(
-        "http://localhost:1337/users/profile-image",
+        process.env.NEXT_PUBLIC_URL + "/users/profile-image",
         formData,
         {
           withCredentials: true,

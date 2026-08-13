@@ -24,7 +24,7 @@ export default function CustomBarChart({ isMonthly }: CustomBarChartProps) {
         setLoading(true);
 
         const response = await axios.get(
-          `http://localhost:1337/admin/users-registration-trends/period=${
+          process.env.NEXT_PUBLIC_URL + `"/admin/users-registration-trends/period=${
             isMonthly ? 'monthly' : 'weekly'
           }`,
           { withCredentials: true }

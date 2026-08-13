@@ -30,7 +30,7 @@ export default function ForgotPasswordForm() {
 
     try {
       const response = await axios.post(
-        "http://localhost:1337/auth/forgot-password",
+        process.env.NEXT_PUBLIC_URL + "/auth/forgot-password",
         { email: data.email },
         {
           headers: {

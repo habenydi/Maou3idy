@@ -21,7 +21,7 @@ export default function RecentActivity() {
     const fetchActivities = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/admin/recent-activities',
+          process.env.NEXT_PUBLIC_URL + '/admin/recent-activities',
           {
             withCredentials: true,
           }

@@ -13,7 +13,7 @@ export async function getDoctors(
   params: GetDoctorsParams
 ) {
   const response = await axios.get(
-    'http://localhost:1337/doctors/find',
+    process.env.NEXT_PUBLIC_URL + '/doctor/find',
     {
       params,
       withCredentials: true,

@@ -28,7 +28,7 @@ export default async function DashboardPage({
   const accessToken = cookieStore.get("access_token")?.value;
 
   const response = await axios.get(
-    `http://localhost:1337/admin/users?page=${currentPage}&search=${searchQuery}&role=${roleQuery}`,
+    process.env.NEXT_PUBLIC_URL+ `/admin/users?page=${currentPage}&search=${searchQuery}&role=${roleQuery}`,
     {
       headers: {
         Cookie: `access_token=${accessToken}`,

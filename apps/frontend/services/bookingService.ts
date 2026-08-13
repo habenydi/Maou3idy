@@ -52,7 +52,7 @@ export const getDoctorDetail = async (
   doctorId: string
 ): Promise<DoctorDetailResponse> => {
   const [doctorResponse, slotsResponse] = await Promise.all([
-    api.get(`/doctors/${doctorId}`),
+    api.get(`/doctor/${doctorId}`),
     api.get(`/slots/doctor/${doctorId}`),
   ]);
 

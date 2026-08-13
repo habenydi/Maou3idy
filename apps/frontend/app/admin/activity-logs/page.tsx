@@ -20,7 +20,7 @@ export default function ActivityLogsPage() {
     const fetchActivities = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/admin/activity-logs?page=1&limit=1000',
+          process.env.NEXT_PUBLIC_URL+ '/admin/activity-logs?page=1&limit=1000',
           {withCredentials: true,}
         );
 

@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function approveDoctor(id: string) {
   return axios.patch(
-    `http://localhost:1337/admin/doctor/${id}/approve`,
+    process.env.NEXT_PUBLIC_URL + `"/admin/doctor/${id}/approve`,
     {},
     { withCredentials: true }
   );
@@ -10,7 +10,7 @@ export async function approveDoctor(id: string) {
 
 export async function rejectDoctor(id: string) {
   return axios.patch(
-    `http://localhost:1337/admin/doctor/${id}/reject`,
+    process.env.NEXT_PUBLIC_URL + `"/admin/doctor/${id}/reject`,
     {},
     { withCredentials: true }
   );
@@ -18,7 +18,7 @@ export async function rejectDoctor(id: string) {
 
 export async function activateDoctor(id: string) {
   return axios.patch(
-    `http://localhost:1337/admin/doctor/${id}/activate`,
+    process.env.NEXT_PUBLIC_URL + `"/admin/doctor/${id}/activate`,
     {},
     { withCredentials: true }
   );
@@ -26,7 +26,7 @@ export async function activateDoctor(id: string) {
 
 export async function suspendDoctor(id: string) {
   return axios.patch(
-    `http://localhost:1337/admin/doctor/${id}/suspend`,
+    process.env.NEXT_PUBLIC_URL + `"/admin/doctor/${id}/suspend`,
     {},
     { withCredentials: true }
   );

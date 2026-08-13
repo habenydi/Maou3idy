@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 export async function approveUser(userId: string) {
   try {
     await axios.patch(
-      `http://localhost:1337/admin/users/${userId}/activate`,
+      process.env.NEXT_PUBLIC_URL + `/admin/users/${userId}/activate`,
       {},
       { withCredentials: true }
     );
@@ -20,7 +20,7 @@ export async function approveUser(userId: string) {
 export async function disableUser(userId: string) {
   try {
     await axios.patch(
-      `http://localhost:1337/admin/users/${userId}/disable`,
+      process.env.NEXT_PUBLIC_URL + `/admin/users/${userId}/disable`,
       {},
       {
         withCredentials: true,
@@ -36,7 +36,7 @@ export async function disableUser(userId: string) {
 export async function deleteUser(userId: string) {
   try {
     await axios.delete(
-      `http://localhost:1337/admin/users/${userId}`,
+      process.env.NEXT_PUBLIC_URL + `/admin/users/${userId}`,
       { withCredentials: true }
     );
 
@@ -50,7 +50,7 @@ export async function deleteUser(userId: string) {
 export async function banUser(userId: string) {
   try {
     await axios.patch(
-      `http://localhost:1337/admin/users/${userId}/ban`,
+      process.env.NEXT_PUBLIC_URL + `/admin/users/${userId}/ban`,
       {},
       { withCredentials: true }
     );

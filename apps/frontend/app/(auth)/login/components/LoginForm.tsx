@@ -32,7 +32,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 
 		try {
 			const { data: responseData } = await axios.post(
-				"http://localhost:1337/auth/login",
+				process.env.NEXT_PUBLIC_URL + "/auth/login",
 				{
 					email: data.email,
 					password: data.password,
@@ -49,7 +49,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 			setUser(responseData.user);
 
 			toast.success("Login successful! Redirecting...");
-			router.push("/success");
+			router.push("/");
 		} catch (err) {
 			console.error(err);
 

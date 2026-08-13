@@ -11,7 +11,7 @@ export interface DoctorLocation {
   isPrimary?: boolean;
 }
 
-// Shape returned by GET /doctors/find (list view)
+// Shape returned by GET /doctor/find (list view)
 export interface Doctor {
   id: string;
   name: string;

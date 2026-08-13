@@ -34,7 +34,7 @@ export default function Navbar({
     useEffect(() => {
       const fetchUnreadCount = async () => {
         try {
-          const response = await axios.get("http://localhost:1337/notification/unread-count", {
+          const response = await axios.get(process.env.NEXT_PUBLIC_URL + "/notification/unread-count", {
             withCredentials: true,
           });
           setUnreadCount(response.data);
@@ -93,7 +93,7 @@ export default function Navbar({
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:1337/auth/logout", {}, {
+      await axios.post(process.env.NEXT_PUBLIC_URL + "/auth/logout", {}, {
         withCredentials: true,
       });
       setUser(null);
@@ -124,7 +124,7 @@ export default function Navbar({
   useEffect(() => {
     const fetchHideDoctorButton = async () => {
       try {
-        const response = await axios.get("http://localhost:1337/auth/hide_doctor_button", {
+        const response = await axios.get(process.env.NEXT_PUBLIC_URL + "/auth/hide_doctor_button", {
           withCredentials: true,
         });
         setDoctorButton(response.data.hide_doctor_button);
@@ -140,7 +140,7 @@ export default function Navbar({
 
   const handleHideDoctorButtonClick = async () => {
     try {
-      await axios.patch("http://localhost:1337/auth/update_hide_doctor_button", {}, {
+      await axios.patch(process.env.NEXT_PUBLIC_URL + "/auth/update_hide_doctor_button", {}, {
         withCredentials: true,
       });
       setDoctorButton((prev) => !prev);

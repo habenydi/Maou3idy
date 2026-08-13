@@ -22,7 +22,7 @@ export default function NotificationBell({ onUnreadCountChange }: { onUnreadCoun
   useEffect(() => {
     const fetchNotifications = async () => {
         try {
-            const response = await axios.get("http://localhost:1337/notification/mine", {
+            const response = await axios.get(process.env.NEXT_PUBLIC_URL + "/notification/mine", {
                 withCredentials: true,
             });
             router.refresh();
@@ -73,7 +73,7 @@ export default function NotificationBell({ onUnreadCountChange }: { onUnreadCoun
             onClick={() => {
                 axios
                 .patch(
-                    "http://localhost:1337/notification/mark-all-read",
+                    process.env.NEXT_PUBLIC_URL + "/notification/mark-all-read",
                     {},
                     {
                     withCredentials: true,
@@ -121,7 +121,7 @@ export default function NotificationBell({ onUnreadCountChange }: { onUnreadCoun
                 if (!notification.isRead) {
                     axios
                     .patch(
-                        `http://localhost:1337/notification/mark-read/${notification.id}`,
+                        process.env.NEXT_PUBLIC_URL + `/notification/mark-read/${notification.id}`,
                         {},
                         { withCredentials: true }
                     )

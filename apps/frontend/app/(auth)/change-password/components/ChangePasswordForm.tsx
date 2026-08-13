@@ -34,7 +34,7 @@ export default function ChangePasswordForm() {
 
     try {
       await axios.patch(
-        "http://localhost:1337/auth/change-password",
+        process.env.NEXT_PUBLIC_URL + "/auth/change-password",
         {
           old_password: data.currentPassword,
           new_password: data.newPassword,
@@ -51,7 +51,7 @@ export default function ChangePasswordForm() {
 
       toast.success("Password changed successfully");
 
-      router.push("/success");
+      router.push("/");
     } catch (err: unknown) {
       console.error(err);
 

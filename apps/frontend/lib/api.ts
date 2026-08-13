@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_URL + '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,7 +44,7 @@ axiosInstance.interceptors.response.use(
   },
 );
 
-const API_BASE = 'http://localhost:1339';
+const API_BASE = process.env.NEXT_PUBLIC_URL;
 
 export async function apiFetch(
   path: string,

@@ -7,7 +7,7 @@ export async function getDashboardStats() {
   const accessToken = cookieStore.get("access_token")?.value;
 
   const response = await axios.get(
-    "http://localhost:1337/admin/dashboard",
+    process.env.NEXT_PUBLIC_URL + "/admin/dashboard",
     {
       headers: {
         Cookie: `access_token=${accessToken}`,

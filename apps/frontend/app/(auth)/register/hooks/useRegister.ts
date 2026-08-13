@@ -11,7 +11,7 @@ export function useRegister({setUser}: RegisterProps) {
 	const router = useRouter();
 
 	const handleGoogleLogin = () => {
-		window.location.href = "http://localhost:1337/auth/google";
+		window.location.href = process.env.NEXT_PUBLIC_URL + "/auth/google";
 	};
 
 	const registerUser = async (
@@ -29,7 +29,7 @@ export function useRegister({setUser}: RegisterProps) {
 			}
 
 			const response = await axios.post(
-				"http://localhost:1337/auth/register",
+				process.env.NEXT_PUBLIC_URL + "/auth/register",
 				{
 					name: data.name,
 					email: data.email,

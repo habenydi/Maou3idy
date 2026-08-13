@@ -68,7 +68,7 @@ export default function HeroSection() {
     const fetchLandingPageData = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/users/landing-page'
+          process.env.NEXT_PUBLIC_URL + "/users/landing-page"
         , { withCredentials: true });
 
         setStats(response.data);
@@ -88,7 +88,7 @@ export default function HeroSection() {
     const fetchNextSession = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/users/next-session',
+          process.env.NEXT_PUBLIC_URL + '/users/next-session',
           { withCredentials: true }
         );
         setNextSession(response.data);

@@ -27,7 +27,7 @@ export type FeaturedDoctor = {
 
 export const getFeaturedDoctors = async (): Promise<FeaturedDoctor[]> => {
   try {
-    const response = await api.get('/doctors/featured');
+    const response = await api.get('/doctor/featured');
 
     return response.data;
   } catch (error) {
@@ -41,7 +41,7 @@ export const searchDoctors = async (
   location?: string
 ): Promise<FeaturedDoctor[]> => {
   try {
-    const response = await api.get('/doctors/search', {
+    const response = await api.get('/doctor/search', {
       params: {
         specialty,
         location,

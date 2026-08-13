@@ -28,7 +28,7 @@ export default function EditProfileModal({
       if (phone) {
         body['phone'] = phone;
       }
-      await axios.patch(`http://localhost:1337/users/my-data`,
+      await axios.patch(process.env.NEXT_PUBLIC_URL + `/users/my-data`,
         body, {
           withCredentials: true,
         }

@@ -19,7 +19,7 @@ export default function DoctorShell({ children }: { children: React.ReactNode })
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/doctors/me', { withCredentials: true });
+        const response = await axios.get(process.env.NEXT_PUBLIC_URL + '/doctor/me', { withCredentials: true });
         setDoctorData(response.data);
       } catch (error) {
         console.error('Error fetching doctor data:', error);
@@ -28,8 +28,6 @@ export default function DoctorShell({ children }: { children: React.ReactNode })
 
     fetchDoctorData();
   }, []);
-
-  console.log('Doctor Data:', doctorData);
 
   if (!doctorData) {
     return (

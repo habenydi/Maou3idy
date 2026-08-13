@@ -126,7 +126,7 @@ function RegisterDoctor() {
 
       const { data: responseData } =
         await axios.post(
-          "http://localhost:1337/auth/doctor-register",
+          process.env.NEXT_PUBLIC_URL + "/auth/doctor-register",
           payload,
           {
             headers: {

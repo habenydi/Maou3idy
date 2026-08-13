@@ -6,7 +6,7 @@ export async function getDoctorApplicationSummary() {
   const accessToken = cookieStore.get("access_token")?.value;
 
   const response = await axios.get(
-    "http://localhost:1337/admin/doctor-applications/stats",
+    process.env.NEXT_PUBLIC_URL + "/admin/doctor-applications/stats",
     {
       headers: {
         Cookie: `access_token=${accessToken}`,

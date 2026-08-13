@@ -19,7 +19,7 @@ export default function ViewAllNotifications() {
     const fetchNotifications = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/notification/mine',
+          process.env.NEXT_PUBLIC_URL + '/notification/mine',
           {
             withCredentials: true,
           }
@@ -38,7 +38,7 @@ export default function ViewAllNotifications() {
   const markAllRead = async () => {
     try {
       await axios.patch(
-        'http://localhost:1337/notification/mark-all-read',
+        process.env.NEXT_PUBLIC_URL + '/notification/mark-all-read',
         {},
         {
           withCredentials: true,
@@ -60,7 +60,7 @@ export default function ViewAllNotifications() {
   const markRead = async (notificationId: number) => {
     try {
       await axios.patch(
-        `http://localhost:1337/notification/mark-read/${notificationId}`,
+        process.env.NEXT_PUBLIC_URL + `/notification/mark-read/${notificationId}`,
         {},
         {
           withCredentials: true,

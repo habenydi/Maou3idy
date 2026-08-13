@@ -36,7 +36,7 @@ export function AuthProvider({
 
   useEffect(() => {
     axios
-      .get("http://localhost:1337/auth/me", {
+      .get(process.env.NEXT_PUBLIC_URL + "/auth/me", {
         headers: {
           "Cache-Control": "no-cache",
         },

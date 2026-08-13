@@ -2,8 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 
-export default function CTASection() {
+
+export function formatCount(value: number) {
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    compactDisplay: "short",
+  }).format(value);
+}
+
+export default function CTASection({doctorCount}: {doctorCount: number}) {
   const router = useRouter();
+
+  const Count = formatCount(doctorCount);
 
   return (
         <section className="py-16 sm:py-20 px-4 sm:px-6">
@@ -25,7 +35,7 @@ export default function CTASection() {
                       <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
                     </div>
                     <div className="text-left">
-                      <p className="text-white font-bold">12k+ Doctors</p>
+                      <p className="text-white font-bold">{Count} Doctors</p>
                       <p className="text-white/60 text-xs">Ready to assist you today</p>
                     </div>
                   </div>

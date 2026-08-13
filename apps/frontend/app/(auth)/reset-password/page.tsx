@@ -42,7 +42,7 @@ export default function ResetPassword() {
 
     try {
       const response = await axios.patch(
-        `http://localhost:1337/auth/reset-password/token=${token}`,
+        process.env.NEXT_PUBLIC_URL + `/auth/reset-password/token=${token}`,
         {
           new_password: data.password,
         },
@@ -60,7 +60,7 @@ export default function ResetPassword() {
 
       toast.success(message);
 
-      router.push("/success");
+      router.push("/");
     } catch (err) {
       console.error(err);
 

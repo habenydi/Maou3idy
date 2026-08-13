@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 
 export  async function LogoutPage() {
     try {
-      await axios.post("http://localhost:1337/auth/logout", {}, {
+      await axios.post(process.env.NEXT_PUBLIC_URL + "/auth/logout", {}, {
         withCredentials: true,
       });
     } catch (error) {

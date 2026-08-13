@@ -33,7 +33,7 @@ export default function VerificationEmail() {
 
 		const verifyEmail = async () => {
 			try {
-				const response = await axios.get(`http://localhost:1337/auth/verify_email/token=${encodeURIComponent(token ?? "")}`, {
+				const response = await axios.get(process.env.NEXT_PUBLIC_URL + `"/auth/verify_email/token=${encodeURIComponent(token ?? "")}`, {
 					withCredentials: true,
 				});
 				const data = response.data;

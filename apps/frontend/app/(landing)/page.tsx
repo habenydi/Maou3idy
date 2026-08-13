@@ -32,6 +32,8 @@ export default function LandingPage() {
     fetchData();
   }, []);
 
+  const doctorCount = landingData ? landingData.length : 0;
+
   if (loading) return <LoadingScreen />;
 
   return (
@@ -42,7 +44,7 @@ export default function LandingPage() {
         <HeroSection />
         <FeaturedDoctors doctors={landingData  || []} />
         <HowItWorks />
-        <CTASection />
+        <CTASection doctorCount={doctorCount} />
       </main>
 
       <InformationFooter />

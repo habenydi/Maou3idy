@@ -31,7 +31,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(`http://localhost:1337/users/my-data`, {
+        const response = await axios.get(process.env.NEXT_PUBLIC_URL + `/users/my-data`, {
           withCredentials: true,
         });
         setUser(response.data);

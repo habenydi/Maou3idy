@@ -13,7 +13,7 @@ export default function AdminNotifications() {
     const fetchUnreadCount = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:1337/notification/unread-count',
+          process.env.NEXT_PUBLIC_URL + '/notification/unread-count',
           {
             withCredentials: true,
           }
