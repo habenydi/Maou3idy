@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -30,7 +31,7 @@ export interface RequestDoctor extends Request {
   };
 }
 
-@Controller("doctors")
+@Controller("doctor")
 export class DoctorController {
   constructor(private doctorService: DoctorService) {}
 
@@ -73,6 +74,25 @@ export class DoctorController {
   @Get("me")
   findMine(@Req() req: RequestDoctor) {
     return this.doctorService.findMyData(req.user.sub);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.DOCTOR)
+  @Patch("update-profile")
+  updateProfile(
+    @Req() req: RequestDoctor,
+    @Body() body: Partial<CreateDoctorDto>,
+  ) {
+    return this.doctorService.updateProfile(req.user.sub, body);
+  }
+  @UseGuards(RolesGuard)
+  @Roles(Role.DOCTOR)
+  @Patch("professional-info")
+  updateProfessionalInfo(
+    @Req() req: RequestDoctor,
+    @Body() body: Partial<CreateDoctorDto>,
+  ) {
+    return this.doctorService.updateProfessionalInfo(req.user.sub, body);
   }
   @Post()
   create(@Body() body: CreateDoctorDto, @Param("id") id: string) {

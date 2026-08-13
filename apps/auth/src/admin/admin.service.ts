@@ -259,7 +259,7 @@ export class AdminService {
       name: doctor.user.name,
     });
 
-    this.rabbitMqService.emit("docotor.approved", {
+    this.rabbitMqService.emit("doctor.approved", {
       id: doctor.user.id,
       userId: doctor.user.id,
       doctorId: doctor.id,

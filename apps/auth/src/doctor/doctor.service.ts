@@ -3,10 +3,14 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { CreateDoctorDto } from "./dto/createDoctor.dto";
 import { GetDoctorsDto } from "./dto/GetDoctorsDto.dto";
 import { DoctorLocation } from "src/doctor-location/type";
+import { RabbitMqService } from "src/rabbitmq/rabbitmq.service";
 
 @Injectable()
 export class DoctorService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly rabbitMQService: RabbitMqService,
+  ) {}
 
   async create(body: CreateDoctorDto, userId: string) {
     await this.prisma.doctor.create({
@@ -353,5 +357,101 @@ export class DoctorService {
         image: doctor.user.image,
       },
     };
+  }
+
+  async updateProfessionalInfo(userId: string, data: Partial<CreateDoctorDto>) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!doctor) {
+      throw new Error("Doctor not found");
+    }
+
+    const { location, ...rest } = data;
+    const responce = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.doctor.update({
+        where: { id: doctor.id },
+        data: {
+          ...rest,
+          ...(location && {
+            location: {
+              create: {
+                address: location.address,
+                city: location.city,
+                state: location.state,
+                zip_code: location.zip_code,
+                country: location.country,
+                latitude: location.latitude ?? 0,
+                longitude: location.longitude ?? 0,
+              },
+            },
+          }),
+        },
+      });
+      await tx.auditlog.create({
+        data: {
+          action: "Dr Profile Updated",
+          user_id: userId,
+          timestamp: new Date(),
+        },
+      });
+      return result;
+    });
+
+    this.rabbitMQService.emit("doctor.updated", {
+      doctorId: doctor.id,
+      userId: userId,
+      updatedFields: Object.keys(data),
+    });
+    return responce;
+  }
+
+  async updateProfile(userId: string, data: Partial<CreateDoctorDto>) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!doctor) {
+      throw new Error("Doctor not found");
+    }
+
+    const { location, ...rest } = data;
+    const responce = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.doctor.update({
+        where: { id: doctor.id },
+        data: {
+          ...rest,
+          ...(location && {
+            location: {
+              create: {
+                address: location.address,
+                city: location.city,
+                state: location.state,
+                zip_code: location.zip_code,
+                country: location.country,
+                latitude: location.latitude ?? 0,
+                longitude: location.longitude ?? 0,
+              },
+            },
+          }),
+        },
+      });
+      await tx.auditlog.create({
+        data: {
+          action: "Dr Profile Updated",
+          user_id: userId,
+          timestamp: new Date(),
+        },
+      });
+      return result;
+    });
+
+    this.rabbitMQService.emit("doctor.updated", {
+      doctorId: doctor.id,
+      userId: userId,
+      updatedFields: Object.keys(data),
+    });
+    return responce;
   }
 }
