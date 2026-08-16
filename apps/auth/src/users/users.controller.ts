@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -51,11 +52,11 @@ export class UsersController {
   UpdateMyData(@Req() req: RequestWithUser, @Body() body: UpdateUser) {
     return this.usersService.updateMyData(req.user.sub, body);
   }
-  @Public()
-  @Get("next-session")
-  getNextSession() {
-    return this.usersService.getNextSession();
-  }
+  // GET /users/next-session used to live here and always returned the same
+  // hardcoded "Dr. John Doe, 3 days from now" for literally everyone,
+  // logged in or not. Real appointment data lives in the slots service, not
+  // auth — the frontend now calls GET /slots/me/next instead. See
+  // mistake.md.
 
   @Post()
   create(@Body() body: CreateUserDto) {
@@ -82,8 +83,15 @@ export class UsersController {
   findById(@Param("id") id: string) {
     return this.usersService.findById(id);
   }
+  // Self-service account deletion only. Deleting other users belongs to
+  // AdminController's DELETE /admin/users/:id, which is role-guarded; this
+  // route had no ownership check at all, so any authenticated user could
+  // delete any other user's account by id.
   @Delete(":id")
-  remove(@Param("id") id: string) {
+  remove(@Req() req: RequestWithUser, @Param("id") id: string) {
+    if (req.user.sub !== id) {
+      throw new ForbiddenException("You can only delete your own account");
+    }
     return this.usersService.remove(id);
   }
 }

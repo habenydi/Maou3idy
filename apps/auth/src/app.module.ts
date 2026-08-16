@@ -13,6 +13,8 @@ import { AuthEventListenerModule } from "./auth-event-listener/auth-event-listen
 import { ReviewModule } from "./review/review.module";
 import { NotificationModule } from "./notification/notification.module";
 import { UserStatsModule } from "./user-stats/user-stats.module";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
 
 @Module({
   imports: [
@@ -51,5 +53,12 @@ import { UserStatsModule } from "./user-stats/user-stats.module";
     NotificationModule,
     UserStatsModule,
   ],
+  // AppController (incl. GET /health, which the api-gateway's
+  // ServiceAvailabilityInterceptor polls to decide whether to let any
+  // request through at all) was never registered here, so it was dead code
+  // and every request through the gateway would 503 "Auth service
+  // unavailable" forever.
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

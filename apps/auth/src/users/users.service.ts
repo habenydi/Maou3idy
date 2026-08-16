@@ -113,19 +113,6 @@ export class UsersService {
     };
   }
 
-  getNextSession() {
-    const imageUrl =
-      "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle";
-    return {
-      date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-      doctor: {
-        name: "Dr. John Doe",
-        specialty: "Cardiologist",
-        image: imageUrl,
-      },
-    };
-  }
-
   async updateMyData(userId: string, data: UpdateUser) {
     await this.prisma.$transaction(async (tx) => {
       await tx.auditlog.create({
