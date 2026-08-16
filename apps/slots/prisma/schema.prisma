@@ -63,6 +63,7 @@ model Slots {
   end_time   String
   is_booked  Boolean     @default(false)
   status     SlotsStatus @default(AVAILABLE)
+  reminder_sent Boolean  @default(false)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 

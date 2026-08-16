@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { CreateServiceDto } from "./dto/create-service.dto";
 import { UpdateServiceDto } from "./dto/update-service.dto";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -22,8 +22,26 @@ export class ServicesService {
     return doctor;
   }
 
-  async createService(doctorId: string, createServiceDto: CreateServiceDto) {
+  // create/update/remove take doctorId from the URL/body, which used to be
+  // trusted with no check at all — any authenticated user could create,
+  // edit, or delete services under a doctorId that wasn't their own. This
+  // verifies the caller actually IS the doctor they're claiming to act as.
+  private assertIsOwnDoctor(
+    doctor: { user_id: string },
+    callerUserId: string,
+  ) {
+    if (doctor.user_id !== callerUserId) {
+      throw new ForbiddenException("You can only manage your own services");
+    }
+  }
+
+  async createService(
+    doctorId: string,
+    createServiceDto: CreateServiceDto,
+    callerUserId: string,
+  ) {
     const doctor = await this.resolveDoctor(doctorId);
+    this.assertIsOwnDoctor(doctor, callerUserId);
 
     const category = await this.prisma.category.findUnique({
       where: { id: createServiceDto.category_id },
@@ -87,8 +105,10 @@ export class ServicesService {
     doctorId: string,
     serviceId: string,
     updateServiceDto: UpdateServiceDto,
+    callerUserId: string,
   ) {
     const doctor = await this.resolveDoctor(doctorId);
+    this.assertIsOwnDoctor(doctor, callerUserId);
 
     const service = await this.prisma.service.findUnique({
       where: {
@@ -129,8 +149,13 @@ export class ServicesService {
     });
   }
 
-  async removeService(doctorId: string, serviceId: string) {
+  async removeService(
+    doctorId: string,
+    serviceId: string,
+    callerUserId: string,
+  ) {
     const doctor = await this.resolveDoctor(doctorId);
+    this.assertIsOwnDoctor(doctor, callerUserId);
 
     const service = await this.prisma.service.findUnique({
       where: {

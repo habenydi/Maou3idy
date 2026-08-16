@@ -2,17 +2,124 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { CreateSlotsDto } from "./dto/create-slots.dto";
 import { UpdateSlotDto } from "./dto/update-slots.dto";
 import { BookServiceSlotDto } from "./dto/book-service-slot.dto";
 import { Prisma } from "@prisma/client";
+import { RabbitMqService } from "../rabbitmq/rabbitmq.service";
+
+/** How far ahead of an appointment's start time the reminder email should fire. */
+const REMINDER_LEAD_TIME_MINUTES = 30;
+/** How often we poll for appointments entering the reminder window. */
+const REMINDER_POLL_INTERVAL_MS = 60_000;
 
 @Injectable()
-export class SlotsService {
-  constructor(private prisma: PrismaService) {}
+export class SlotsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(SlotsService.name);
+  private reminderInterval?: ReturnType<typeof setInterval>;
+
+  constructor(
+    private prisma: PrismaService,
+    private readonly rabbitMqService: RabbitMqService,
+  ) {}
+
+  onModuleInit() {
+    // Poll every minute for BOOKED appointments that just entered the
+    // "starts within 30 minutes" window and fire the reminder event once.
+    this.reminderInterval = setInterval(() => {
+      this.sendDueAppointmentReminders().catch((error) =>
+        this.logger.error("Reminder sweep failed", error),
+      );
+    }, REMINDER_POLL_INTERVAL_MS);
+  }
+
+  onModuleDestroy() {
+    if (this.reminderInterval) clearInterval(this.reminderInterval);
+  }
+
+  /**
+   * Emits `appointment.reminder` for every BOOKED slot whose start time falls
+   * within the next REMINDER_LEAD_TIME_MINUTES and hasn't been reminded yet.
+   * Uses an atomic conditional update (reminder_sent: false -> true) as a
+   * claim so overlapping sweeps / instances can't double-send the email.
+   */
+  private async sendDueAppointmentReminders() {
+    const now = new Date();
+    const windowEnd = new Date(
+      now.getTime() + REMINDER_LEAD_TIME_MINUTES * 60_000,
+    );
+
+    // date/start_time are stored separately, so narrow with a date range
+    // first and do the precise minute-level check in JS below.
+    const candidates = await this.prisma.slots.findMany({
+      where: {
+        status: "BOOKED",
+        reminder_sent: false,
+        date: {
+          gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          lte: windowEnd,
+        },
+      },
+      include: { doctor: { include: { user: true } }, user: true },
+    });
+
+    for (const slot of candidates) {
+      const startDateTime = this.combineDateAndTime(slot.date, slot.start_time);
+      if (startDateTime < now || startDateTime > windowEnd) continue;
+      if (!slot.user || !slot.doctor?.user) continue;
+
+      const claimed = await this.prisma.slots.updateMany({
+        where: { id: slot.id, reminder_sent: false },
+        data: { reminder_sent: true },
+      });
+      if (claimed.count === 0) continue; // another sweep already claimed it
+
+      this.rabbitMqService.emit("appointment.reminder", {
+        userId: slot.user.id,
+        doctorId: slot.doctor.user.id,
+        patientEmail: slot.user.email,
+        patientName: slot.user.name,
+        doctorEmail: slot.doctor.user.email,
+        doctorName: slot.doctor.user.name,
+        appointmentTime: `${this.toLocalDateStr(slot.date)} ${slot.start_time}`,
+      });
+    }
+  }
+
+  /** Builds and emits an appointment.* event for a booked slot, tolerating missing relations. */
+  private async emitAppointmentEvent(pattern: string, slotId: string) {
+    try {
+      const slot = await this.prisma.slots.findUnique({
+        where: { id: slotId },
+        include: { doctor: { include: { user: true } }, user: true },
+      });
+
+      if (!slot || !slot.user || !slot.doctor?.user) {
+        this.logger.warn(
+          `Skipped emitting ${pattern} for slot ${slotId}: missing patient/doctor relation`,
+        );
+        return;
+      }
+
+      this.rabbitMqService.emit(pattern, {
+        userId: slot.user.id,
+        doctorId: slot.doctor.user.id,
+        patientEmail: slot.user.email,
+        patientName: slot.user.name,
+        doctorEmail: slot.doctor.user.email,
+        doctorName: slot.doctor.user.name,
+        appointmentTime: `${this.toLocalDateStr(slot.date)} ${slot.start_time}`,
+      });
+    } catch (error) {
+      this.logger.error(`Failed to emit ${pattern} for slot ${slotId}`, error);
+    }
+  }
 
   private async getDoctorByUserId(userId: string) {
     const doctor = await this.prisma.doctor.findUnique({
@@ -401,6 +508,7 @@ export class SlotsService {
         status: "AVAILABLE",
         user_id: null,
         service_id: null,
+        reminder_sent: false,
       },
     });
 
@@ -408,6 +516,9 @@ export class SlotsService {
     return released;
   }
 
+  // NOTE: this legacy endpoint never receives an authenticated userId, so the
+  // resulting slot has no patient attached and no appointment.created event
+  // is emitted for it. The active booking flow is bookServiceSlot() below.
   async bookSlot(id: string) {
     const slot = await this.prisma.slots.findUnique({ where: { id } });
     if (!slot) throw new NotFoundException("Slot not found");
@@ -473,6 +584,92 @@ export class SlotsService {
     });
   }
 
+  /**
+   * The nearest upcoming BOOKED appointment for whoever's asking — as a
+   * patient if they have one, as a doctor if they're synced as one.
+   * Powers the landing page's "next session" card. Returns null if there's
+   * nothing upcoming, so the frontend can render its own logged-in-but-no-
+   * appointment state.
+   *
+   * Doesn't return doctor specialty/profile image — slots only has the
+   * denormalized name/email synced from auth, not full profile data. The
+   * frontend fetches that separately from the auth service when needed.
+   */
+  async findNextSessionForCurrentUser(userId: string) {
+    const now = new Date();
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (doctor) {
+      const upcoming = await this.prisma.slots.findMany({
+        where: {
+          doctor_id: doctor.id,
+          status: "BOOKED",
+          date: { gte: todayStart },
+        },
+        include: { user: true, service: true },
+        orderBy: [{ date: "asc" }, { start_time: "asc" }],
+        take: 20,
+      });
+
+      const next = upcoming.find(
+        (slot) => this.combineDateAndTime(slot.date, slot.start_time) >= now,
+      );
+
+      if (!next || !next.user) return null;
+
+      return {
+        viewerRole: "DOCTOR" as const,
+        date: this.combineDateAndTime(next.date, next.start_time).toISOString(),
+        serviceName: next.service?.name ?? null,
+        with: {
+          id: next.user.id,
+          name: next.user.name,
+          email: next.user.email,
+        },
+      };
+    }
+
+    const upcoming = await this.prisma.slots.findMany({
+      where: {
+        user_id: userId,
+        status: "BOOKED",
+        date: { gte: todayStart },
+      },
+      include: { doctor: { include: { user: true } }, service: true },
+      orderBy: [{ date: "asc" }, { start_time: "asc" }],
+      take: 20,
+    });
+
+    const next = upcoming.find(
+      (slot) => this.combineDateAndTime(slot.date, slot.start_time) >= now,
+    );
+
+    if (!next || !next.doctor?.user) return null;
+
+    return {
+      viewerRole: "PATIENT" as const,
+      date: this.combineDateAndTime(next.date, next.start_time).toISOString(),
+      serviceName: next.service?.name ?? null,
+      with: {
+        id: next.doctor.user.id,
+        // Doctor's own row id (distinct from the user id above) — this is
+        // what GET /doctor/:id on the auth service expects, for fetching
+        // specialty/profile image that slots doesn't have a copy of.
+        doctorId: next.doctor.id,
+        name: next.doctor.user.name,
+        email: next.doctor.user.email,
+      },
+    };
+  }
+
   async cancelCurrentUserBooking(userId: string, id: string) {
     const slot = await this.prisma.slots.findFirst({
       where: {
@@ -492,6 +689,8 @@ export class SlotsService {
       );
     }
 
+    await this.emitAppointmentEvent("appointment.canceled", slot.id);
+
     const cancelled = await this.prisma.slots.update({
       where: { id },
       data: {
@@ -499,6 +698,7 @@ export class SlotsService {
         status: "AVAILABLE",
         user_id: null,
         service_id: null,
+        reminder_sent: false,
       },
     });
 
@@ -526,13 +726,17 @@ export class SlotsService {
       throw new NotFoundException("Appointment not found");
     }
 
-    return this.prisma.slots.update({
+    const completed = await this.prisma.slots.update({
       where: { id },
       data: {
         status: "COMPLETED",
         is_booked: true,
       },
     });
+
+    await this.emitAppointmentEvent("appointment.completed", slot.id);
+
+    return completed;
   }
 
   async cancelCurrentDoctorBooking(userId: string, id: string) {
@@ -549,6 +753,8 @@ export class SlotsService {
       throw new NotFoundException("Appointment not found");
     }
 
+    await this.emitAppointmentEvent("appointment.canceled", slot.id);
+
     const cancelled = await this.prisma.slots.update({
       where: { id },
       data: {
@@ -556,6 +762,7 @@ export class SlotsService {
         status: "AVAILABLE",
         user_id: null,
         service_id: null,
+        reminder_sent: false,
       },
     });
 
@@ -665,6 +872,11 @@ export class SlotsService {
 
       return { success: true, booked_slot: bookedSlot };
     });
+
+    await this.emitAppointmentEvent(
+      "appointment.created",
+      result.booked_slot.id,
+    );
 
     return result;
   }

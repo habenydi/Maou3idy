@@ -11,6 +11,8 @@ import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
 import { AuthSyncController } from "./auth/auth-sync.controller";
 import { ServicesModule } from "./services/services.module";
 import { CategoriesModule } from "./categories/categories.module";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
 
 @Module({
   imports: [
@@ -43,6 +45,7 @@ import { CategoriesModule } from "./categories/categories.module";
     ServicesModule,
     CategoriesModule,
   ],
-  controllers: [AuthSyncController],
+  controllers: [AuthSyncController, AppController],
+  providers: [AppService],
 })
 export class AppModule {}
