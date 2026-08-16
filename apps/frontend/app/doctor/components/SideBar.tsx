@@ -108,11 +108,11 @@ function Sidebar({ isOpen = false, onClose, name, image, specialty }: SidebarPro
 
         <div className="mt-auto px-4 py-4 border-t border-slate-200/50">
           <Link
-            href="/doctor/appointments/new"
+            href="/doctor/schedule"
             className="w-full mb-4 bg-linear-to-r from-primary to-primary-container text-white py-3 rounded-xl font-bold active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">add</span>
-            <span>New Appointment</span>
+            <span>Open New Slots</span>
           </Link>
           <div className="space-y-1">
             <Link

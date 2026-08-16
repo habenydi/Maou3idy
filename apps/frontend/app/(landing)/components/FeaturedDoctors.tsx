@@ -35,6 +35,31 @@ export default function FeaturedDoctors({ doctors }: Props) {
           </button>
         </div>
 
+{doctors.length === 0 ? (
+  <div className="bg-surface-container-lowest rounded-3xl p-12 text-center border border-outline-variant">
+    <div className="flex justify-center mb-4">
+      <span className="material-symbols-outlined text-6xl text-primary">
+        medical_services
+      </span>
+    </div>
+
+    <h3 className="text-2xl font-bold mb-2">
+      No Featured Doctors Available
+    </h3>
+
+    <p className="text-on-surface-variant max-w-md mx-auto mb-6">
+      We don&apos;t have any featured specialists to display right now.
+      Please check back later or explore our specialties.
+    </p>
+
+    <button
+      onClick={() => router.push('/specialties')}
+      className="px-6 py-3 bg-primary text-on-primary rounded-xl font-semibold hover:opacity-90 transition"
+    >
+      Browse Specialties
+    </button>
+  </div>
+) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {doctors.map((doctor) => (
             <div
@@ -85,6 +110,7 @@ export default function FeaturedDoctors({ doctors }: Props) {
             </div>
           ))}
         </div>
+)} 
       </div>
     </section>
   );

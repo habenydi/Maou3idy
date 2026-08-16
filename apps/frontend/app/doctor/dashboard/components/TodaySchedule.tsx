@@ -1,7 +1,8 @@
 import Img from 'next/image';
+import Link from 'next/link';
 
 type ScheduleItem = {
-  id: number;
+  id: string;
   patientName: string;
   type: string;
   time: string;
@@ -23,15 +24,20 @@ export default function TodaySchedule({
           Today&apos;s Schedule
         </h3>
 
-        <a
+        <Link
           className="text-primary text-xs font-bold hover:underline"
-          href="#"
+          href="/doctor/appointments"
         >
           View All
-        </a>
+        </Link>
       </div>
 
       <div className="space-y-4">
+        {scheduleItems.length === 0 && (
+          <p className="text-sm text-slate-500 text-center py-6">
+            No appointments scheduled for today.
+          </p>
+        )}
         {scheduleItems.map((appointment) => (
           <div
             key={appointment.id}

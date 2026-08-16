@@ -19,7 +19,8 @@ export default function AdminNotifications() {
           }
         );
 
-        setUnreadCount(response.data.count);
+        // Backend returns a bare count number, not { count }.
+        setUnreadCount(response.data);
       } catch (error) {
         console.error(
           'Error fetching unread notifications count:',

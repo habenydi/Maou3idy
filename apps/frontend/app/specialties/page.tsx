@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { toast } from 'react-toastify';
 
 import Navbar from '@/components/Navbar';
 import InformationFooter from '@/components/InformationFooter';
@@ -37,10 +36,6 @@ export default function DoctorPage() {
 
         setData(doctors);
       } catch (error) {
-        toast.error(
-          'Error fetching doctors. Please try again later.'
-        );
-
         console.error(error);
       }
     };

@@ -28,7 +28,7 @@ export default function UpcomingAppointments({
         </h2>
 
         <button
-          onClick={() => router.push('/patients/doctor')}
+          onClick={() => router.push('/specialties')}
           className="text-primary font-bold hover:underline"
         >
           Book New Appointment

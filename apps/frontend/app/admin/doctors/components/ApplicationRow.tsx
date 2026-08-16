@@ -4,6 +4,7 @@ import { Application } from '../page';
 import { activateDoctor, approveDoctor, rejectDoctor, suspendDoctor } from '../action';
 import { useRouter } from 'next/dist/client/components/navigation';
 import { DoctorApplication } from '../page';
+import { toast } from 'react-toastify';
 export default function ApplicationRow({
   id,
   name,
@@ -79,17 +80,27 @@ export default function ApplicationRow({
         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 
           {role === "PENDING_DOCTOR" && (
-          <button onClick={async () => { await approveDoctor(id);
-            router.refresh()
-          }} className="p-2 hover:text-green-600"> 
+          <button onClick={async () => {
+            try {
+              await approveDoctor(id);
+              router.refresh();
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Failed to approve doctor");
+            }
+          }} className="p-2 hover:text-green-600">
             <span className="material-symbols-outlined">
               check_circle
             </span>
           </button>)}
           { role === "PENDING_DOCTOR" && (
-            <button onClick={async () => { await rejectDoctor(id);
-              router.refresh()}
-            } className="p-2 hover:text-error">
+            <button onClick={async () => {
+              try {
+                await rejectDoctor(id);
+                router.refresh();
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to reject doctor");
+              }
+            }} className="p-2 hover:text-error">
               <span className="material-symbols-outlined">
                 cancel
               </span>
@@ -97,14 +108,25 @@ export default function ApplicationRow({
           )}
           {role === "DOCTOR" && (
             <>
-            <button onClick={async () => { rejectDoctor(id);
-              router.refresh()}} className="p-2 hover:text-error">
+            <button onClick={async () => {
+              try {
+                await rejectDoctor(id);
+                router.refresh();
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to reject doctor");
+              }
+            }} className="p-2 hover:text-error">
               <span className="material-symbols-outlined">
                 cancel
               </span>
             </button>
-            <button onClick={async () => { await suspendDoctor(id);
-              router.refresh()
+            <button onClick={async () => {
+              try {
+                await suspendDoctor(id);
+                router.refresh();
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to suspend doctor");
+              }
             }} className="p-2 hover:text-error">
               <span className="material-symbols-outlined">
                 block
@@ -113,8 +135,13 @@ export default function ApplicationRow({
               </>
           )}
           {role === "REJECTED" && (
-            <button onClick={async () => { await activateDoctor(id);
-              router.refresh()
+            <button onClick={async () => {
+              try {
+                await activateDoctor(id);
+                router.refresh();
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to activate doctor");
+              }
             }} className="p-2 hover:text-success">
               <span className="material-symbols-outlined">
                 check_circle

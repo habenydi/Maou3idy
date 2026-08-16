@@ -111,7 +111,7 @@ export default function ProfileMenu({ user, onLogout }: ProfileMenuProps) {
               user.role === "ADMIN"
                 ? "/admin/settings"
                 : user.role === "DOCTOR"
-                  ? "/settings"
+                  ? "/doctor/settings"
                   : "/settings",
             )
           }

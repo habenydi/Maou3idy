@@ -186,7 +186,7 @@ useEffect(() => {
       });
 
       toast.success("Appointment booked successfully!");
-      router.push("/dashboard/appointments");
+      router.push("/appointments");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Booking failed");
       setSelectedWindow(null);

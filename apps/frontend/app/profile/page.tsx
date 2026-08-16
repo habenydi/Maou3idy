@@ -28,18 +28,18 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(process.env.NEXT_PUBLIC_URL + `/users/my-data`, {
-          withCredentials: true,
-        });
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(process.env.NEXT_PUBLIC_URL + `/users/my-data`, {
+        withCredentials: true,
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchUserData();
   }, []);
 
@@ -80,6 +80,7 @@ export default function ProfilePage() {
       {editOpen && (
         <EditProfileModal
           onClose={() => setEditOpen(false)}
+          onSaved={fetchUserData}
           user={{
             name: user.name,
             email: user.email,

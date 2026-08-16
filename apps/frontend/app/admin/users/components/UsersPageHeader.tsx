@@ -53,7 +53,7 @@ export default function UsersPageHeader({
   const currentFilterLabel =
     role === 'DOCTOR'
       ? 'Doctors'
-      : role === 'PATIENT'
+      : role === 'USER'
       ? 'Patients'
       : 'All Users';
 
@@ -143,7 +143,7 @@ export default function UsersPageHeader({
               <button
                 onClick={() => updateParam('role', 'USER')}
                 className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors ${
-                  role === 'PATIENT'
+                  role === 'USER'
                     ? 'bg-primary/10 text-primary font-semibold'
                     : 'hover:bg-surface-container-low'
                 }`}

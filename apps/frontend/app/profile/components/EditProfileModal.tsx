@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 
 interface Props {
   user: {
@@ -10,16 +11,20 @@ interface Props {
     role: string;
   };
   onClose: () => void;
+  onSaved?: () => void;
 }
 
 export default function EditProfileModal({
   user,
   onClose,
+  onSaved,
 }: Props) {
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       const body : {
         name : string,
@@ -33,10 +38,15 @@ export default function EditProfileModal({
           withCredentials: true,
         }
       );
+      toast.success('Profile updated successfully');
+      onSaved?.();
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-    };
+      toast.error('Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -104,9 +114,10 @@ export default function EditProfileModal({
 
           <button
             onClick={handleSave}
-            className="rounded-xl bg-primary px-4 py-2 text-white"
+            disabled={saving}
+            className="rounded-xl bg-primary px-4 py-2 text-white disabled:opacity-50"
           >
-            Save Changes
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>

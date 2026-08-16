@@ -4,6 +4,7 @@ import axios from 'axios';
 import Img from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../layout';
 
 type FeaturedDoctor = {
   user: {
@@ -12,14 +13,31 @@ type FeaturedDoctor = {
   };
 };
 
-type nextSession = {
+type NextSessionResponse = {
+  viewerRole: 'PATIENT' | 'DOCTOR';
   date: string;
-  doctor: {
+  serviceName: string | null;
+  with: {
+    id: string;
+    doctorId?: string;
     name: string;
-    specialty: string;
-    image: string | null;
+    email: string;
   };
 };
+
+type NextSessionCard = NextSessionResponse & {
+  specialty?: string | null;
+  image?: string | null;
+};
+
+// Distinguishes "still checking", "not logged in", "logged in, nothing
+// upcoming" and "logged in, here's the session" — each renders a different
+// card instead of silently collapsing into one "no session" state.
+type SessionState =
+  | { kind: 'loading' }
+  | { kind: 'logged-out' }
+  | { kind: 'none' }
+  | { kind: 'session'; data: NextSessionCard };
 
 type stats = {
   totalPatients: number;
@@ -41,6 +59,7 @@ function formatNumber(num: number) {
 
 export default function HeroSection() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [location, setLocation] = useState('');
   const [search, setSearch] = useState('');
   const handleSearch = () => {
@@ -82,23 +101,64 @@ export default function HeroSection() {
     fetchLandingPageData();
   }, []);
 
-  const [nextSession, setNextSession] = useState<nextSession | null>(null);
-  
+  const [sessionState, setSessionState] = useState<SessionState>({ kind: 'loading' });
+
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      // Logged-out visitors have no appointments to show — don't even hit
+      // the endpoint (it requires auth and would just 401).
+      setSessionState({ kind: 'logged-out' });
+      return;
+    }
+
     const fetchNextSession = async () => {
       try {
-        const response = await axios.get(
-          process.env.NEXT_PUBLIC_URL + '/users/next-session',
+        const response = await axios.get<NextSessionResponse | null>(
+          process.env.NEXT_PUBLIC_URL + '/slots/me/next',
           { withCredentials: true }
         );
-        setNextSession(response.data);
+
+        const session = response.data;
+        if (!session) {
+          setSessionState({ kind: 'none' });
+          return;
+        }
+
+        // Slots only knows the doctor's name/email (denormalized from
+        // auth), not their specialty/profile picture — fetch that
+        // separately when a patient is looking at their next doctor visit.
+        if (session.viewerRole === 'PATIENT' && session.with.doctorId) {
+          try {
+            const doctorRes = await axios.get(
+              process.env.NEXT_PUBLIC_URL + `/doctor/${session.with.doctorId}`,
+              { withCredentials: true }
+            );
+
+            setSessionState({
+              kind: 'session',
+              data: {
+                ...session,
+                specialty: doctorRes.data?.speciality ?? null,
+                image: doctorRes.data?.profileImage ?? null,
+              },
+            });
+            return;
+          } catch (err) {
+            console.error('Failed to fetch doctor profile for next session:', err);
+          }
+        }
+
+        setSessionState({ kind: 'session', data: session });
       } catch (error) {
         console.error('Error fetching next session:', error);
+        setSessionState({ kind: 'none' });
       }
     };
 
     fetchNextSession();
-  }, []);
+  }, [user, authLoading]);
 
   if (loading) {
     return (
@@ -107,15 +167,18 @@ export default function HeroSection() {
       </div>
     );
   }
-const imageSrc =
-  nextSession?.doctor?.image?.startsWith('http') &&
-  !nextSession?.doctor?.image?.includes('fonts.googleapis.com')
-    ? nextSession.doctor.image
-    : nextSession?.doctor?.name
-      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          nextSession.doctor.name
-        )}`
-      : '/default-avatar.png';
+
+  const defaultImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuBDu91gZQrxbXr9grN30AUxmG2QMGq6G-oupfmOFWO-sD4szJP0A5uM2V9UxEMWFVbblKPyFMRjylnMhw0nNIPi7iSOTsLFNWxLXufBuBPzGh5OoZ0ATOSQSJa41ChC0GAfOPNDzdF3lHMl1Cn-v4DGEFImeFIo3xB7zHeL2qtuUgrr6M-1dfOqK07EZidGenHvVWypqsgUgesLcl65Eo3dfNm8wsfYcgyQ91SlaDirv57ev3A_E9Dw7qlQqo1aMG4qOZPHKjCQDCU"
+
+  const sessionCard = sessionState.kind === 'session' ? sessionState.data : null;
+
+  const imageSrc =
+    sessionCard?.image?.startsWith('http')
+      ? sessionCard.image
+      : sessionCard?.with?.name
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(sessionCard.with.name)}`
+        : '/default-avatar.png';
+
   return (
 <section className="relative px-4 sm:px-6 py-16 sm:py-20 lg:py-32 overflow-hidden">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -178,13 +241,13 @@ const imageSrc =
                 width={500}
                 height={500}
                 className="w-full h-full object-cover"
-                src={imageSrc}
+                src={sessionCard ? imageSrc : defaultImage}
                 alt="clinic"
                 loading="eager"
               />
 
               <div className="absolute bottom-6 left-6 right-6 p-6 bg-surface/90 backdrop-blur-md rounded-2xl border border-white/20 shadow-lg">
-                {nextSession ? (
+                {sessionState.kind === 'session' ? (
                   <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-on-primary">
@@ -194,16 +257,41 @@ const imageSrc =
 
                     <div>
                       <p className="text-sm font-bold text-on-surface">
-                        {nextSession.doctor.name}
+                        {sessionState.data.viewerRole === 'PATIENT'
+                          ? `Dr. ${sessionState.data.with.name}`
+                          : sessionState.data.with.name}
                       </p>
 
                       <p className="text-xs text-on-surface-variant">
-                        {nextSession.doctor.specialty}
+                        {sessionState.data.viewerRole === 'PATIENT'
+                          ? sessionState.data.specialty || sessionState.data.serviceName || 'Consultation'
+                          : sessionState.data.serviceName || 'Patient appointment'}
                       </p>
 
                       <p className="text-xs text-primary font-medium">
-                        {new Date(nextSession.date).toLocaleString()}
+                        {new Date(sessionState.data.date).toLocaleString()}
                       </p>
+                    </div>
+                  </div>
+                ) : sessionState.kind === 'logged-out' ? (
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-on-primary">
+                        login
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-on-surface">
+                        Log in to see your next appointment
+                      </p>
+
+                      <button
+                        onClick={() => router.push('/login')}
+                        className="text-xs text-primary font-semibold hover:underline"
+                      >
+                        Sign in
+                      </button>
                     </div>
                   </div>
                 ) : (

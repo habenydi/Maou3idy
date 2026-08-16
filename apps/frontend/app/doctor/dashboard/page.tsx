@@ -9,6 +9,7 @@ import StatsCards from "./components/StatsCards";
 import AppointmentChart from "./components/AppointmentChart";
 import TodaySchedule from "./components/TodaySchedule";
 import { useAuth } from "@/app/layout";
+import { fetchDoctorBookingsApi, DoctorBooking } from "@/lib/api";
 
 type Stats = {
   totalAppointments: number;
@@ -17,13 +18,31 @@ type Stats = {
 };
 
 type ScheduleItem = {
-  id: number;
+  id: string;
   patientName: string;
   type: string;
   time: string;
   avatar: string | null;
   border?: string;
 };
+
+function toLocalDateStr(date: Date): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function formatTime(timeValue: string) {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
 
 const Dashboard = () => {
   const router = useRouter();
@@ -52,54 +71,63 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
+
+      const bookings: DoctorBooking[] = await fetchDoctorBookingsApi();
+      const now = new Date();
+      const todayStr = toLocalDateStr(now);
+
+      const todayBookings = bookings.filter(
+        (b) => b.status === "BOOKED" && toLocalDateStr(new Date(b.date)) === todayStr,
+      );
+
+      // Simple week-over-week comparison of appointment volume (any status),
+      // using the booking's own date field — no dedicated analytics
+      // endpoint exists yet, so this is computed client-side from the same
+      // list the appointments page already fetches.
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      const twoWeeksAgo = new Date(now);
+      twoWeeksAgo.setDate(now.getDate() - 14);
+
+      const thisWeekCount = bookings.filter((b) => {
+        const d = new Date(b.date);
+        return d >= weekAgo && d <= now;
+      }).length;
+      const lastWeekCount = bookings.filter((b) => {
+        const d = new Date(b.date);
+        return d >= twoWeeksAgo && d < weekAgo;
+      }).length;
+
+      const weeklyGrowth =
+        lastWeekCount === 0
+          ? thisWeekCount > 0
+            ? 100
+            : 0
+          : Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100);
+
+      setStats({
+        totalAppointments: bookings.length,
+        upcomingToday: todayBookings.length,
+        weeklyGrowth,
+      });
+
+      setTodaySchedule(
+        [...todayBookings]
+          .sort((a, b) => a.start_time.localeCompare(b.start_time))
+          .map((b) => ({
+            id: b.id,
+            patientName: b.user?.name || "Unknown patient",
+            type: b.service?.name || "Appointment",
+            time: formatTime(b.start_time),
+            avatar: null,
+          })),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard");
     } finally {
       setLoading(false);
     }
   };
-
-  const fallbackSchedule: ScheduleItem[] = [
-    {
-      id: 1,
-      patientName: "Sarah Jenkins",
-      type: "Follow-up",
-      time: "09:30 AM",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAwAzAZFILC-8Py_Y2JMqWLfaWH_qkcDc1Rhc8sNEhtbV-ZPz3yCOMIOXDMQvktEBug-9fJqnFecptSxzbcK6px210Eu3l2mk0qLJ0RhCPBZlAhHjzaai4LgSB-0yc4uV5IluL8YltYHtQIM2Mod4Qb86FpJBqac5KalOq4mpFIHnpx_VBMWDI0NfSI4l-zpq0V2NkqFX_-VCwHr8lBoNoZ4QGT26ioR_LUoVkGGp4F6UsW5lKwgE9UxzRUoB_Gzis5B-a17-hXm-4",
-      border: "border-blue-500",
-    },
-    {
-      id: 2,
-      patientName: "Robert Chen",
-      type: "Consultation",
-      time: "10:15 AM",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDd2sN_aSZ6xmg8INy1lWjsh4H59I6g-xRGAuoUq8mvkWOvLNh6aPGhNoRfbx7TpBvt3ypO5K75DNn8cLYNCProQoR5zuccvub5CELgGKBSdmTAMrw21IdcaKDKm0Q4k2G-yPSdYgN2GlniWRcreMGdD1R19VwWQCZpMW8sqU9z6dCQho_zNpJmqJoauJ7Ps5QyhgGTiudB2FKrLb96G5JAYw19Ya7R0qwf5iU_QIeP-uyRsjFQcepY04T5Iy0tShH9nSALKz47kdk",
-      border: "border-amber-500",
-    },
-    {
-      id: 3,
-      patientName: "Aliyah Smith",
-      type: "ECG Report",
-      time: "11:45 AM",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDVxmr6c2leRd_u4Z-TdmxP2eKSw0KZXMaUhS_Aha8oGncPqEb6OtpgH4A8TVCfAGAc_wSKyWg2oma2KTYGYFOY4WlNShHIjx_NVifMxclBqG9eHIVVYPYdLBVzw8uRKKUgbY-vlO6sCq7i8KF_2b6vEcBoxDRaQ0zNWSY3Orw0O9Q15wr5_Om8KZV2tTqg7ujNsmTMaDF5DaaTGjWAG0uQTfOa-WngmxcairEM7tzSuneY-y5MP_mqyyCKiDh8OnUhKaXhcDZ9HQk",
-      border: "border-emerald-500",
-    },
-    {
-      id: 4,
-      patientName: "Marcus Thorne",
-      type: "Initial Check",
-      time: "02:00 PM",
-      avatar: null,
-      border: "border-blue-500",
-    },
-  ];
-
-  const scheduleItems: ScheduleItem[] = todaySchedule.length
-    ? todaySchedule
-    : fallbackSchedule;
 
   return (
     <DoctorShell>
@@ -120,7 +148,7 @@ const Dashboard = () => {
             <StatsCards stats={stats} />
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <AppointmentChart />
-              <TodaySchedule scheduleItems={scheduleItems} />
+              <TodaySchedule scheduleItems={todaySchedule} />
             </section>
           </>
         )}
