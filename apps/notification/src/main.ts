@@ -7,7 +7,13 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [process.env.RABBITMQ_URL!],
-      queue: 'events',
+      // Own queue bound (via wildcards) to a shared topic exchange, so this
+      // service gets a copy of every event it handles instead of competing
+      // with auth/slots for messages off one shared queue.
+      queue: 'notification_events',
+      exchange: 'domain_events',
+      exchangeType: 'topic',
+      wildcards: true,
       queueOptions: {
         durable: true,
       },
