@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   cloud:
     gateway:
@@ -7,7 +10,7 @@ spring:
             cors-configurations:
               '[/**]':
                 allowedOrigins:
-                  - "http://localhost:3000"
+                  - ${FRONTEND_URL:http://localhost:3000}
                 allowedMethods:
                   - GET
                   - POST
@@ -21,11 +24,15 @@ spring:
 
           routes:
             - id: auth-service
-              uri: http://localhost:1337
+              # Defaults keep native (non-Docker) dev working as before;
+              # docker-compose overrides these via env vars to the service's
+              # container name, since "localhost" inside this container
+              # would otherwise mean itself, not the auth container.
+              uri: ${AUTH_SERVICE_URI:http://localhost:1337}
               predicates:
-                - Path=/auth/**,/users/**,/admin/**,/doctor/**,/notification/**,/review/**
+                - Path=/auth/**,/users/**,/admin/**,/doctor/**,/notification/**,/review/**,/user-stats/**
 
             - id: appointment-service
-              uri: http://localhost:1339
+              uri: ${APPOINTMENT_SERVICE_URI:http://localhost:1339}
               predicates:
                 - Path=/slots/**,/categories/**,/services/**

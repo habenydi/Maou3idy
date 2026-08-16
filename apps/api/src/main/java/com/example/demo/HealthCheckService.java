@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.RestTemplate;
@@ -11,6 +12,18 @@ public class HealthCheckService {
     private final RestTemplate restTemplate =
             new RestTemplate();
 
+    // Same env vars (and same localhost defaults for native/non-Docker dev)
+    // as the gateway routes in application.yaml, so both point at the same
+    // place. Previously hardcoded to localhost, which only works when every
+    // service runs on the host directly; inside docker-compose "localhost"
+    // means this container, so the checks always failed and
+    // ServiceAvailabilityInterceptor 503'd every request, permanently.
+    @Value("${AUTH_SERVICE_URI:http://localhost:1337}")
+    private String authServiceUri;
+
+    @Value("${APPOINTMENT_SERVICE_URI:http://localhost:1339}")
+    private String appointmentServiceUri;
+
     private volatile boolean authHealthy = false;
     private volatile boolean appointmentHealthy = false;
 
@@ -18,10 +31,10 @@ public class HealthCheckService {
     public void checkServices() {
 
         authHealthy =
-                check("http://localhost:1337/health");
+                check(authServiceUri + "/health");
 
         appointmentHealthy =
-                check("http://localhost:1339/health");
+                check(appointmentServiceUri + "/health");
     }
 
     private boolean check(String url) {

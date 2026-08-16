@@ -4,17 +4,26 @@ services:
   api-gateway:
     build: ../apps/api
     container_name: api-gateway
-    ports: ["8080:8080"]
-    # environment:
-    #   - PORT=8080
-    #   - AUTH_SERVICE_URL=http://auth-service:3001
-    #   - USER_SERVICE_URL=http://user-service:3002
-    # depends_on: [auth-service, user-service]
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-    #   interval: 30s
-    #   timeout: 5s
-    #   retries: 3
+    # Loads apps/api/.env if present (copy apps/api/.env.example -> .env;
+    # `required: false` so a fresh clone without one yet still builds).
+    # Real values below still take priority over anything in that file for
+    # the keys listed explicitly here — PORT is left to the .env file (or
+    # DotenvLoader's own 8080 default) so `cp .env.example .env` alone is
+    # enough to change it.
+    env_file:
+      - path: ../apps/api/.env
+        required: false
+    environment:
+      # This is the "run just the gateway in Docker, everything else
+      # natively on the host" workflow (make dev-auth / dev-slots from the
+      # root run auth/slots directly on the host, not in this compose's
+      # network) — so the gateway needs host.docker.internal to reach them,
+      # not "localhost" (which from inside this container means itself).
+      AUTH_SERVICE_URI: http://host.docker.internal:1337
+      APPOINTMENT_SERVICE_URI: http://host.docker.internal:1339
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports: ["${PORT:-8080}:${PORT:-8080}"]
     networks: [app-net]
   # for notification i think
   rabbitmq:
@@ -23,9 +32,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-    # environment:
-    #   RABBITMQ_DEFAULT_USER: yassir
-    #   RABBITMQ_DEFAULT_PASS: yassir123
+    environment:
+      RABBITMQ_DEFAULT_USER: yassir
+      RABBITMQ_DEFAULT_PASS: yassir123
     networks: [app-net]
 
 networks:
