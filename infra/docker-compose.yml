@@ -17,8 +17,7 @@ services:
     container_name: api-gateway
     restart: always
     env_file:
-      - path: ../apps/api/.env.example
-  #  ports: ["${PORT:-8080}:${PORT:-8080}"]
+      - path: ../apps/api-gateway/.env.example
     networks: [app-net]
 
   frontend:
@@ -66,18 +65,27 @@ services:
     #   retries: 3
     networks:
       - app-net
-      - notification-net
 
-  notification_db:
+  slots:
+    build: ../apps/slots
+    container_name: slots
+    restart: always
+    env_file: ../apps/slots/.env.example
+    networks:
+      - app-net
+      - slots-net
+
+  slots_db:
     image: postgres:15
-    container_name: notification_db
+    container_name: slots_db
+    restart: always
     environment:
       POSTGRES_USER: yassir
       POSTGRES_PASSWORD: 123
-      POSTGRES_DB: notification_db
+      POSTGRES_DB: nest_db
     volumes:
-      - notification_db_volume:/var/lib/postgresql/data
-    networks: [notification-net]
+      - slots_db_volume:/var/lib/postgresql/data
+    networks: [slots-net]
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -90,12 +98,12 @@ services:
 networks:
   app-net:
     driver: bridge
-  notification-net:
-    driver: bridge
   auth-net:
+    driver: bridge
+  slots-net:
     driver: bridge
 
 volumes:
   auth_db_volume:
-  notification_db_volume:
+  slots_db_volume:
   webroot:
