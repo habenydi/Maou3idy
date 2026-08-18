@@ -17,7 +17,7 @@ services:
     container_name: api-gateway
     restart: always
     env_file:
-      - path: ../apps/api/.env
+      - path: ../apps/api/.env.example
   #  ports: ["${PORT:-8080}:${PORT:-8080}"]
     networks: [app-net]
 
@@ -26,7 +26,7 @@ services:
     container_name: frontend
     restart: always
     env_file:
-      - path: ../apps/frontend/.env
+      - path: ../apps/frontend/.env.example
     networks: [app-net]
 
   auth:
@@ -34,7 +34,7 @@ services:
     container_name: auth
     restart: always
     env_file:
-      - path: ../apps/auth/.env
+      - path: ../apps/auth/.env.example
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "http://auth:8081/health"]
     #   interval: 30s
@@ -47,7 +47,7 @@ services:
   auth_db:
     image: postgres:15
     container_name: auth_db
-    env_file: ../apps/auth/.env
+    env_file: ../apps/auth/.env.example
     restart: always
     volumes:
       - auth_db_volume:/var/lib/postgresql/data
@@ -58,7 +58,7 @@ services:
     container_name: notification
     restart: always
     env_file:
-      - path: ../apps/notification/.env
+      - path: ../apps/notification/.env.example
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "http://notification:8082/health"]
     #   interval: 30s
