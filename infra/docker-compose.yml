@@ -17,7 +17,7 @@ services:
     container_name: api-gateway
     restart: always
     env_file:
-      - path: ../apps/api/.env.example
+      - path: ../apps/api-gateway/.env.example
   #  ports: ["${PORT:-8080}:${PORT:-8080}"]
     networks: [app-net]
 
@@ -87,6 +87,18 @@ services:
       RABBITMQ_DEFAULT_PASS: yassir123
     networks: [app-net]
 
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - webroot:/var/www/html
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/html --email hassanbenydir26@gmail.com --agree-tos --no-eff-email --non-interactive --keep-until-expiring -d 7host
+    networks: [app-net]
+
 networks:
   app-net:
     driver: bridge
@@ -99,3 +111,5 @@ volumes:
   auth_db_volume:
   notification_db_volume:
   webroot:
+  certbot-etc:
+  certbot-var:
