@@ -5,13 +5,13 @@ COMPOSE_FILE = infra/docker-compose.yml
 all: up
 
 build:
-	docker-compose -p $(NAME) -f $(COMPOSE_FILE) build
+	docker compose -p $(NAME) -f $(COMPOSE_FILE) build
 
 up: build
-	docker-compose -p $(NAME) -f $(COMPOSE_FILE) up -d 
+	docker compose -p $(NAME) -f $(COMPOSE_FILE) up -d 
 
 down:
-	docker-compose -p $(NAME) -f $(COMPOSE_FILE) down
+	docker compose -p $(NAME) -f $(COMPOSE_FILE) down
 
 re: down up
 
