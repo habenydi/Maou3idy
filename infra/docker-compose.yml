@@ -1,37 +1,87 @@
 version: '3.9'
 
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - webroot:/var/www/html
+    networks: [app-net]
+
   api-gateway:
-    build: ../apps/api
+    build: ../apps/api-gateway
     container_name: api-gateway
-    # Loads apps/api/.env if present (copy apps/api/.env.example -> .env;
-    # `required: false` so a fresh clone without one yet still builds).
-    # Real values below still take priority over anything in that file for
-    # the keys listed explicitly here — PORT is left to the .env file (or
-    # DotenvLoader's own 8080 default) so `cp .env.example .env` alone is
-    # enough to change it.
+    restart: always
     env_file:
       - path: ../apps/api/.env
-        required: false
-    environment:
-      # This is the "run just the gateway in Docker, everything else
-      # natively on the host" workflow (make dev-auth / dev-slots from the
-      # root run auth/slots directly on the host, not in this compose's
-      # network) — so the gateway needs host.docker.internal to reach them,
-      # not "localhost" (which from inside this container means itself).
-      AUTH_SERVICE_URI: http://host.docker.internal:1337
-      APPOINTMENT_SERVICE_URI: http://host.docker.internal:1339
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports: ["${PORT:-8080}:${PORT:-8080}"]
+  #  ports: ["${PORT:-8080}:${PORT:-8080}"]
     networks: [app-net]
-  # for notification i think
+
+  frontend:
+    build: ../apps/frontend
+    container_name: frontend
+    restart: always
+    env_file:
+      - path: ../apps/frontend/.env
+    networks: [app-net]
+
+  auth:
+    build: ../apps/auth
+    container_name: auth
+    restart: always
+    env_file:
+      - path: ../apps/auth/.env
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://auth:8081/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    networks:
+      - app-net
+      - auth-net
+
+  auth_db:
+    image: postgres:15
+    container_name: auth_db
+    env_file: ../apps/auth/.env
+    restart: always
+    volumes:
+      - auth_db_volume:/var/lib/postgresql/data
+    networks: [auth-net]
+
+  notification:
+    build: ../apps/notification
+    container_name: notification
+    restart: always
+    env_file:
+      - path: ../apps/notification/.env
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://notification:8082/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    networks:
+      - app-net
+      - notification-net
+
+  notification_db:
+    image: postgres:15
+    container_name: notification_db
+    environment:
+      POSTGRES_USER: yassir
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: notification_db
+    volumes:
+      - notification_db_volume:/var/lib/postgresql/data
+    networks: [notification-net]
+
   rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: yassir
       RABBITMQ_DEFAULT_PASS: yassir123
@@ -40,3 +90,12 @@ services:
 networks:
   app-net:
     driver: bridge
+  notification-net:
+    driver: bridge
+  auth-net:
+    driver: bridge
+
+volumes:
+  auth_db_volume:
+  notification_db_volume:
+  webroot:
