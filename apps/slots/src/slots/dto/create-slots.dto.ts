@@ -16,8 +16,8 @@ export class CreateSlotsDto {
   @IsInt()
   @Min(1)
   number_of_days!: number;
-
   @IsArray()
   @ValidateNested({ each: true })
+  @Type(() => ShiftDto)
   shifts!: ShiftDto[];
 }

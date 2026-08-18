@@ -397,7 +397,7 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
 
   async generateSlotsForCurrentDoctor(userId: string, dto: CreateSlotsDto) {
     const doctor = await this.getDoctorByUserId(userId);
-    return this.generateSlots(doctor.id, dto);
+    return await this.generateSlots(doctor.id, dto);
   }
 
   findAll() {
@@ -503,6 +503,22 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
 
     if (slot.status !== "BOOKED" && slot.is_booked !== true) {
       throw new BadRequestException("Only booked slots can be released");
+    }
+
+    // This used to only free the Slots reservation, leaving the matching
+    // Appointment (if the frontend's real booking flow — not the legacy
+    // bookSlot() — created one) still BOOKED: the patient kept seeing a
+    // confirmed appointment that had silently vanished from the doctor's
+    // calendar, and worse, since the slot was AVAILABLE again, anyone else
+    // booking that exact time would upsert straight over the orphaned
+    // Appointment row and hijack it (see bookServiceSlot's upsert comment).
+    const appointment = await this.findAppointmentForReservedSlot(slot);
+    if (appointment) {
+      await this.prisma.appointment.update({
+        where: { id: appointment.id },
+        data: { status: "CANCELLED" },
+      });
+      await this.emitAppointmentEvent("appointment.canceled", appointment.id);
     }
 
     const released = await this.prisma.slots.update({
@@ -673,8 +689,51 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  /**
+   * bookServiceSlot writes both an Appointment (the booking) and a Slots row
+   * (the underlying time-block reservation) with no FK between them — only
+   * matching doctor_id/date/start_time/end_time. Cancel/complete act on the
+   * Appointment (that's what findCurrentUserBookings/findCurrentDoctorBookings
+   * list ids from), then need this to find the Slots row to free/mark too.
+   */
+  private async findReservedSlotForAppointment(appointment: {
+    doctor_id: string;
+    date: Date;
+    start_time: string;
+    end_time: string;
+  }) {
+    return this.prisma.slots.findFirst({
+      where: {
+        doctor_id: appointment.doctor_id,
+        date: appointment.date,
+        start_time: appointment.start_time,
+        end_time: appointment.end_time,
+        status: "BOOKED",
+      },
+    });
+  }
+
+  /** The other direction of findReservedSlotForAppointment. */
+  private async findAppointmentForReservedSlot(slot: {
+    doctor_id: string | null;
+    date: Date;
+    start_time: string;
+    end_time: string;
+  }) {
+    if (!slot.doctor_id) return null;
+    return this.prisma.appointment.findFirst({
+      where: {
+        doctor_id: slot.doctor_id,
+        date: slot.date,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        status: "BOOKED",
+      },
+    });
+  }
+
   async cancelCurrentUserBooking(userId: string, id: string) {
-    const slot = await this.prisma.slots.findFirst({
+    const appointment = await this.prisma.appointment.findFirst({
       where: {
         id,
         user_id: userId,
@@ -682,42 +741,52 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    if (!slot) {
+    if (!appointment) {
       throw new NotFoundException("Booking not found");
     }
 
-    if (slot.status === "COMPLETED") {
+    if (appointment.status === "COMPLETED") {
       throw new BadRequestException(
         "Completed appointments cannot be cancelled",
       );
     }
 
-    await this.emitAppointmentEvent("appointment.canceled", slot.id);
+    await this.emitAppointmentEvent("appointment.canceled", appointment.id);
 
-    const cancelled = await this.prisma.slots.update({
+    const cancelled = await this.prisma.appointment.update({
       where: { id },
-      data: {
-        is_booked: false,
-        status: "AVAILABLE",
-        user_id: null,
-        service_id: null,
-        reminder_sent: false,
-      },
+      data: { status: "CANCELLED" },
     });
 
-    if (slot.doctor_id) {
+    const slot = await this.findReservedSlotForAppointment(appointment);
+    if (slot) {
+      await this.prisma.slots.update({
+        where: { id: slot.id },
+        data: {
+          is_booked: false,
+          status: "AVAILABLE",
+          user_id: null,
+          service_id: null,
+          reminder_sent: false,
+        },
+      });
       await this.mergeDoctorAvailableSlots(
         this.prisma,
-        slot.doctor_id,
-        slot.date,
+        appointment.doctor_id,
+        appointment.date,
+      );
+    } else {
+      this.logger.warn(
+        `No reserved Slots block found for cancelled appointment ${appointment.id} — time wasn't freed back up`,
       );
     }
+
     return cancelled;
   }
 
   async completeCurrentDoctorBooking(userId: string, id: string) {
     const doctor = await this.getDoctorByUserId(userId);
-    const slot = await this.prisma.slots.findFirst({
+    const appointment = await this.prisma.appointment.findFirst({
       where: {
         id,
         doctor_id: doctor.id,
@@ -725,26 +794,31 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    if (!slot) {
+    if (!appointment) {
       throw new NotFoundException("Appointment not found");
     }
 
-    const completed = await this.prisma.slots.update({
+    const completed = await this.prisma.appointment.update({
       where: { id },
-      data: {
-        status: "COMPLETED",
-        is_booked: true,
-      },
+      data: { status: "COMPLETED" },
     });
 
-    await this.emitAppointmentEvent("appointment.completed", slot.id);
+    const slot = await this.findReservedSlotForAppointment(appointment);
+    if (slot) {
+      await this.prisma.slots.update({
+        where: { id: slot.id },
+        data: { status: "COMPLETED" },
+      });
+    }
+
+    await this.emitAppointmentEvent("appointment.completed", appointment.id);
 
     return completed;
   }
 
   async cancelCurrentDoctorBooking(userId: string, id: string) {
     const doctor = await this.getDoctorByUserId(userId);
-    const slot = await this.prisma.slots.findFirst({
+    const appointment = await this.prisma.appointment.findFirst({
       where: {
         id,
         doctor_id: doctor.id,
@@ -752,25 +826,140 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    if (!slot) {
+    if (!appointment) {
       throw new NotFoundException("Appointment not found");
     }
 
-    await this.emitAppointmentEvent("appointment.canceled", slot.id);
+    await this.emitAppointmentEvent("appointment.canceled", appointment.id);
 
-    const cancelled = await this.prisma.slots.update({
+    const cancelled = await this.prisma.appointment.update({
       where: { id },
-      data: {
-        is_booked: false,
-        status: "AVAILABLE",
-        user_id: null,
-        service_id: null,
-        reminder_sent: false,
-      },
+      data: { status: "CANCELLED" },
     });
 
-    await this.mergeDoctorAvailableSlots(this.prisma, doctor.id, slot.date);
+    const slot = await this.findReservedSlotForAppointment(appointment);
+    if (slot) {
+      await this.prisma.slots.update({
+        where: { id: slot.id },
+        data: {
+          is_booked: false,
+          status: "AVAILABLE",
+          user_id: null,
+          service_id: null,
+          reminder_sent: false,
+        },
+      });
+      await this.mergeDoctorAvailableSlots(
+        this.prisma,
+        doctor.id,
+        appointment.date,
+      );
+    } else {
+      this.logger.warn(
+        `No reserved Slots block found for cancelled appointment ${appointment.id} — time wasn't freed back up`,
+      );
+    }
+
     return cancelled;
+  }
+
+  private static readonly WEEKDAY_LABELS = [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+  ];
+  private static readonly MONTH_LABELS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  /**
+   * Powers the doctor dashboard's "Appointment Trends" chart — per-day
+   * counts for the last 7 days, or per-month counts for the last 6 months,
+   * of this doctor's non-cancelled appointments. Every bucket in the range
+   * is included even at 0, so the chart always renders a full axis.
+   */
+  async getAppointmentTrendsForCurrentDoctor(
+    userId: string,
+    period: "weekly" | "monthly",
+  ): Promise<{ label: string; count: number }[]> {
+    const doctor = await this.getDoctorByUserId(userId);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (period === "weekly") {
+      const rangeStart = new Date(today);
+      rangeStart.setDate(today.getDate() - 6);
+
+      const appointments = await this.prisma.appointment.findMany({
+        where: {
+          doctor_id: doctor.id,
+          status: { in: ["BOOKED", "COMPLETED"] },
+          date: { gte: rangeStart, lte: today },
+        },
+        select: { date: true },
+      });
+
+      const counts = new Map<string, number>();
+      for (const appt of appointments) {
+        const key = this.toLocalDateStr(appt.date);
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+
+      return Array.from({ length: 7 }, (_, i) => {
+        const day = new Date(rangeStart);
+        day.setDate(rangeStart.getDate() + i);
+        return {
+          label: SlotsService.WEEKDAY_LABELS[day.getDay()],
+          count: counts.get(this.toLocalDateStr(day)) ?? 0,
+        };
+      });
+    }
+
+    // monthly: last 6 calendar months, including the current one.
+    const rangeStart = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        doctor_id: doctor.id,
+        status: { in: ["BOOKED", "COMPLETED"] },
+        date: { gte: rangeStart },
+      },
+      select: { date: true },
+    });
+
+    const monthKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}`;
+    const counts = new Map<string, number>();
+    for (const appt of appointments) {
+      const key = monthKey(appt.date);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return Array.from({ length: 6 }, (_, i) => {
+      const month = new Date(
+        rangeStart.getFullYear(),
+        rangeStart.getMonth() + i,
+        1,
+      );
+      return {
+        label: SlotsService.MONTH_LABELS[month.getMonth()],
+        count: counts.get(monthKey(month)) ?? 0,
+      };
+    });
   }
 
   /**
@@ -840,13 +1029,37 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       });
 
       // 2. CREATE THE APPOINTMENT RECORD
-      const appointment = await tx.appointment.create({
-        data: {
+      //
+      // upsert, not create: cancelling an appointment updates its status to
+      // CANCELLED rather than deleting the row (see cancelCurrentUserBooking/
+      // cancelCurrentDoctorBooking), so a prior cancelled booking for this
+      // exact doctor/date/start_time can still be sitting there — a plain
+      // create would collide with @@unique([doctor_id, date, start_time]).
+      // A row here can only be CANCELLED (or absent): the underlying Slots
+      // block we just matched against required status "AVAILABLE", and
+      // Slots/Appointment are always kept in sync for BOOKED/COMPLETED, so
+      // an active Appointment could never coexist with an AVAILABLE block
+      // for the same slot.
+      const appointment = await tx.appointment.upsert({
+        where: {
+          doctor_id_date_start_time: {
+            doctor_id: doctorId,
+            date: targetBlock.date,
+            start_time: start_time,
+          },
+        },
+        create: {
           user_id: userId,
           doctor_id: doctorId,
           service_id: serviceId,
           date: targetBlock.date,
           start_time: start_time,
+          end_time: bookingEndStr,
+          status: "BOOKED",
+        },
+        update: {
+          user_id: userId,
+          service_id: serviceId,
           end_time: bookingEndStr,
           status: "BOOKED",
         },

@@ -162,6 +162,15 @@ export class AuthSyncController {
             },
           });
 
+          await tx.user.update({
+              where: {
+                id: userId,
+              },
+              data: {
+                role: Role.DOCTOR,
+              },
+          });
+
           this.logger.log(
             `🔄 [${eventName}] Synced doctor id for user ${userId}`,
           );
