@@ -1,11 +1,14 @@
 import { Controller, Logger } from "@nestjs/common";
 import { EventPattern, Payload } from "@nestjs/microservices";
+import { Role } from "@prisma/client";
+import { Public } from "src/auth/decorator/public.decorator";
 import { PrismaService } from "src/prisma/prisma.service";
 
 interface UserPayload {
   id: string;
   name: string;
   email: string;
+  role?: Role;
 }
 
 interface DoctorEventPayload {
@@ -14,6 +17,7 @@ interface DoctorEventPayload {
   doctorId?: string;
   name?: string;
   email?: string;
+  role?: Role;
   doctor?: {
     id: string;
   };
@@ -21,6 +25,7 @@ interface DoctorEventPayload {
     id: string;
     name: string;
     email: string;
+    role?: Role;
   };
 }
 
@@ -33,6 +38,7 @@ interface DoctorDeletedPayload {
   userId?: string;
 }
 
+@Public()
 @Controller()
 export class AuthSyncController {
   private readonly logger = new Logger(AuthSyncController.name);
@@ -57,18 +63,29 @@ export class AuthSyncController {
     }
 
     try {
-      await this.prisma.user.upsert({
+      const existingUser = await this.prisma.user.findUnique({
         where: { id: payload.id },
-        update: {
-          name: payload.name,
-          email: payload.email,
-        },
-        create: {
-          id: payload.id,
-          name: payload.name,
-          email: payload.email,
-        },
       });
+
+      if (existingUser) {
+        await this.prisma.user.update({
+          where: { id: payload.id },
+          data: {
+            name: payload.name,
+            email: payload.email,
+            ...(payload.role && { role: payload.role }),
+          },
+        });
+      } else {
+        await this.prisma.user.create({
+          data: {
+            id: payload.id,
+            name: payload.name,
+            email: payload.email,
+            role: payload.role ?? Role.USER,
+          },
+        });
+      }
 
       this.logger.log(
         `✅ [${eventName}] Successfully synced user ${payload.id}`,
@@ -95,24 +112,35 @@ export class AuthSyncController {
     }
 
     const userName = payload.name ?? payload.user?.name ?? "User";
-
     const userEmail =
       payload.email ?? payload.user?.email ?? `${userId}@local.local`;
+    const userRole = payload.role ?? payload.user?.role ?? Role.DOCTOR;
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await tx.user.upsert({
+        const existingUser = await tx.user.findUnique({
           where: { id: userId },
-          update: {
-            name: userName,
-            email: userEmail,
-          },
-          create: {
-            id: userId,
-            name: userName,
-            email: userEmail,
-          },
         });
+
+        if (existingUser) {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              name: userName,
+              email: userEmail,
+              role: userRole,
+            },
+          });
+        } else {
+          await tx.user.create({
+            data: {
+              id: userId,
+              name: userName,
+              email: userEmail,
+              role: userRole,
+            },
+          });
+        }
 
         const existingDoctor = await tx.doctor.findUnique({
           where: {
@@ -175,6 +203,7 @@ export class AuthSyncController {
   @EventPattern("user.deleted")
   async handleUserDeleted(@Payload() data: UserDeletedPayload): Promise<void> {
     if (!data?.id) {
+      this.logger.error(`❌ [user.deleted] Missing user id in payload`);
       return;
     }
 
@@ -211,6 +240,13 @@ export class AuthSyncController {
   async handleDoctorDeleted(
     @Payload() data: DoctorDeletedPayload,
   ): Promise<void> {
+    if (!data?.doctorId && !data?.userId) {
+      this.logger.error(
+        `❌ [doctor.deleted] Missing doctorId or userId in payload`,
+      );
+      return;
+    }
+
     try {
       if (data.doctorId) {
         await this.prisma.doctor.delete({
