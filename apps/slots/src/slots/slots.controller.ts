@@ -128,10 +128,7 @@ export class SlotsController {
   @UseGuards(JwtGuard, RolesGuard)
   @Roles(Role.DOCTOR)
   @Post("doctor/me/bookings/:id/complete")
-  completeDoctorBooking(
-    @Req() req: RequestWithUser,
-    @Param("id") id: string,
-  ) {
+  completeDoctorBooking(@Req() req: RequestWithUser, @Param("id") id: string) {
     return this.slotsService.completeCurrentDoctorBooking(req.user.sub, id);
   }
 

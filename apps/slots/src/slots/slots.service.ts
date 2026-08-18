@@ -93,31 +93,35 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Builds and emits an appointment.* event for a booked slot, tolerating missing relations. */
-  private async emitAppointmentEvent(pattern: string, slotId: string) {
+  private async emitAppointmentEvent(pattern: string, appointmentId: string) {
     try {
-      const slot = await this.prisma.slots.findUnique({
-        where: { id: slotId },
+      const appointment = await this.prisma.appointment.findUnique({
+        // Query appointment
+        where: { id: appointmentId },
         include: { doctor: { include: { user: true } }, user: true },
       });
 
-      if (!slot || !slot.user || !slot.doctor?.user) {
+      if (!appointment || !appointment.user || !appointment.doctor?.user) {
         this.logger.warn(
-          `Skipped emitting ${pattern} for slot ${slotId}: missing patient/doctor relation`,
+          `Skipped emitting ${pattern} for appointment ${appointmentId}: missing patient/doctor relation`,
         );
         return;
       }
 
       this.rabbitMqService.emit(pattern, {
-        userId: slot.user.id,
-        doctorId: slot.doctor.user.id,
-        patientEmail: slot.user.email,
-        patientName: slot.user.name,
-        doctorEmail: slot.doctor.user.email,
-        doctorName: slot.doctor.user.name,
-        appointmentTime: `${this.toLocalDateStr(slot.date)} ${slot.start_time}`,
+        userId: appointment.user.id,
+        doctorId: appointment.doctor.user.id,
+        patientEmail: appointment.user.email,
+        patientName: appointment.user.name,
+        doctorEmail: appointment.doctor.user.email,
+        doctorName: appointment.doctor.user.name,
+        appointmentTime: `${this.toLocalDateStr(appointment.date)} ${appointment.start_time}`,
       });
     } catch (error) {
-      this.logger.error(`Failed to emit ${pattern} for slot ${slotId}`, error);
+      this.logger.error(
+        `Failed to emit ${pattern} for appointment ${appointmentId}`,
+        error,
+      );
     }
   }
 
@@ -553,15 +557,14 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async findCurrentUserBookings(userId: string) {
-    return this.prisma.slots.findMany({
+    return this.prisma.appointment.findMany({
+      // Changed from slots to appointment
       where: {
         user_id: userId,
         status: { in: ["BOOKED", "COMPLETED", "CANCELLED"] },
       },
       include: {
-        doctor: {
-          include: { user: true },
-        },
+        doctor: { include: { user: true } },
         service: true,
       },
       orderBy: [{ date: "asc" }, { start_time: "asc" }],
@@ -570,8 +573,8 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
 
   async findCurrentDoctorBookings(userId: string) {
     const doctor = await this.getDoctorByUserId(userId);
-
-    return this.prisma.slots.findMany({
+    return this.prisma.appointment.findMany({
+      // Changed from slots to appointment
       where: {
         doctor_id: doctor.id,
         status: { in: ["BOOKED", "COMPLETED", "CANCELLED"] },
@@ -791,14 +794,12 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     const bookingEndMinutes = bookingStartMinutes + service.duration;
     const bookingEndStr = this.minutesToTime(bookingEndMinutes);
 
-    // Disallow booking past time windows
     const now = new Date();
     const bookingStartDateTime = this.combineDateAndTime(date, start_time);
     if (bookingStartDateTime < now) {
       throw new BadRequestException("Cannot book slots in the past");
     }
 
-    // 1. Execute DB transaction
     const result = await this.prisma.$transaction(async (tx) => {
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
@@ -812,7 +813,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      // Locate block that encapsulates [start_time, bookingEndStr]
       const targetBlock = blocks.find((block) => {
         const bStart = this.parseTimeToMinutes(block.start_time);
         const bEnd = this.parseTimeToMinutes(block.end_time);
@@ -820,16 +820,13 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       });
 
       if (!targetBlock) {
-        throw new BadRequestException(
-          "This time slot is no longer available or was just booked by someone else.",
-        );
+        throw new BadRequestException("This time slot is no longer available.");
       }
 
       const blockStartMinutes = this.parseTimeToMinutes(targetBlock.start_time);
       const blockEndMinutes = this.parseTimeToMinutes(targetBlock.end_time);
 
-      // 🟢 FIX: UPDATE targetBlock FIRST to move its start_time to booking start_time.
-      // This frees up targetBlock.start_time in the unique index so step 2 doesn't clash.
+      // 1. Reserve the underlying time block
       const bookedSlot = await tx.slots.update({
         where: { id: targetBlock.id },
         data: {
@@ -837,12 +834,25 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
           end_time: bookingEndStr,
           is_booked: true,
           status: "BOOKED",
-          user_id: userId,
-          service_id: serviceId,
+          user_id: userId, // Optional: You can remove this from the Slots model later
+          service_id: serviceId, // Optional
         },
       });
 
-      // 2. Create leftover block BEFORE booking (if any)
+      // 2. CREATE THE APPOINTMENT RECORD
+      const appointment = await tx.appointment.create({
+        data: {
+          user_id: userId,
+          doctor_id: doctorId,
+          service_id: serviceId,
+          date: targetBlock.date,
+          start_time: start_time,
+          end_time: bookingEndStr,
+          status: "BOOKED",
+        },
+      });
+
+      // 3. Create leftover blocks
       if (blockStartMinutes < bookingStartMinutes) {
         await tx.slots.create({
           data: {
@@ -856,7 +866,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
-      // 3. Create leftover block AFTER booking (if any)
       if (bookingEndMinutes < blockEndMinutes) {
         await tx.slots.create({
           data: {
@@ -870,12 +879,13 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
-      return { success: true, booked_slot: bookedSlot };
+      return { success: true, appointment, booked_slot: bookedSlot };
     });
 
+    // Pass the APPOINTMENT ID to the event emitter instead of the Slot ID
     await this.emitAppointmentEvent(
       "appointment.created",
-      result.booked_slot.id,
+      result.appointment.id,
     );
 
     return result;

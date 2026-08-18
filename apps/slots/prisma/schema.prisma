@@ -29,43 +29,64 @@ enum SlotsStatus {
 }
 
 model User {
-  id        String   @id
-  name      String
-  doctor    Doctor?
-  email     String   @unique()
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  role      Role     @default(USER)
-  verified  Boolean  @default(false)
-  slots     Slots[]
+  id           String        @id
+  name         String
+  doctor       Doctor?
+  email        String        @unique()
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  role         Role          @default(USER)
+  verified     Boolean       @default(false)
+  slots        Slots[]
+  appointments Appointment[]
 }
 
 model Doctor {
-  id        String    @id
-  user_id   String    @unique()
-  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  slots     Slots[]
-  services  Service[]
+  id           String        @id
+  user_id      String        @unique()
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  slots        Slots[]
+  services     Service[]
+  appointments Appointment[]
 }
 
 model Slots {
+  id            String      @id @default(uuid())
+  doctor_id     String
+  doctor        Doctor      @relation(fields: [doctor_id], references: [id])
+  user_id       String?
+  user          User?       @relation(fields: [user_id], references: [id])
+  service_id    String?
+  service       Service?    @relation(fields: [service_id], references: [id])
+  date          DateTime
+  start_time    String
+  end_time      String
+  is_booked     Boolean     @default(false)
+  status        SlotsStatus @default(AVAILABLE)
+  reminder_sent Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([doctor_id, date, start_time])
+}
+
+model Appointment {
   id         String      @id @default(uuid())
+  user_id    String
   doctor_id  String
-  doctor     Doctor     @relation(fields: [doctor_id], references: [id])
-  user_id    String?
-  user       User?       @relation(fields: [user_id], references: [id])
-  service_id String?
-  service    Service?    @relation(fields: [service_id], references: [id])
+  service_id String
   date       DateTime
   start_time String
   end_time   String
-  is_booked  Boolean     @default(false)
-  status     SlotsStatus @default(AVAILABLE)
-  reminder_sent Boolean  @default(false)
+  status     SlotsStatus @default(BOOKED)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [service_id], references: [id], onDelete: Cascade)
 
   @@unique([doctor_id, date, start_time])
 }
@@ -81,9 +102,10 @@ model Service {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  category Category @relation(fields: [category_id], references: [id])
-  doctor   Doctor   @relation(fields: [doctor_id], references: [id])
-  slots    Slots[]
+  category     Category      @relation(fields: [category_id], references: [id])
+  doctor       Doctor        @relation(fields: [doctor_id], references: [id])
+  slots        Slots[]
+  appointments Appointment[]
 
   @@unique([doctor_id, name])
 }

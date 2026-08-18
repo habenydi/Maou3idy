@@ -26,10 +26,7 @@ export class ServicesService {
   // trusted with no check at all — any authenticated user could create,
   // edit, or delete services under a doctorId that wasn't their own. This
   // verifies the caller actually IS the doctor they're claiming to act as.
-  private assertIsOwnDoctor(
-    doctor: { user_id: string },
-    callerUserId: string,
-  ) {
+  private assertIsOwnDoctor(doctor: { user_id: string }, callerUserId: string) {
     if (doctor.user_id !== callerUserId) {
       throw new ForbiddenException("You can only manage your own services");
     }
