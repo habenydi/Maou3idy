@@ -18,7 +18,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URL, "http://api-gateway:8080"],
+      urls: [process.env.RABBITMQ_URL],
       queue: "slots_events",
       exchange: "domain_events",
       exchangeType: "topic",
