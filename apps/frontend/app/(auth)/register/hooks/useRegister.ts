@@ -54,10 +54,11 @@ export function useRegister({ setUser }: RegisterProps) {
 			router.push("/");
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
+				const backendMessage = error.response?.data?.message;
 				toast.error(
-					error.response?.data?.message ||
-					error.message ||
-					"Registration failed"
+					Array.isArray(backendMessage)
+						? backendMessage.join(", ")
+						: backendMessage || error.message || "Registration failed"
 				);
 			} else {
 				toast.error("An unknown error occurred.");
