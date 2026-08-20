@@ -25,11 +25,11 @@ volume-clean: ## removes all unused Docker volumes
 	docker volume prune -f
 
 hard-clean: ## removes everything (containers, images, volumes, networks)
-	docker stop $$(docker ps -qa); \
-	docker rm $$(docker ps -qa); \
-	docker rmi -f $$(docker images -qa); \
-	docker volume rm $$(docker volume ls -q); \
-	docker network rm $$(docker network ls -q) 2>/dev/null
+	@docker stop $$(docker ps -qa) || true;\
+	docker rm $$(docker ps -qa) || true;\
+	docker rmi -f $$(docker images -qa) || true;\
+	docker volume rm $$(docker volume ls -q) || true;\
+	docker network rm $$(docker network ls -q) 2>/dev/null || true
 
 help: ## show this help message
 	@echo "Usage: make [target]"
