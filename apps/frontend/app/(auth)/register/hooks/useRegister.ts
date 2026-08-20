@@ -7,7 +7,7 @@ import { registerSchema } from "../../../schema/register";
 import { RegisterFormData } from "@/types/register";
 import { RegisterProps } from "@/types/register";
 
-export function useRegister({setUser}: RegisterProps) {
+export function useRegister({ setUser }: RegisterProps) {
 	const router = useRouter();
 
 	const handleGoogleLogin = () => {

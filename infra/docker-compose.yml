@@ -5,8 +5,8 @@ services:
     image: nginx:alpine
     container_name: nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - "8000:80"
+      - "4430:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - webroot:/var/www/html
@@ -46,7 +46,10 @@ services:
   auth_db:
     image: postgres:15
     container_name: auth_db
-    env_file: ../apps/auth/.env.example
+    environment:
+      POSTGRES_USER: yassir
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: auth_db
     restart: always
     volumes:
       - auth_db_volume:/var/lib/postgresql/data

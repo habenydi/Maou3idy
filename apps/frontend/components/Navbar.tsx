@@ -96,12 +96,17 @@ export default function Navbar({
       await axios.post(process.env.NEXT_PUBLIC_URL + "/auth/logout", {}, {
         withCredentials: true,
       });
-      setUser(null);
       toast.success("Logged out successfully");
-      router.push('/login');
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Logout failed");
+      // Was only clearing local state / navigating on success — if the
+      // server call failed for any reason (expired session, network
+      // hiccup), the user was left stuck looking logged in with nothing but
+      // an error toast, even though their intent ("log me out") should
+      // still be honored client-side.
+      console.error("Logout request failed (clearing session locally anyway):", error);
+    } finally {
+      setUser(null);
+      router.push('/login');
     }
   };
 
