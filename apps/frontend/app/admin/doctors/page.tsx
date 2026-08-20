@@ -44,7 +44,7 @@ export default async function DashboardPage({
   const accessToken = cookieStore.get("access_token")?.value;
 
   const applicationsResponse = await axios.get(
-    process.env.NEXT_PUBLIC_URL + `/admin/doctor-applications?page=${pageQuery}&role=${roleQuery}`,
+    process.env.INTERNAL_API_URL + `/admin/doctor-applications?page=${pageQuery}&role=${roleQuery}`,
     {
       headers: {
         Cookie: `access_token=${accessToken}`,
