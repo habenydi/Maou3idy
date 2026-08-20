@@ -33,7 +33,7 @@ export default function VerificationEmail() {
 
 		const verifyEmail = async () => {
 			try {
-				const response = await axios.get(process.env.NEXT_PUBLIC_URL + `"/auth/verify_email/token=${encodeURIComponent(token ?? "")}`, {
+				const response = await axios.get(process.env.NEXT_PUBLIC_URL + `/auth/verify_email/token=${encodeURIComponent(token ?? "")}`, {
 					withCredentials: true,
 				});
 				const data = response.data;
@@ -52,7 +52,10 @@ export default function VerificationEmail() {
 			} catch (error) {
 				setStatus('error');
 				if (axios.isAxiosError(error)) {
-					const msg = error.response?.data?.message || error.message || 'Failed to verify email';
+					const backendMessage = error.response?.data?.message;
+					const msg = Array.isArray(backendMessage)
+						? backendMessage.join(", ")
+						: backendMessage || error.message || 'Failed to verify email';
 					setMessage(msg);
 					setErrorMessage(msg);
 					toast.error(msg + " Please try again.");

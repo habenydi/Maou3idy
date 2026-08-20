@@ -55,12 +55,14 @@ export default function ChangePasswordForm() {
     } catch (err: unknown) {
       console.error(err);
 
-      const message =
+      const backendMessage =
         axios.isAxiosError(err) && err.response?.data?.message
           ? err.response.data.message
-          : err instanceof Error
-          ? err.message
-          : "An unknown error occurred.";
+          : undefined;
+      const message = Array.isArray(backendMessage)
+        ? backendMessage.join(", ")
+        : backendMessage ||
+          (err instanceof Error ? err.message : "An unknown error occurred.");
 
       toast.error(`${message} Please try again.`);
     } finally {
