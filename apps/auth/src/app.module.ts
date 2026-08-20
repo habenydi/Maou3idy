@@ -15,6 +15,7 @@ import { NotificationModule } from "./notification/notification.module";
 import { UserStatsModule } from "./user-stats/user-stats.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { SeedModule } from "./seed/seed.module";
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { AppService } from "./app.service";
     ReviewModule,
     NotificationModule,
     UserStatsModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
