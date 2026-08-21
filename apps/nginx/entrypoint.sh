@@ -18,6 +18,9 @@ if [ ! -f "$CERT_DIR/server.crt" ] || [ ! -f "$CERT_DIR/server.key" ]; then
         -subj "/C=MA/ST=Souss-Massa/L=Agadir/O=42/CN=ft_transcendence"
 fi
 
+sed "s|__HTTPS_REDIRECT_PORT__|${HTTPS_REDIRECT_PORT:-}|g" \
+    /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+
 echo "Starting nginx..."
 
 exec nginx -g "daemon off;"

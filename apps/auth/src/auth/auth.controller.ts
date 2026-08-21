@@ -65,7 +65,7 @@ export class AuthController {
   constructor(
     private Authservice: AuthService,
     private MetricsService: MetricsService,
-  ) {}
+  ) { }
 
   @Get("hide_doctor_button")
   hideDoctorButton(@Req() req: RequestWithUser) {
@@ -84,7 +84,7 @@ export class AuthController {
   @Public()
   @Get("google")
   @UseGuards(AuthGuard("google"))
-  async googleAuth() {}
+  async googleAuth() { }
 
   @Public()
   @Get("google/callback")
@@ -94,7 +94,7 @@ export class AuthController {
     const token = this.Authservice.generateTokenForGoogleUser(user);
     res.cookie("access_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -121,7 +121,7 @@ export class AuthController {
     const result = await this.Authservice.register(body);
     res.cookie("access_token", result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -138,7 +138,7 @@ export class AuthController {
 
     res.cookie("access_token", result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -164,7 +164,7 @@ export class AuthController {
     res.clearCookie("token");
     res.cookie("access_token", result.token, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -186,7 +186,7 @@ export class AuthController {
     res.clearCookie("token");
     res.cookie("access_token", result.token, {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });

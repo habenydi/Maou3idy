@@ -5,8 +5,10 @@ services:
     ports:
       - "8000:80"
       - "4430:443"
+    environment:
+      - HTTPS_REDIRECT_PORT=:4430
     volumes:
-      - ../apps/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../apps/nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
       - ../apps/nginx/certs:/etc/nginx/certs
       - webroot:/var/www/html
       - ../apps/nginx/entrypoint.sh:/entrypoint.sh:ro

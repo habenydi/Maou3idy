@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -10,6 +10,14 @@ import { useAuth }  from '@/app/layout';
 const tokenSchema = z.string().trim().min(1, "Verification token is missing.");
 
 export default function VerificationEmail() {
+	return (
+		<Suspense fallback={null}>
+			<VerificationEmailInner />
+		</Suspense>
+	);
+}
+
+function VerificationEmailInner() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const token = searchParams.get('token');
