@@ -245,17 +245,27 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async generateSlots(doctorId: string, dto: CreateSlotsDto) {
-    const { start_date, number_of_days, shifts } = dto;
+    async generateSlots(doctorId: string, dto: CreateSlotsDto) {
+  const { start_date, number_of_days, shifts } = dto;
 
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const startDate = this.parseLocalDate(start_date);
-    if (startDate < today) {
-      throw new BadRequestException("Start date cannot be in the past");
-    }
+  const startDate = this.parseLocalDate(start_date);
+  if (startDate < today) {
+    throw new BadRequestException("Start date cannot be in the past");
+  }
+
+  return await this.prisma.$transaction(async (tx) => {
+    // 1. Delete all existing unbooked AVAILABLE slots for the target range
+    await tx.slots.deleteMany({
+      where: {
+        doctor_id: doctorId,
+        is_booked: false,
+        date: { gte: startDate },
+      },
+    });
 
     const slotsToCreate: Prisma.SlotsCreateManyInput[] = [];
 
@@ -269,56 +279,89 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         day.getDate(),
       );
 
-      for (const shift of shifts) {
-        const startMinutes = this.parseTimeToMinutes(shift.start_hour);
-        const endMinutes = this.parseTimeToMinutes(shift.end_hour);
+      // Fetch active bookings for this doctor on this day
+      const existingBookings = await tx.slots.findMany({
+        where: {
+          doctor_id: doctorId,
+          date: dateOnly,
+          is_booked: true,
+        },
+        orderBy: { start_time: "asc" },
+      });
 
-        if (startMinutes >= endMinutes) {
+      for (const shift of shifts) {
+        const shiftStartMin = this.parseTimeToMinutes(shift.start_hour);
+        const shiftEndMin = this.parseTimeToMinutes(shift.end_hour);
+
+        if (shiftStartMin >= shiftEndMin) {
           throw new BadRequestException(
             "End time must be after start time in shifts",
           );
         }
 
-        const shiftEnd = this.combineDateAndTime(day, shift.end_hour);
+        // Track remaining unbooked windows inside this shift block
+        let availableWindows = [{ start: shiftStartMin, end: shiftEndMin }];
 
-        // Entire shift is only UNAVAILABLE if its end time has already passed
-        const status = shiftEnd <= now ? "UNAVAILABLE" : "AVAILABLE";
+        // Subtract every booked slot from the requested shift block
+        for (const booking of existingBookings) {
+          const bookStartMin = this.parseTimeToMinutes(booking.start_time);
+          const bookEndMin = this.parseTimeToMinutes(booking.end_time);
 
-        slotsToCreate.push({
-          doctor_id: doctorId,
-          date: dateOnly,
-          start_time: shift.start_hour,
-          end_time: shift.end_hour,
-          is_booked: false,
-          status: status,
-        });
+          const nextWindows: { start: number; end: number }[] = [];
+
+          for (const window of availableWindows) {
+            // Overlap check
+            if (bookStartMin < window.end && bookEndMin > window.start) {
+              // Keep time segment before the booking
+              if (window.start < bookStartMin) {
+                nextWindows.push({ start: window.start, end: bookStartMin });
+              }
+              // Keep time segment after the booking
+              if (window.end > bookEndMin) {
+                nextWindows.push({ start: bookEndMin, end: window.end });
+              }
+            } else {
+              nextWindows.push(window);
+            }
+          }
+          availableWindows = nextWindows;
+        }
+
+        // Push calculated unbooked windows as AVAILABLE slots
+        for (const window of availableWindows) {
+          const startStr = this.minutesToTime(window.start);
+          const endStr = this.minutesToTime(window.end);
+          const shiftEnd = this.combineDateAndTime(day, endStr);
+
+          const status = shiftEnd <= now ? "UNAVAILABLE" : "AVAILABLE";
+
+          slotsToCreate.push({
+            doctor_id: doctorId,
+            date: dateOnly,
+            start_time: startStr,
+            end_time: endStr,
+            is_booked: false,
+            status: status,
+          });
+        }
       }
     }
 
-    return await this.prisma.$transaction(async (tx) => {
-      await tx.slots.deleteMany({
-        where: {
-          doctor_id: doctorId,
-          is_booked: false,
-          date: { gte: startDate },
-        },
-      });
-
-      const created = await tx.slots.createMany({
-        data: slotsToCreate,
-        skipDuplicates: true,
-      });
-
-      // Merge contiguous shifts for each generated day
-      for (let d = 0; d < number_of_days; d++) {
-        const day = new Date(startDate);
-        day.setDate(startDate.getDate() + d);
-        await this.mergeDoctorAvailableSlots(tx, doctorId, day);
-      }
-
-      return { created: created.count };
+    const created = await tx.slots.createMany({
+      data: slotsToCreate,
+      skipDuplicates: true,
     });
-  }
+
+    // Merge contiguous unbooked shifts for each day
+    for (let d = 0; d < number_of_days; d++) {
+      const day = new Date(startDate);
+      day.setDate(startDate.getDate() + d);
+      await this.mergeDoctorAvailableSlots(tx, doctorId, day);
+    }
+
+    return { created: created.count };
+  });
+}
 
   /**
    * Slices available continuous shift blocks into service duration windows.
