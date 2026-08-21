@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import Navbar from '@/components/Navbar';
@@ -16,6 +16,14 @@ import { getDoctors } from './components/doctors';
 import { DoctorsResponse } from '@/types/doctor';
 
 export default function DoctorPage() {
+  return (
+    <Suspense fallback={null}>
+      <DoctorPageInner />
+    </Suspense>
+  );
+}
+
+function DoctorPageInner() {
   const searchParams = useSearchParams();
 
   const [data, setData] =

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -15,6 +15,14 @@ import { resetSchema } from "@/app/schema/reset-password";
 export type ResetForm = z.infer<typeof resetSchema>;
 
 export default function ResetPassword() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordInner />
+    </Suspense>
+  );
+}
+
+function ResetPasswordInner() {
   const {
     register,
     handleSubmit,

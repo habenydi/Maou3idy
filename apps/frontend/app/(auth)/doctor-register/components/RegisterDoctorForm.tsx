@@ -26,6 +26,7 @@ export default function RegisterDoctorForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<RegisterDoctorForm>({
     resolver: zodResolver(
@@ -55,6 +56,7 @@ export default function RegisterDoctorForm() {
       >
         <RegistrationDetails
           register={register}
+          setValue={setValue}
           errors={errors}
         />
 

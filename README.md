@@ -36,16 +36,17 @@ make env
 # 2. edit the generated .env files — at minimum set real values for:
 #    apps/auth/.env        -> DATABASE_URL, JWT secrets, GOOGLE_CLIENT_ID/SECRET, mail creds
 #    apps/auth/.db.env      apps/slots/.db.env   -> Postgres user/password/db name
-#    apps/api-gateway/.env -> NGINX_URL, AUTH_SERVICE_URI, APPOINTMENT_SERVICE_URI
-#    apps/frontend/.env     -> NEXT_PUBLIC_URL, INTERNAL_API_URL
+#    apps/api-gateway/.env -> NGINX_URL (must be the exact HTTPS origin below, see note),
+#                             AUTH_SERVICE_URI, APPOINTMENT_SERVICE_URI
+#    apps/frontend/.env     -> NEXT_PUBLIC_URL (same HTTPS origin + /api), INTERNAL_API_URL
 
 # 3. build and start every container
 make up
 ```
 
-That's it — one command (`make up`) builds and starts all nine containers (nginx, api-gateway, frontend, auth + auth_db, slots + slots_db, notification, rabbitmq).
+That's it — one command (`make up`) builds and starts all ten containers (nginx, api-gateway, frontend, auth + auth_db, slots + slots_db, notification, rabbitmq, backup).
 
-The app is then reachable at **http://localhost:8000**.
+The app is served over **HTTPS with a self-signed certificate**, generated automatically on first boot (`apps/nginx/entrypoint.sh`) — your browser will warn about it being untrusted, which is expected for a self-signed cert; accept it to continue. It's reachable at **https://localhost:4430** (plain `http://localhost:8000` redirects there automatically). Port 4430 rather than the standard 443 is a local-dev workaround for environments that can't bind privileged ports without extra setup (e.g. rootless Docker) — if your host can bind 443 directly, change nginx's `"4430:443"` mapping in `infra/docker-compose.yml` to `"443:443"` and clear `HTTPS_REDIRECT_PORT` in that same service block, and update `NGINX_URL`/`NEXT_PUBLIC_URL` above to drop the `:4430`.
 
 ### Other Makefile targets
 
@@ -99,7 +100,7 @@ The `auth` service seeds one admin account on startup from `ADMIN_EMAIL` / `ADMI
 | Notification service | NestJS 11 microservice (RabbitMQ transport only, no HTTP) | Pure event consumer — decouples "something happened" from "who needs to know about it" |
 | API Gateway | Java 21 + Spring Cloud Gateway (WebMVC) | Single entry point for routing + CORS policy + service-availability checks, independent of the Node services' runtime |
 | Messaging | RabbitMQ, topic exchange (`domain_events`), one queue per consuming service | Lets `auth`, `slots`, and `notification` each react to the same event (e.g. `appointment.completed`) without polling or direct service-to-service calls |
-| Reverse proxy | nginx | Single public entrypoint (port 8000), routes `/` to the frontend and `/api` to the gateway |
+| Reverse proxy + TLS termination | nginx, self-signed cert generated on first boot | Single public HTTPS entrypoint, routes `/` to the frontend and `/api` to the gateway; plain HTTP redirects to HTTPS (including `/api` — the API is never served unencrypted) |
 | Auth | JWT (httpOnly cookie) + Google OAuth 2.0 (Passport) | Stateless auth that still supports a social-login path |
 | File storage | Cloudinary | Avatars and doctor medical-license documents, no local disk state to manage across containers |
 | Containerization | Docker Compose, one `Makefile` entrypoint | Whole stack reproducible with `make up` |
@@ -147,6 +148,7 @@ Booking correctness under concurrency is handled with a conditional `updateMany`
 | Progressive Web App — installable, offline app-shell fallback | `yaait-am` |
 | GDPR self-service: export my data (JSON download) + confirmed account deletion, both with confirmation emails | `yaait-am` |
 | Multi-language UI (English/French/Arabic) with RTL support and a navbar language switcher | `imeftah-` |
+| HTTPS (self-signed cert generated on boot, HTTP→HTTPS redirect, TLS 1.2/1.3) | `habenydi` |
 
 ## Modules
 
@@ -168,6 +170,10 @@ Booking correctness under concurrency is handled with a conditional `updateMany`
 | GDPR compliance (data export, confirmed deletion) | Minor | 1 | ✅ Done |
 | Support for multiple languages (EN/FR/AR) | Minor | 1 | ✅ Done — see coverage note below |
 | **Total claimed** | | **19** | |
+
+**19 is the actual maximum this axis can score** — per the subject's bonus rules, bonus beyond the 14-point mandatory minimum is capped at +5, so 14 + 5 = 19 exactly. The mandatory part still decides pass/fail regardless of this number. **Do not claim** real-time/WebSockets, the public API module, or Prometheus+Grafana — none of the three is actually built in this codebase, only unused dependencies/lookalikes exist.
+
+**Multiple-languages coverage note**: the i18n system (`apps/frontend/lib/i18n/`) is real and works live — a language switcher in the navbar, three complete-for-their-scope languages, `localStorage` persistence, and Arabic correctly flips the page to RTL. It currently covers the global chrome (navbar, footer) plus the landing page and login/register forms, not literally every string on every page yet — say this plainly if asked during evaluation rather than claiming exhaustive coverage. The infrastructure makes finishing the rest mechanical (add a translation key, call `t('key')`), not a redesign.
 
 ## Team Contributions
 
