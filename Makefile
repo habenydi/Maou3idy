@@ -4,7 +4,7 @@ COMPOSE_FILE = infra/docker-compose.yml
 
 all: help
 
-build: ## build the images
+build: env ## build the images
 	docker compose -p $(NAME) -f $(COMPOSE_FILE) build
 
 up: build ## run the containers
@@ -37,7 +37,10 @@ hard-clean: ## removes everything (containers, images, volumes, networks)
 help: ## show this help message
 	@echo "Usage: make [target]"
 	@echo ""
+	@echo "\033[0;36m[INFO]\033[0m	make sure to run 'make env' before running any other target."
+	@echo "	fill in the .env files with the appropriate values."
+	@echo ""
 	@echo "Targets:"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_.-]+[^:]*:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sed 's/:.*//'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_.-]+[^:]*:.*?## / {printf "  \033[38;2;0;255;0m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sed 's/:.*//'
 
 .PHONY: all build up down re clean volume-clean hard-clean help
