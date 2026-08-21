@@ -65,11 +65,23 @@ export class DoctorService {
     return await this.prisma.doctor.findUnique({
       where: { id },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            image: true,
+            role: true,
+            verified: true,
+            createdAt: true,
+          },
+        },
         location: true,
         reviews: {
+          orderBy: { createdAt: "desc" },
           include: {
-            user: true,
+            user: { select: { id: true, name: true } },
           },
         },
       },

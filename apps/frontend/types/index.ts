@@ -34,12 +34,20 @@ export interface AvailabilitySlot {
   slots: TimeSlot[];
 }
 
+// Matches what GET /doctor/:id actually returns for each review (nested
+// under `user`, not flat name/image — the reviewer has no profile image at
+// all in this schema, only doctors do).
 export interface Review {
-  image: string;
-  name: string;
+  id: string;
+  doctorId: string;
+  userId: string;
   rating: number;
-  comment: string;
+  comment: string | null;
   createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface DoctorDetailResponse {

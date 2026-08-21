@@ -5,23 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Minimal .env loader.
- *
- * Spring Boot doesn't read .env files on its own — every other service in
- * this project uses one (Node's dotenv, loaded automatically), so this
- * gateway was the odd one out: its own .env.example just sat there unused,
- * and every config value fell back to whatever was hardcoded in
- * application.yaml unless a real OS environment variable happened to be
- * set already (e.g. by docker-compose).
- *
- * Loads key=value pairs from a .env file in the working directory into JVM
- * system properties before Spring starts, so ${VAR} placeholders in
- * application.yaml (and @Value("${VAR}") anywhere) resolve from it exactly
- * like they do for the Node services. A real environment variable (or a
- * -D flag) always wins over the file — this only fills in what's missing,
- * same precedence dotenv-style loaders normally use.
- */
 final class DotenvLoader {
 
     private DotenvLoader() {}

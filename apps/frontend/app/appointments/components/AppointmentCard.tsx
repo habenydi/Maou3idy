@@ -1,6 +1,6 @@
 "use client";
 
-import { UserBooking } from "@/lib/api";
+import { DoctorReview, UserBooking } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
   formatDate,
@@ -12,12 +12,16 @@ type Props = {
   booking: UserBooking;
   cancelingId: string | null;
   onCancel: (booking: UserBooking) => void;
+  existingReview?: DoctorReview;
+  onReview?: (booking: UserBooking) => void;
 };
 
 export default function AppointmentCard({
   booking,
   cancelingId,
   onCancel,
+  existingReview,
+  onReview,
 }: Props) {
   const router = useRouter();
 
@@ -83,6 +87,18 @@ export default function AppointmentCard({
                 : "Cancel"}
             </button>
           )}
+
+        {booking.status === "COMPLETED" && doctorId && onReview && (
+          <button
+            onClick={() => onReview(booking)}
+            className="px-4 py-2 rounded-xl border border-amber-200 text-amber-700 bg-amber-50 flex items-center gap-1.5"
+          >
+            <span className="text-base leading-none">
+              {existingReview ? "★" : "☆"}
+            </span>
+            {existingReview ? "Edit Review" : "Leave a Review"}
+          </button>
+        )}
 
         {doctorId && (
         <button

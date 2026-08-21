@@ -24,10 +24,6 @@ spring:
 
           routes:
             - id: auth-service
-              # Defaults keep native (non-Docker) dev working as before;
-              # docker-compose overrides these via env vars to the service's
-              # container name, since "localhost" inside this container
-              # would otherwise mean itself, not the auth container.
               uri: ${AUTH_SERVICE_URI:http://localhost:8081}
               predicates:
                 - Path=/auth/**,/users/**,/admin/**,/doctor/**,/notification/**,/review/**,/user-stats/**

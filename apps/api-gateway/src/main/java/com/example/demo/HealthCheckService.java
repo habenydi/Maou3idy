@@ -12,12 +12,6 @@ public class HealthCheckService {
     private final RestTemplate restTemplate =
             new RestTemplate();
 
-    // Same env vars (and same localhost defaults for native/non-Docker dev)
-    // as the gateway routes in application.yaml, so both point at the same
-    // place. Previously hardcoded to localhost, which only works when every
-    // service runs on the host directly; inside docker-compose "localhost"
-    // means this container, so the checks always failed and
-    // ServiceAvailabilityInterceptor 503'd every request, permanently.
     @Value("${AUTH_SERVICE_URI:http://localhost:8081}")
     private String authServiceUri;
 
