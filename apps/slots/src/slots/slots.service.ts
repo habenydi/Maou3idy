@@ -14,9 +14,7 @@ import { BookServiceSlotDto } from "./dto/book-service-slot.dto";
 import { Prisma } from "@prisma/client";
 import { RabbitMqService } from "../rabbitmq/rabbitmq.service";
 
-/** How far ahead of an appointment's start time the reminder email should fire. */
 const REMINDER_LEAD_TIME_MINUTES = 30;
-/** How often we poll for appointments entering the reminder window. */
 const REMINDER_POLL_INTERVAL_MS = 60_000;
 
 @Injectable()
@@ -78,7 +76,7 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         where: { id: slot.id, reminder_sent: false },
         data: { reminder_sent: true },
       });
-      if (claimed.count === 0) continue; // another sweep already claimed it
+      if (claimed.count === 0) continue;
 
       this.rabbitMqService.emit("appointment.reminder", {
         userId: slot.user.id,
@@ -92,11 +90,9 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /** Builds and emits an appointment.* event for a booked slot, tolerating missing relations. */
   private async emitAppointmentEvent(pattern: string, appointmentId: string) {
     try {
       const appointment = await this.prisma.appointment.findUnique({
-        // Query appointment
         where: { id: appointmentId },
         include: { doctor: { include: { user: true } }, user: true },
       });
@@ -258,7 +254,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   }
 
   return await this.prisma.$transaction(async (tx) => {
-    // 1. Delete all existing unbooked AVAILABLE slots for the target range
     await tx.slots.deleteMany({
       where: {
         doctor_id: doctorId,
@@ -279,7 +274,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         day.getDate(),
       );
 
-      // Fetch active bookings for this doctor on this day
       const existingBookings = await tx.slots.findMany({
         where: {
           doctor_id: doctorId,
@@ -299,10 +293,8 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
           );
         }
 
-        // Track remaining unbooked windows inside this shift block
         let availableWindows = [{ start: shiftStartMin, end: shiftEndMin }];
 
-        // Subtract every booked slot from the requested shift block
         for (const booking of existingBookings) {
           const bookStartMin = this.parseTimeToMinutes(booking.start_time);
           const bookEndMin = this.parseTimeToMinutes(booking.end_time);
@@ -310,13 +302,10 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
           const nextWindows: { start: number; end: number }[] = [];
 
           for (const window of availableWindows) {
-            // Overlap check
             if (bookStartMin < window.end && bookEndMin > window.start) {
-              // Keep time segment before the booking
               if (window.start < bookStartMin) {
                 nextWindows.push({ start: window.start, end: bookStartMin });
               }
-              // Keep time segment after the booking
               if (window.end > bookEndMin) {
                 nextWindows.push({ start: bookEndMin, end: window.end });
               }
@@ -327,7 +316,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
           availableWindows = nextWindows;
         }
 
-        // Push calculated unbooked windows as AVAILABLE slots
         for (const window of availableWindows) {
           const startStr = this.minutesToTime(window.start);
           const endStr = this.minutesToTime(window.end);
@@ -352,7 +340,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       skipDuplicates: true,
     });
 
-    // Merge contiguous unbooked shifts for each day
     for (let d = 0; d < number_of_days; d++) {
       const day = new Date(startDate);
       day.setDate(startDate.getDate() + d);
@@ -409,7 +396,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       const blockEndMinutes = this.parseTimeToMinutes(block.end_time);
 
       while (currentMinutes + serviceDurationMinutes <= blockEndMinutes) {
-        // Skip windows that start in the past for today's date
         if (isToday && currentMinutes < currentMinutesNow) {
           currentMinutes += serviceDurationMinutes;
           continue;
@@ -548,13 +534,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       throw new BadRequestException("Only booked slots can be released");
     }
 
-    // This used to only free the Slots reservation, leaving the matching
-    // Appointment (if the frontend's real booking flow — not the legacy
-    // bookSlot() — created one) still BOOKED: the patient kept seeing a
-    // confirmed appointment that had silently vanished from the doctor's
-    // calendar, and worse, since the slot was AVAILABLE again, anyone else
-    // booking that exact time would upsert straight over the orphaned
-    // Appointment row and hijack it (see bookServiceSlot's upsert comment).
     const appointment = await this.findAppointmentForReservedSlot(slot);
     if (appointment) {
       await this.prisma.appointment.update({
@@ -579,9 +558,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     return released;
   }
 
-  // NOTE: this legacy endpoint never receives an authenticated userId, so the
-  // resulting slot has no patient attached and no appointment.created event
-  // is emitted for it. The active booking flow is bookServiceSlot() below.
   async bookSlot(id: string) {
     const slot = await this.prisma.slots.findUnique({ where: { id } });
     if (!slot) throw new NotFoundException("Slot not found");
@@ -617,7 +593,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
 
   async findCurrentUserBookings(userId: string) {
     return this.prisma.appointment.findMany({
-      // Changed from slots to appointment
       where: {
         user_id: userId,
         status: { in: ["BOOKED", "COMPLETED", "CANCELLED"] },
@@ -633,7 +608,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   async findCurrentDoctorBookings(userId: string) {
     const doctor = await this.getDoctorByUserId(userId);
     return this.prisma.appointment.findMany({
-      // Changed from slots to appointment
       where: {
         doctor_id: doctor.id,
         status: { in: ["BOOKED", "COMPLETED", "CANCELLED"] },
@@ -646,17 +620,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  /**
-   * The nearest upcoming BOOKED appointment for whoever's asking — as a
-   * patient if they have one, as a doctor if they're synced as one.
-   * Powers the landing page's "next session" card. Returns null if there's
-   * nothing upcoming, so the frontend can render its own logged-in-but-no-
-   * appointment state.
-   *
-   * Doesn't return doctor specialty/profile image — slots only has the
-   * denormalized name/email synced from auth, not full profile data. The
-   * frontend fetches that separately from the auth service when needed.
-   */
   async findNextSessionForCurrentUser(userId: string) {
     const now = new Date();
     const todayStart = new Date(
@@ -722,9 +685,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       serviceName: next.service?.name ?? null,
       with: {
         id: next.doctor.user.id,
-        // Doctor's own row id (distinct from the user id above) — this is
-        // what GET /doctor/:id on the auth service expects, for fetching
-        // specialty/profile image that slots doesn't have a copy of.
         doctorId: next.doctor.id,
         name: next.doctor.user.name,
         email: next.doctor.user.email,
@@ -732,13 +692,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  /**
-   * bookServiceSlot writes both an Appointment (the booking) and a Slots row
-   * (the underlying time-block reservation) with no FK between them — only
-   * matching doctor_id/date/start_time/end_time. Cancel/complete act on the
-   * Appointment (that's what findCurrentUserBookings/findCurrentDoctorBookings
-   * list ids from), then need this to find the Slots row to free/mark too.
-   */
   private async findReservedSlotForAppointment(appointment: {
     doctor_id: string;
     date: Date;
@@ -756,7 +709,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  /** The other direction of findReservedSlotForAppointment. */
   private async findAppointmentForReservedSlot(slot: {
     doctor_id: string | null;
     date: Date;
@@ -930,12 +882,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     "Dec",
   ];
 
-  /**
-   * Powers the doctor dashboard's "Appointment Trends" chart — per-day
-   * counts for the last 7 days, or per-month counts for the last 6 months,
-   * of this doctor's non-cancelled appointments. Every bucket in the range
-   * is included even at 0, so the chart always renders a full axis.
-   */
   async getAppointmentTrendsForCurrentDoctor(
     userId: string,
     period: "weekly" | "monthly",
@@ -973,7 +919,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       });
     }
 
-    // monthly: last 6 calendar months, including the current one.
     const rangeStart = new Date(today.getFullYear(), today.getMonth() - 5, 1);
 
     const appointments = await this.prisma.appointment.findMany({
@@ -1005,12 +950,18 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  /**
-   * Atomically books a dynamic service window.
-   * Splits shift blocks into leftover AVAILABLE slots before/after the booking.
-   */
   async bookServiceSlot(userId: string, dto: BookServiceSlotDto) {
     const { doctorId, serviceId, date: dateStr, start_time } = dto;
+
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id: doctorId },
+      select: { user_id: true },
+    });
+
+    if(!doctor) throw new NotFoundException("Doctor not found");
+    if (doctor.user_id === userId) {
+      throw new BadRequestException("Doctors cannot book their own services");
+    }
 
     const service = await this.prisma.service.findUnique({
       where: { id: serviceId },
@@ -1058,7 +1009,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       const blockStartMinutes = this.parseTimeToMinutes(targetBlock.start_time);
       const blockEndMinutes = this.parseTimeToMinutes(targetBlock.end_time);
 
-      // 1. Reserve the underlying time block
       const bookedSlot = await tx.slots.update({
         where: { id: targetBlock.id },
         data: {
@@ -1066,23 +1016,11 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
           end_time: bookingEndStr,
           is_booked: true,
           status: "BOOKED",
-          user_id: userId, // Optional: You can remove this from the Slots model later
-          service_id: serviceId, // Optional
+          user_id: userId,
+          service_id: serviceId,
         },
       });
 
-      // 2. CREATE THE APPOINTMENT RECORD
-      //
-      // upsert, not create: cancelling an appointment updates its status to
-      // CANCELLED rather than deleting the row (see cancelCurrentUserBooking/
-      // cancelCurrentDoctorBooking), so a prior cancelled booking for this
-      // exact doctor/date/start_time can still be sitting there — a plain
-      // create would collide with @@unique([doctor_id, date, start_time]).
-      // A row here can only be CANCELLED (or absent): the underlying Slots
-      // block we just matched against required status "AVAILABLE", and
-      // Slots/Appointment are always kept in sync for BOOKED/COMPLETED, so
-      // an active Appointment could never coexist with an AVAILABLE block
-      // for the same slot.
       const appointment = await tx.appointment.upsert({
         where: {
           doctor_id_date_start_time: {
@@ -1108,7 +1046,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      // 3. Create leftover blocks
       if (blockStartMinutes < bookingStartMinutes) {
         await tx.slots.create({
           data: {
@@ -1138,7 +1075,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       return { success: true, appointment, booked_slot: bookedSlot };
     });
 
-    // Pass the APPOINTMENT ID to the event emitter instead of the Slot ID
     await this.emitAppointmentEvent(
       "appointment.created",
       result.appointment.id,
