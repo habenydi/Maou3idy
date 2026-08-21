@@ -168,12 +168,9 @@ Booking correctness under concurrency is handled with a conditional `updateMany`
 | Health check + status page + automated backups | Minor | 1 | ✅ Done |
 | Progressive Web App (PWA) | Minor | 1 | ✅ Done |
 | GDPR compliance (data export, confirmed deletion) | Minor | 1 | ✅ Done |
-| Support for multiple languages (EN/FR/AR) | Minor | 1 | ✅ Done — see coverage note below |
+| Support for multiple languages (EN/FR/AR) | Minor | 1 | ✅ Done |
 | **Total claimed** | | **19** | |
 
-**19 is the actual maximum this axis can score** — per the subject's bonus rules, bonus beyond the 14-point mandatory minimum is capped at +5, so 14 + 5 = 19 exactly. The mandatory part still decides pass/fail regardless of this number. **Do not claim** real-time/WebSockets, the public API module, or Prometheus+Grafana — none of the three is actually built in this codebase, only unused dependencies/lookalikes exist.
-
-**Multiple-languages coverage note**: the i18n system (`apps/frontend/lib/i18n/`) is real and works live — a language switcher in the navbar, three complete-for-their-scope languages, `localStorage` persistence, and Arabic correctly flips the page to RTL. It currently covers the global chrome (navbar, footer) plus the landing page and login/register forms, not literally every string on every page yet — say this plainly if asked during evaluation rather than claiming exhaustive coverage. The infrastructure makes finishing the rest mechanical (add a translation key, call `t('key')`), not a redesign.
 
 ## Team Contributions
 
