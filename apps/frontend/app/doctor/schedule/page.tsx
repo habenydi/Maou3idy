@@ -67,15 +67,23 @@ const SLOT_COLORS: Record<SlotStatus, string> = {
 function slotToEvent(slot: Slot): CalendarEvent {
   const dateStr = toLocalDateStr(new Date(slot.date));
 
+  const startDate = new Date(`${dateStr}T${slot.start_time}`);
+  const endDate = new Date(`${dateStr}T${slot.end_time}`);
+  const now = new Date();
+
   const rawStatus = slot.status?.toUpperCase();
-  const status: SlotStatus =
-    rawStatus === "COMPLETED"
-      ? "completed"
-      : slot.is_booked
-        ? "booked"
-        : rawStatus === "AVAILABLE"
-          ? "available"
-          : "unavailable";
+
+  let status: SlotStatus;
+
+  if (rawStatus === "COMPLETED") {
+    status = "completed";
+  } else if (slot.is_booked) {
+    status = "booked";
+  } else if (endDate <= now || rawStatus === "UNAVAILABLE") {
+    status = "unavailable";
+  } else {
+    status = "available";
+  }
 
   const titleMap: Record<SlotStatus, string> = {
     booked: "Booked",
@@ -87,8 +95,8 @@ function slotToEvent(slot: Slot): CalendarEvent {
   return {
     id: String(slot.id),
     title: titleMap[status],
-    start: new Date(`${dateStr}T${slot.start_time}`),
-    end: new Date(`${dateStr}T${slot.end_time}`),
+    start: startDate,
+    end: endDate,
     backgroundColor: SLOT_COLORS[status],
     editable: status === "available",
     extendedProps: { status, isBooked: slot.is_booked },
