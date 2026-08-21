@@ -2,7 +2,9 @@
 
 set -e
 
-CERT_DIR="./certs"
+CERT_DIR="/etc/nginx/certs"
+
+apk update && apk add --no-cache openssl openssl-dev
 
 mkdir -p "$CERT_DIR"
 
