@@ -9,10 +9,13 @@ import AppointmentsFilters from "./components/AppointmentsFilters";
 import AppointmentCard from "./components/AppointmentCard";
 import AppointmentsLoading from "./components/AppointmentsLoading";
 import AppointmentsEmpty from "./components/AppointmentsEmpty";
+import ReviewModal from "./components/ReviewModal";
 import { useAuth } from "@/app/layout";
 import {
   cancelMyBookingApi,
   fetchMyBookingsApi,
+  fetchMyReviewsApi,
+  type DoctorReview,
   type UserBooking,
 } from "@/lib/api";
 
@@ -24,10 +27,11 @@ export default function AppointmentsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<UserBooking[]>([]);
+  const [reviews, setReviews] = useState<DoctorReview[]>([]);
   const [filter, setFilter] = useState<StatusFilter>("ALL");
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [reviewingBooking, setReviewingBooking] = useState<UserBooking | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -37,27 +41,43 @@ export default function AppointmentsPage() {
       return;
     }
 
-    const loadBookings = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        setError(null);
-        const data = await fetchMyBookingsApi();
-        setBookings(data);
+        const [bookingsData, reviewsData] = await Promise.all([
+          fetchMyBookingsApi(),
+          // A patient's own reviews aren't essential to seeing their
+          // appointments — don't let this call failing block the whole
+          // page, just fall back to "no reviews known yet".
+          fetchMyReviewsApi().catch(() => []),
+        ]);
+        setBookings(bookingsData);
+        setReviews(reviewsData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load appointments");
-        toast.error(error || "Failed to load appointments");
+        toast.error(err instanceof Error ? err.message : "Failed to load appointments");
       } finally {
         setLoading(false);
       }
     };
 
-    void loadBookings();
-  }, [authLoading, router, user, error]);
+    void loadData();
+  }, [authLoading, router, user]);
 
   const visibleBookings = useMemo(() => {
     if (filter === "ALL") return bookings;
     return bookings.filter((booking) => booking.status === filter);
   }, [bookings, filter]);
+
+  // One review per doctor, so a completed appointment's "leave a review"
+  // button reflects whether this patient has already reviewed *that
+  // doctor* at all, not this specific appointment.
+  const reviewsByDoctor = useMemo(() => {
+    const map = new Map<string, DoctorReview>();
+    for (const review of reviews) {
+      map.set(review.doctorId, review);
+    }
+    return map;
+  }, [reviews]);
 
   const upcomingCount = bookings.filter((b) => b.status === "BOOKED").length;
   const completedCount = bookings.filter((b) => b.status === "COMPLETED").length;
@@ -78,6 +98,13 @@ export default function AppointmentsPage() {
     } finally {
       setCancelingId(null);
     }
+  };
+
+  const handleReviewSaved = (review: DoctorReview) => {
+    setReviews((current) => {
+      const withoutThisDoctor = current.filter((r) => r.doctorId !== review.doctorId);
+      return [...withoutThisDoctor, review];
+    });
   };
 
   return (
@@ -110,11 +137,25 @@ export default function AppointmentsPage() {
             booking={booking}
             cancelingId={cancelingId}
             onCancel={handleCancel}
+            existingReview={
+              booking.doctor?.id ? reviewsByDoctor.get(booking.doctor.id) : undefined
+            }
+            onReview={setReviewingBooking}
             />
           ))}
         </div>
       )}
       </main>
+
+      {reviewingBooking && reviewingBooking.doctor?.id && (
+        <ReviewModal
+          doctorId={reviewingBooking.doctor.id}
+          doctorName={reviewingBooking.doctor.user?.name || "your doctor"}
+          existingReview={reviewsByDoctor.get(reviewingBooking.doctor.id) ?? null}
+          onClose={() => setReviewingBooking(null)}
+          onSaved={handleReviewSaved}
+        />
+      )}
     </div>
   );
 }

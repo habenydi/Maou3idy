@@ -273,3 +273,56 @@ export async function cancelDoctorBookingApi(id: string) {
   }
   return res.json();
 }
+
+// ------------- review API helpers -------------
+
+export type DoctorReview = {
+  id: string;
+  doctorId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+};
+
+/** Public — no auth required, used on the doctor's profile page. */
+export async function fetchDoctorReviewsApi(doctorId: string): Promise<DoctorReview[]> {
+  const res = await apiFetch(`/review/doctor/${doctorId}`);
+  if (!res.ok) throw new Error('Failed to fetch reviews');
+  return res.json();
+}
+
+/** The current patient's own reviews, across every doctor — used to tell
+ * "leave a review" apart from "edit your review" per appointment card. */
+export async function fetchMyReviewsApi(): Promise<DoctorReview[]> {
+  const res = await apiFetch('/review/mine');
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to fetch your reviews');
+  }
+  return res.json();
+}
+
+/** One review per (doctor, patient) — creates it the first time, updates
+ * the same one on every call after (matches the backend's upsert). */
+export async function submitReviewApi(
+  doctorId: string,
+  data: { rating: number; comment?: string }
+): Promise<DoctorReview> {
+  const res = await apiFetch(`/review/doctor/${doctorId}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    const message = errData.message;
+    throw new Error(
+      Array.isArray(message) ? message.join(', ') : message || 'Failed to submit review'
+    );
+  }
+  return res.json();
+}

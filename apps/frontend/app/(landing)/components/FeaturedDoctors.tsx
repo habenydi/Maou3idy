@@ -98,7 +98,9 @@ export default function FeaturedDoctors({ doctors }: Props) {
                 <span className="material-symbols-outlined text-sm">
                   location_on
                 </span>
-                {doctor.location[0].address}, {doctor.location[0].city}, {doctor.location[0].state}
+                {doctor.location[0]
+                  ? `${doctor.location[0].address}, ${doctor.location[0].city}, ${doctor.location[0].state}`
+                  : "Location not available"}
               </div>
 
               <button

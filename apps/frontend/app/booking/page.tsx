@@ -11,6 +11,7 @@ import DoctorServices from "./components/DoctorServices";
 import DoctorLocations from "./components/DoctorLocations";
 import BookingSidebar from "./components/BookingSidebar";
 import ReviewsTeaser from "./components/ReviewsTeaser";
+import DoctorReviews from "./components/DoctorReviews";
 import { useAuth } from "../layout";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -77,6 +78,12 @@ function Booking() {
             <DoctorServices services={services} />
 
             <DoctorLocations locations={doctor.location} />
+
+            <DoctorReviews
+              reviews={reviews}
+              rating={doctor.rating}
+              reviewCount={doctor.reviewCount}
+            />
           </div>
 
           <aside className="lg:col-span-4">
@@ -85,7 +92,7 @@ function Booking() {
                 doctorId={doctorId}
                 doctorName={doctor.user.name}
               />
-              <ReviewsTeaser reviews={reviews}/>
+              <ReviewsTeaser reviews={reviews} rating={doctor.rating} />
             </div>
           </aside>
         </div>
