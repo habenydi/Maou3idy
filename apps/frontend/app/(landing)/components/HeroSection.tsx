@@ -113,6 +113,15 @@ export default function HeroSection() {
       return;
     }
 
+    if (user.role !== 'USER' && user.role !== 'DOCTOR') {
+      // Only patients and doctors have appointments — an admin browsing the
+      // landing page isn't either, and `/slots/me/next` 401s for them,
+      // logging a console error on every single page load. Same idea as
+      // the logged-out guard above, just for role instead of auth.
+      setSessionState({ kind: 'none' });
+      return;
+    }
+
     const fetchNextSession = async () => {
       try {
         const response = await axios.get<NextSessionResponse | null>(
