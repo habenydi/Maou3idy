@@ -191,6 +191,17 @@ export class ReviewService {
           action: `Deleted your review of Dr. ${doctor?.user_id ?? review.doctorId}`,
         },
       });
+
+      if (doctor) {
+        await tx.notification.create({
+          data: {
+            user_id: doctor.user_id,
+            title: "Review Removed",
+            message: "A patient removed their review of you",
+            isRead: false,
+          },
+        });
+      }
     });
 
     await this.doctorService.updateDoctorScore(review.doctorId);

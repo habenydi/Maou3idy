@@ -11,6 +11,7 @@ import {
 } from "react-hook-form";
 
 import { RegisterFormData } from "@/types/register";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 interface RegisterFormProps {
 	register: UseFormRegister<RegisterFormData>;
@@ -29,16 +30,17 @@ export default function RegisterForm({
 	isLoading,
 	onSubmit,
 }: RegisterFormProps) {
+	const { t } = useI18n();
 	return (
 		<form className="space-y-6" onSubmit={onSubmit}>
-			{/* Full Name */}
+			{/* {t('auth.register.name')} */}
 			<div className="space-y-2">
 				<label
 					className="block text-xs font-bold tracking-wider uppercase pl-1"
 					htmlFor="name"
 					style={{ color: "#5f6368" }}
 				>
-					Full Name
+					{t('auth.register.name')}
 				</label>
 
 				<div className="relative">
@@ -80,7 +82,7 @@ export default function RegisterForm({
 						htmlFor="email"
 						style={{ color: "#5f6368" }}
 					>
-						Email
+						{t('auth.register.email')}
 					</label>
 
 					<div className="relative">
@@ -119,7 +121,7 @@ export default function RegisterForm({
 						htmlFor="phone"
 						style={{ color: "#5f6368" }}
 					>
-						Phone
+						{t('auth.register.phone')}
 					</label>
 
 					<div className="relative">
@@ -162,7 +164,7 @@ export default function RegisterForm({
 						htmlFor="password"
 						style={{ color: "#5f6368" }}
 					>
-						Password
+						{t('auth.register.password')}
 					</label>
 
 					<div className="relative">
@@ -206,7 +208,7 @@ export default function RegisterForm({
 						htmlFor="confirm_password"
 						style={{ color: "#5f6368" }}
 					>
-						Confirm Password
+						{t('auth.register.confirmPassword')}
 					</label>
 
 					<div className="relative">
@@ -250,7 +252,7 @@ export default function RegisterForm({
 				</div>
 			</div>
 
-			{/* Show Password */}
+			{/* {t('auth.register.showPassword')} */}
 			<div className="flex gap-2">
 				<input
 					id="show_password"
@@ -270,7 +272,7 @@ export default function RegisterForm({
 					className="text-xs cursor-pointer"
 					style={{ color: "#5f6368" }}
 				>
-					Show Password
+					{t('auth.register.showPassword')}
 				</label>
 			</div>
 
@@ -335,7 +337,7 @@ export default function RegisterForm({
 			>
 				{isLoading
 					? "Registering..."
-					: "Register"}
+					: t('auth.register.submit')}
 			</button>
 
 			<div className="mt-8 text-center">
@@ -343,13 +345,13 @@ export default function RegisterForm({
 					className="text-sm"
 					style={{ color: "#5f6368" }}
 				>
-					Already have an account?
+					{t('auth.register.haveAccount')}
 					<Link
 						href="/login"
 						className="font-bold ml-1"
 						style={{ color: "#0057cd" }}
 					>
-						Sign In
+						{t('nav.signIn')}
 					</Link>
 				</p>
 			</div>

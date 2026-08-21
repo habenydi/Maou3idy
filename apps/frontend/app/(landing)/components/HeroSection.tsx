@@ -5,6 +5,7 @@ import Img from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../layout';
+import { useI18n } from '@/lib/i18n/I18nContext';
 
 type FeaturedDoctor = {
   user: {
@@ -30,9 +31,6 @@ type NextSessionCard = NextSessionResponse & {
   image?: string | null;
 };
 
-// Distinguishes "still checking", "not logged in", "logged in, nothing
-// upcoming" and "logged in, here's the session" — each renders a different
-// card instead of silently collapsing into one "no session" state.
 type SessionState =
   | { kind: 'loading' }
   | { kind: 'logged-out' }
@@ -59,6 +57,7 @@ function formatNumber(num: number) {
 
 export default function HeroSection() {
   const router = useRouter();
+  const { t } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const [location, setLocation] = useState('');
   const [search, setSearch] = useState('');
@@ -107,9 +106,12 @@ export default function HeroSection() {
     if (authLoading) return;
 
     if (!user) {
-      // Logged-out visitors have no appointments to show — don't even hit
-      // the endpoint (it requires auth and would just 401).
       setSessionState({ kind: 'logged-out' });
+      return;
+    }
+
+    if (user.role !== 'USER' && user.role !== 'DOCTOR') {
+      setSessionState({ kind: 'none' });
       return;
     }
 
@@ -126,9 +128,6 @@ export default function HeroSection() {
           return;
         }
 
-        // Slots only knows the doctor's name/email (denormalized from
-        // auth), not their specialty/profile picture — fetch that
-        // separately when a patient is looking at their next doctor visit.
         if (session.viewerRole === 'PATIENT' && session.with.doctorId) {
           try {
             const doctorRes = await axios.get(
@@ -183,26 +182,26 @@ export default function HeroSection() {
 <section className="relative px-4 sm:px-6 py-16 sm:py-20 lg:py-32 overflow-hidden">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className="relative z-10">
-              <span className="inline-block py-1 px-3 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold tracking-wider mb-4 sm:mb-6">{formatNumber(stats.totalPatients)}+ PATIENTS TRUST OUR PLATFORM</span>
+              <span className="inline-block py-1 px-3 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-bold tracking-wider mb-4 sm:mb-6">{formatNumber(stats.totalPatients)}+ {t('hero.trustBadge')}</span>
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-on-surface tracking-tighter leading-[1.1] mb-4 sm:mb-6">
-                Find the right <span className="text-primary">doctor</span> easily
+                {t('hero.title.pre')} <span className="text-primary">{t('hero.title.highlight')}</span> {t('hero.title.post')}
               </h1>
               <p className="text-base sm:text-lg text-on-surface-variant max-w-lg mb-8 sm:mb-10 leading-relaxed">
-                Access world-class healthcare from the comfort of your home. Book appointments with top specialists in minutes.
+                {t('hero.subtitle')}
               </p>
 
               {/* Hero Search Bar */}
               <div className="p-2 bg-surface-container-lowest rounded-2xl shadow-xl flex flex-col md:flex-row items-center gap-2 border border-outline-variant/20">
                 <div className="flex-1 flex items-center gap-3 px-4 w-full">
                   <span className="material-symbols-outlined text-primary">search</span>
-                  <input className="w-full py-3 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline/60" placeholder="Specialty, name, or condition" type="text" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <input className="w-full py-3 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline/60" placeholder={t('hero.searchPlaceholder')} type="text" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <div className="hidden md:block w-px h-8 bg-outline-variant/30"></div>
                 <div className="flex-1 flex items-center gap-3 px-4 w-full">
                   <span className="material-symbols-outlined text-primary">location_on</span>
-                  <input className="w-full py-3 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline/60" placeholder="Location" type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+                  <input className="w-full py-3 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline/60" placeholder={t('hero.locationPlaceholder')} type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
                 </div>
-                <button onClick={handleSearch} className="w-full md:w-auto px-8 py-4 bg-primary text-on-primary font-bold rounded-xl transition-transform active:scale-95">Search</button>
+                <button onClick={handleSearch} className="w-full md:w-auto px-8 py-4 bg-primary text-on-primary font-bold rounded-xl transition-transform active:scale-95">{t('hero.searchButton')}</button>
               </div>
 
               <div className="mt-8 flex items-center gap-4">

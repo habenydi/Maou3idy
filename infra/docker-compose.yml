@@ -95,6 +95,21 @@ services:
     env_file: ./.rabbitmq.env
     restart: always
     networks: [app-net]
+  backup:
+    image: postgres:15
+    container_name: backup
+    restart: always
+    env_file: ./backup/.env
+    entrypoint: ["sh", "/app/backup.sh"]
+    volumes:
+      - ./backup:/app:ro
+      - backup_volume:/backups
+    networks:
+      - auth-net
+      - slots-net
+    depends_on:
+      - auth_db
+      - slots_db
 
 networks:
   app-net:
@@ -107,4 +122,5 @@ networks:
 volumes:
   auth_db_volume:
   slots_db_volume:
+  backup_volume:
   webroot:
