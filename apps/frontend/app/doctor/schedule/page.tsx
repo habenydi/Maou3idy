@@ -19,7 +19,7 @@ function toLocalDateStr(date: Date): string {
   ].join("-");
 }
 
-type SlotStatus = "available" | "unavailable" | "booked";
+type SlotStatus = "available" | "unavailable" | "booked" | "completed";
 
 type Shift = {
   start_hour: string;
@@ -61,27 +61,42 @@ const SLOT_COLORS: Record<SlotStatus, string> = {
   available: "#10b981",
   unavailable: "#9ca3af",
   booked: "#0057cd",
+  completed: "#313233ff",
 };
 
 function slotToEvent(slot: Slot): CalendarEvent {
   const dateStr = toLocalDateStr(new Date(slot.date));
 
-  const status: SlotStatus = slot.is_booked
-    ? "booked"
-    : slot.status?.toUpperCase() === "AVAILABLE"
-      ? "available"
-      : "unavailable";
+  const startDate = new Date(`${dateStr}T${slot.start_time}`);
+  const endDate = new Date(`${dateStr}T${slot.end_time}`);
+  const now = new Date();
+
+  const rawStatus = slot.status?.toUpperCase();
+
+  let status: SlotStatus;
+
+  if (rawStatus === "COMPLETED") {
+    status = "completed";
+  } else if (slot.is_booked) {
+    status = "booked";
+  } else if (endDate <= now || rawStatus === "UNAVAILABLE") {
+    status = "unavailable";
+  } else {
+    status = "available";
+  }
+
+  const titleMap: Record<SlotStatus, string> = {
+    booked: "Booked",
+    available: "Available",
+    unavailable: "Unavailable",
+    completed: "Completed",
+  };
 
   return {
     id: String(slot.id),
-    title:
-      status === "booked"
-        ? "Booked"
-        : status === "available"
-          ? "Available"
-          : "Unavailable",
-    start: new Date(`${dateStr}T${slot.start_time}`),
-    end: new Date(`${dateStr}T${slot.end_time}`),
+    title: titleMap[status],
+    start: startDate,
+    end: endDate,
     backgroundColor: SLOT_COLORS[status],
     editable: status === "available",
     extendedProps: { status, isBooked: slot.is_booked },
@@ -107,11 +122,13 @@ const Schedule = () => {
     const booked = events.filter(
       (e) => e.extendedProps?.status === "booked",
     ).length;
-    const unavailable = events.length - available - booked;
-    return { available, booked, unavailable, total: events.length };
+    const completed = events.filter(
+      (e) => e.extendedProps?.status === "completed",
+    ).length;
+    const unavailable = events.length - available - booked - completed;
+    return { available, booked, completed, unavailable, total: events.length };
   }, [events]);
 
-  // ─── Fetch all slots ──────────────────────────────────────────────────────
   const fetchSlots = useCallback(async () => {
     if (!canManageSlots) {
       setEvents([]);
@@ -136,14 +153,12 @@ const Schedule = () => {
     })();
   }, [fetchSlots]);
 
-  // ─── Generate slots ───────────────────────────────────────────────────────
   const handleGenerateSlots = async () => {
     if (!canManageSlots) {
       toast.error("You need a doctor profile before generating slots");
       return;
     }
 
-    // Validate shifts
     for (const shift of settings.shifts) {
       if (shift.start_hour >= shift.end_hour) {
         toast.error("Shift end time must be after start time");
@@ -180,7 +195,6 @@ const Schedule = () => {
     }
   };
 
-  // ─── Delete a single slot ─────────────────────────────────────────────────
   const deleteEvent = async (eventId: string) => {
     if (!canManageSlots) {
       toast.error("You need a doctor profile before managing slots");
@@ -213,7 +227,6 @@ const Schedule = () => {
     }
   };
 
-  // ─── Drag-to-reschedule ───────────────────────────────────────────────────
   const handleEventDrop = async (info: {
     event: { id: string; start: Date | null; end: Date | null };
     revert: () => void;
@@ -254,7 +267,6 @@ const Schedule = () => {
     }
   };
 
-  // ─── Resize slot ──────────────────────────────────────────────────────────
   const handleEventResize = async (info: {
     event: { id: string; start: Date | null; end: Date | null };
     revert: () => void;
@@ -295,7 +307,6 @@ const Schedule = () => {
     }
   };
 
-  // ─── Clear all slots ──────────────────────────────────────────────────────
   const handleClearAll = async () => {
     if (!canManageSlots) {
       toast.error("Doctor profile is required");
@@ -330,7 +341,6 @@ const Schedule = () => {
   return (
     <DoctorShell>
       <main className="flex-1 bg-surface min-h-screen overflow-y-auto">
-        {/* Header */}
         <header className="px-8 pt-10 pb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl font-extrabold tracking-tighter text-on-surface mb-2">
@@ -356,6 +366,13 @@ const Schedule = () => {
                 icon: "event_busy",
                 color: "text-primary",
                 bg: "bg-primary/10",
+              },
+              {
+                label: "Completed",
+                value: stats.completed,
+                icon: "task_alt",
+                color: "text-purple-600",
+                bg: "bg-purple-500/10",
               },
               {
                 label: "Total",
@@ -399,7 +416,6 @@ const Schedule = () => {
           )}
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            {/* Settings panel */}
             <div className="xl:col-span-4 space-y-4">
               <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 overflow-hidden">
                 <button
@@ -462,7 +478,6 @@ const Schedule = () => {
                       </select>
                     </div>
 
-                    {/* Shifts Management Configuration */}
                     <div className="space-y-2 pt-2">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -581,7 +596,6 @@ const Schedule = () => {
                 )}
               </div>
 
-              {/* Legend */}
               <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 p-5">
                 <h3 className="text-sm font-bold text-on-surface mb-3">
                   Legend
@@ -592,6 +606,7 @@ const Schedule = () => {
                       ["available", "Available"],
                       ["unavailable", "Unavailable (past)"],
                       ["booked", "Booked"],
+                      ["completed", "Completed"],
                     ] as const
                   ).map(([key, label]) => (
                     <div
@@ -613,7 +628,6 @@ const Schedule = () => {
               </div>
             </div>
 
-            {/* Calendar */}
             <div className="xl:col-span-8">
               <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 overflow-hidden">
                 <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center gap-2">
@@ -641,6 +655,10 @@ const Schedule = () => {
                     weekends
                     events={events}
                     eventClick={(info) => {
+                      if (info.event.extendedProps?.status === "completed") {
+                        toast.info("This appointment is completed");
+                        return;
+                      }
                       if (info.event.extendedProps?.isBooked) {
                         toast.info("This slot is already booked");
                         return;

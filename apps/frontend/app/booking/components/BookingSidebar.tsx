@@ -28,6 +28,7 @@ type TimeWindow = {
 function formatDateLabel(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
   const date = new Date(year, month - 1, day);
+  if (isNaN(date.getTime())) return "Invalid date";
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -127,41 +128,43 @@ export default function BookingSidebar({ doctorId, doctorName }: Props) {
   );
 
   const refetchWindows = useCallback(async () => {
-  if (!selectedServiceId || !selectedDate) {
-    setWindows([]);
-    return;
-  }
-  try {
-    setLoadingWindows(true);
-    const res = await apiFetch(
-      `/slots/available?doctorId=${doctorId}&serviceId=${selectedServiceId}&date=${selectedDate}`
-    );
-    if (!res.ok) throw new Error("Failed to check availability");
-    const data = await res.json();
-    const freshWindows: TimeWindow[] = data.windows || [];
-    setWindows(freshWindows);
+    if (!selectedServiceId || !selectedDate) {
+      setWindows([]);
+      return;
+    }
+    try {
+      setLoadingWindows(true);
+      const res = await apiFetch(
+        `/slots/available?doctorId=${doctorId}&serviceId=${selectedServiceId}&date=${selectedDate}`,
+      );
+      if (!res.ok) throw new Error("Failed to check availability");
+      const data = await res.json();
+      const freshWindows: TimeWindow[] = data.windows || [];
+      setWindows(freshWindows);
 
-    // If the user's current pick fell out of the fresh list, clear it
-    setSelectedWindow((prev) =>
-      prev && !freshWindows.some((w) => w.start_time === prev.start_time) ? null : prev
-    );
-  } catch (err) {
-    console.error(err);
-    setWindows([]);
-  } finally {
-    setLoadingWindows(false);
-  }
-}, [doctorId, selectedServiceId, selectedDate]);
+      // If the user's current pick fell out of the fresh list, clear it
+      setSelectedWindow((prev) =>
+        prev && !freshWindows.some((w) => w.start_time === prev.start_time)
+          ? null
+          : prev,
+      );
+    } catch (err) {
+      console.error(err);
+      setWindows([]);
+    } finally {
+      setLoadingWindows(false);
+    }
+  }, [doctorId, selectedServiceId, selectedDate]);
 
-useEffect(() => {
-  refetchWindows();
-}, [refetchWindows]);
+  useEffect(() => {
+    refetchWindows();
+  }, [refetchWindows]);
 
-// Keep availability honest while the user is deciding
-useEffect(() => {
-  const interval = setInterval(refetchWindows, 60_000); // every 60s
-  return () => clearInterval(interval);
-}, [refetchWindows]);
+  // Keep availability honest while the user is deciding
+  useEffect(() => {
+    const interval = setInterval(refetchWindows, 60_000); // every 60s
+    return () => clearInterval(interval);
+  }, [refetchWindows]);
 
   const handleBook = async () => {
     if (!auth?.user) {
@@ -334,8 +337,8 @@ useEffect(() => {
       </button>
 
       <p className="text-[10px] text-center text-outline leading-tight">
-        Your slot will be reserved instantly out of the doctor&apos;s active shift
-        block.
+        Your slot will be reserved instantly out of the doctor&apos;s active
+        shift block.
       </p>
     </div>
   );

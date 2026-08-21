@@ -46,6 +46,19 @@ axiosInstance.interceptors.response.use(
 
 const API_BASE = process.env.NEXT_PUBLIC_URL;
 
+// class-validator returns `message` as an array when multiple constraints
+// fail on the same DTO — every call site below used to do its own
+// `errData.message || 'fallback'`, so an array either printed as an ugly
+// unspaced comma-join (`Error(array)` stringifies via `.join(',')`) or,
+// on the few spots that skipped extraction entirely, got silently dropped
+// in favor of a generic message. One helper, used everywhere.
+async function extractErrorMessage(res: Response, fallback: string): Promise<string> {
+  const errData = await res.json().catch(() => ({} as { message?: string | string[] }));
+  const message = errData?.message;
+  if (Array.isArray(message)) return message.join(', ');
+  return message || fallback;
+}
+
 export async function apiFetch(
   path: string,
   init: RequestInit = {},
@@ -80,8 +93,7 @@ export async function createServiceApi(doctorId: string, data: any) {
     body: JSON.stringify({ ...data, doctorId }),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to create service');
+    throw new Error(await extractErrorMessage(res, 'Failed to create service'));
   }
   return res.json();
 }
@@ -90,7 +102,7 @@ export async function deleteServiceApi(doctorId: string, serviceId: string) {
   const res = await apiFetch(`/services/${doctorId}/${serviceId}`, {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error('Failed to delete service');
+  if (!res.ok) throw new Error(await extractErrorMessage(res, 'Failed to delete service'));
   return res.json();
 }
 
@@ -100,8 +112,7 @@ export async function updateServiceApi(doctorId: string, serviceId: string, data
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to update service');
+    throw new Error(await extractErrorMessage(res, 'Failed to update service'));
   }
   return res.json();
 }
@@ -125,7 +136,7 @@ export async function createCategoryApi(data: { name: string; description?: stri
     method: 'POST',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create category');
+  if (!res.ok) throw new Error(await extractErrorMessage(res, 'Failed to create category'));
   return res.json();
 }
 
@@ -134,7 +145,7 @@ export async function updateCategoryApi(id: string, data: { name?: string; descr
     method: 'PATCH',
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to update category');
+  if (!res.ok) throw new Error(await extractErrorMessage(res, 'Failed to update category'));
   return res.json();
 }
 
@@ -142,7 +153,7 @@ export async function deleteCategoryApi(id: string) {
   const res = await apiFetch(`/categories/${id}`, {
     method: 'DELETE',
   });
-  if (!res.ok) throw new Error('Failed to delete category');
+  if (!res.ok) throw new Error(await extractErrorMessage(res, 'Failed to delete category'));
   return res.json();
 }
 
@@ -157,8 +168,7 @@ export async function fetchAvailableWindows(
   const params = new URLSearchParams({ doctorId, serviceId, date });
   const res = await apiFetch(`/slots/available?${params.toString()}`);
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to fetch available times');
+    throw new Error(await extractErrorMessage(res, 'Failed to fetch available times'));
   }
   return res.json();
 }
@@ -174,8 +184,7 @@ export async function bookServiceSlotApi(data: {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to book appointment');
+    throw new Error(await extractErrorMessage(res, 'Failed to book appointment'));
   }
   return res.json();
 }
@@ -206,8 +215,7 @@ export type UserBooking = {
 export async function fetchMyBookingsApi(): Promise<UserBooking[]> {
   const res = await apiFetch('/slots/me/bookings');
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to fetch bookings');
+    throw new Error(await extractErrorMessage(res, 'Failed to fetch bookings'));
   }
   return res.json();
 }
@@ -217,8 +225,7 @@ export async function cancelMyBookingApi(id: string) {
     method: 'POST',
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to cancel booking');
+    throw new Error(await extractErrorMessage(res, 'Failed to cancel booking'));
   }
   return res.json();
 }
@@ -246,8 +253,7 @@ export type DoctorBooking = {
 export async function fetchDoctorBookingsApi(): Promise<DoctorBooking[]> {
   const res = await apiFetch('/slots/doctor/me/bookings');
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to fetch doctor appointments');
+    throw new Error(await extractErrorMessage(res, 'Failed to fetch doctor appointments'));
   }
   return res.json();
 }
@@ -257,8 +263,7 @@ export async function completeDoctorBookingApi(id: string) {
     method: 'POST',
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to complete appointment');
+    throw new Error(await extractErrorMessage(res, 'Failed to complete appointment'));
   }
   return res.json();
 }
@@ -268,8 +273,55 @@ export async function cancelDoctorBookingApi(id: string) {
     method: 'POST',
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.message || 'Failed to cancel appointment');
+    throw new Error(await extractErrorMessage(res, 'Failed to cancel appointment'));
+  }
+  return res.json();
+}
+
+// ------------- review API helpers -------------
+
+export type DoctorReview = {
+  id: string;
+  doctorId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+};
+
+/** Public — no auth required, used on the doctor's profile page. */
+export async function fetchDoctorReviewsApi(doctorId: string): Promise<DoctorReview[]> {
+  const res = await apiFetch(`/review/doctor/${doctorId}`);
+  if (!res.ok) throw new Error(await extractErrorMessage(res, 'Failed to fetch reviews'));
+  return res.json();
+}
+
+/** The current patient's own reviews, across every doctor — used to tell
+ * "leave a review" apart from "edit your review" per appointment card. */
+export async function fetchMyReviewsApi(): Promise<DoctorReview[]> {
+  const res = await apiFetch('/review/mine');
+  if (!res.ok) {
+    throw new Error(await extractErrorMessage(res, 'Failed to fetch your reviews'));
+  }
+  return res.json();
+}
+
+/** One review per (doctor, patient) — creates it the first time, updates
+ * the same one on every call after (matches the backend's upsert). */
+export async function submitReviewApi(
+  doctorId: string,
+  data: { rating: number; comment?: string }
+): Promise<DoctorReview> {
+  const res = await apiFetch(`/review/doctor/${doctorId}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(await extractErrorMessage(res, 'Failed to submit review'));
   }
   return res.json();
 }

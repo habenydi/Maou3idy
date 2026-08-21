@@ -47,7 +47,7 @@ export class JwtGuard implements CanActivate {
     const token = request.cookies?.access_token;
 
     if (!token) {
-      throw new UnauthorizedException("Unauthorized! sdfnur askdn");
+      throw new UnauthorizedException("You are not logged in");
     }
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);

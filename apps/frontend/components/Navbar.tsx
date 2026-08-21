@@ -3,9 +3,11 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/app/layout';
+import { useI18n } from '@/lib/i18n/I18nContext';
 import { useEffect, useRef, useState } from 'react';
 import ProfileMenu from './components/ProfileMenu';
 import NotificationBell from './NotificationBell';
+import LanguageSwitcher from './LanguageSwitcher';
 import Link from 'next/link';
 
 interface NavbarProps {
@@ -24,6 +26,7 @@ export default function Navbar({
   const mobileNotificationRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { user, loading, setUser } = useAuth();
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -98,11 +101,6 @@ export default function Navbar({
       });
       toast.success("Logged out successfully");
     } catch (error) {
-      // Was only clearing local state / navigating on success — if the
-      // server call failed for any reason (expired session, network
-      // hiccup), the user was left stuck looking logged in with nothing but
-      // an error toast, even though their intent ("log me out") should
-      // still be honored client-side.
       console.error("Logout request failed (clearing session locally anyway):", error);
     } finally {
       setUser(null);
@@ -175,7 +173,7 @@ export default function Navbar({
                 : 'text-slate-600 hover:text-blue-700'
             }`}
           >
-            Find Doctors
+            {t('nav.findDoctors')}
           </Link>
             <Link
               href={'/specialties'}
@@ -186,7 +184,7 @@ export default function Navbar({
                   : 'text-slate-600 hover:text-blue-700'
               }`}
             >
-              Specialties
+              {t('nav.specialties')}
             </Link>
             <Link
               href={'/about-us'}
@@ -197,12 +195,13 @@ export default function Navbar({
                   : 'text-slate-600 hover:text-blue-700'
               }`}
             >
-              About Us
+              {t('nav.aboutUs')}
             </Link>
           </nav>
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           {showAuthButtons && (
             <div className="hidden md:flex items-center gap-4">
               {!user ? (
@@ -211,13 +210,13 @@ export default function Navbar({
                     onClick={() => router.push('/login')}
                     className="text-slate-600 font-semibold px-4 py-2 hover:text-blue-700 active:scale-95 duration-200"
                   >
-                    Sign In
+                    {t('nav.signIn')}
                   </button>
                   <button
                     onClick={() => router.push('/register')}
                     className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                   >
-                    Sign Up
+                    {t('nav.signUp')}
                   </button>
                 </>
               ) : (
@@ -233,7 +232,7 @@ export default function Navbar({
                     }
                     className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                   >
-                    {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
+                    {user.role === 'ADMIN' ? t('nav.adminDashboard') : t('nav.doctorDashboard')}
                   </button>
                 ) : (
                   DoctorButton === false && (
@@ -242,7 +241,7 @@ export default function Navbar({
                         onClick={() => router.push('/doctor-register')}
                         className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-95 duration-200 transition-all"
                       >
-                        Join as Doctor
+                        {t('nav.joinAsDoctor')}
                       </button>
                       <button
                         onClick={handleHideDoctorButtonClick}
@@ -324,15 +323,18 @@ export default function Navbar({
       {/* Mobile nav drawer */}
       {mobileNavOpen && (
         <div className="md:hidden bg-slate-50 border-t border-slate-200 px-4 py-4 space-y-2">
-          <Link href={'/'} onClick={() => { router.push('/'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Find Doctors</Link>
-          <Link href={'/specialties'} onClick={() => { router.push('/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">Specialties</Link>
-          <Link href={'about-us'} onClick={() => { router.push('/about-us'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">About Us</Link>
+          <Link href={'/'} onClick={() => { router.push('/'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">{t('nav.findDoctors')}</Link>
+          <Link href={'/specialties'} onClick={() => { router.push('/specialties'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">{t('nav.specialties')}</Link>
+          <Link href={'about-us'} onClick={() => { router.push('/about-us'); setMobileNavOpen(false); }} className="block px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer">{t('nav.aboutUs')}</Link>
+          <div className="px-3 py-2">
+            <LanguageSwitcher />
+          </div>
           {showAuthButtons && (
             <div className="pt-2 border-t border-slate-200 space-y-2">
               {!user ? (
                 <>
-                  <button onClick={() => { router.push('/login'); setMobileNavOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100">Sign In</button>
-                  <button onClick={() => { router.push('/doctor-register'); setMobileNavOpen(false); }} className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold">Join as Doctor</button>
+                  <button onClick={() => { router.push('/login'); setMobileNavOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100">{t('nav.signIn')}</button>
+                  <button onClick={() => { router.push('/doctor-register'); setMobileNavOpen(false); }} className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold">{t('nav.joinAsDoctor')}</button>
                 </>
               ) : (
                 <>
@@ -341,7 +343,7 @@ export default function Navbar({
                       onClick={() => { router.push(user.role === 'ADMIN' ? '/admin/dashboard' : '/doctor/dashboard'); setMobileNavOpen(false); }}
                       className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold"
                     >
-                      {user.role === 'ADMIN' ? 'Admin' : 'Doctor'} Dashboard
+                      {user.role === 'ADMIN' ? t('nav.adminDashboard') : t('nav.doctorDashboard')}
                     </button>
                   ) : (
                     DoctorButton === false && (
@@ -350,7 +352,7 @@ export default function Navbar({
                           onClick={() => { router.push('/doctor-register'); setMobileNavOpen(false); }}
                           className="w-full px-3 py-2 bg-primary text-on-primary rounded-xl font-semibold"
                         >
-                          Join as Doctor
+                          {t('nav.joinAsDoctor')}
                         </button>
                         <button
                           onClick={handleHideDoctorButtonClick}
@@ -362,7 +364,7 @@ export default function Navbar({
                       </div>
                     )
                   )}
-                  <button onClick={() => { handleLogout(); setMobileNavOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50">Logout</button>
+                  <button onClick={() => { handleLogout(); setMobileNavOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50">{t('nav.logout')}</button>
                   <div className="relative" ref={mobileProfileRef}>
                     <button
                       onClick={() => setMobileMenuOpen((prev) => !prev)}

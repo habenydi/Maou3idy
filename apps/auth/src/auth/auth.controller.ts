@@ -99,10 +99,6 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000,
     });
     await this.MetricsService.incrementSession();
-    // Was hardcoded to localhost:3000 — the frontend's own container port,
-    // which isn't published to the host at all behind nginx (only nginx's
-    // own port is). FRONTEND_URL is already used elsewhere in this service
-    // for exactly this reason; this redirect just wasn't using it.
     res.redirect(`${process.env.FRONTEND_URL}/google-callback`);
   }
 

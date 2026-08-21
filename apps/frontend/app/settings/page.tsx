@@ -1,6 +1,7 @@
 import BackButton from '@/components/BackButton';
 import NotificationSettings from './components/NotificationSettings';
 import SecuritySettings from './components/SecuritySettings';
+import PrivacyDataSettings from './components/PrivacyDataSettings';
 
 export default function SettingsPage() {
   return (
@@ -24,6 +25,8 @@ export default function SettingsPage() {
           <NotificationSettings />
 
           <SecuritySettings />
+
+          <PrivacyDataSettings />
         </div>
       </div>
     </main>

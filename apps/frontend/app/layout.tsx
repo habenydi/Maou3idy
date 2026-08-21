@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import { useState, useEffect, createContext, useContext} from "react";
 import axios from "axios";
+import { I18nProvider } from "@/lib/i18n/I18nContext";
 
 export type User = {
   sub: string;
@@ -61,19 +62,28 @@ export function AuthProvider({
 }
 
 export const useAuth = () => useContext(AuthContext);
-// export const metadata: Metadata = {
-//   title: "Maou<span className="text-blue-500">3</span>idy - Clinical Appointment System",
-//   bio: "Schedule and manage your medical appointments with Maou<span className="text-blue-500">3</span>idy",
-// };
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.error("Service worker registration failed:", err);
+      });
+    }
+  }, []);
+
   return (
     <html lang="en" className="light">
       <head>
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/icon-192.png" />
+        <meta name="theme-color" content="#0f172a" />
         {/* Fonts */}
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link crossOrigin="" href="https://fonts.gstatic.com" rel="preconnect" />
@@ -92,10 +102,12 @@ export default function RootLayout({
         `}</style>
       </head>
       <body>
-        <AuthProvider>
-        {children}
-        </AuthProvider>
-        <ToastContainer 
+        <I18nProvider>
+          <AuthProvider>
+          {children}
+          </AuthProvider>
+        </I18nProvider>
+        <ToastContainer
         position="top-right"
         autoClose={5000}
         closeOnClick

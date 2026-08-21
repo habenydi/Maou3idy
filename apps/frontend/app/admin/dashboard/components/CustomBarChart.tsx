@@ -42,6 +42,23 @@ export default function CustomBarChart({ isMonthly }: CustomBarChartProps) {
     fetchRegistrationData();
   }, [isMonthly]);
 
+  const exportCsv = () => {
+    const rows = [
+      ['Period', 'New Registrations'],
+      ...registrationData.map((item) => [item.label, String(item.count)]),
+    ];
+    const csv = rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `registration-trends-${isMonthly ? 'monthly' : 'weekly'}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="h-64 flex items-center justify-center">
@@ -56,6 +73,18 @@ export default function CustomBarChart({ isMonthly }: CustomBarChartProps) {
   );
 
   return (
+    <>
+    <div className="flex justify-end mb-2">
+      <button
+        type="button"
+        onClick={exportCsv}
+        disabled={registrationData.length === 0}
+        className="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        <span className="material-symbols-outlined text-sm">download</span>
+        Export CSV
+      </button>
+    </div>
     <div className="flex items-end justify-between h-64 px-4 gap-4">
       {registrationData.map((item, index) => {
         const isLast = index === registrationData.length - 1;
@@ -92,5 +121,6 @@ export default function CustomBarChart({ isMonthly }: CustomBarChartProps) {
         );
       })}
     </div>
+    </>
   );
 }
