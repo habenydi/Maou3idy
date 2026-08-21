@@ -60,17 +60,19 @@ export default function ResetPassword() {
 
       toast.success(message);
 
+      router.refresh();
       router.push("/");
     } catch (err) {
       console.error(err);
 
-      const message =
-        axios.isAxiosError(err) &&
-        err.response?.data?.message
+      const backendMessage =
+        axios.isAxiosError(err) && err.response?.data?.message
           ? err.response.data.message
-          : err instanceof Error
-          ? err.message
-          : "An unknown error occurred.";
+          : undefined;
+      const message = Array.isArray(backendMessage)
+        ? backendMessage.join(", ")
+        : backendMessage ||
+          (err instanceof Error ? err.message : "An unknown error occurred.");
 
       toast.error(message + " Please try again.");
     } finally {

@@ -99,7 +99,11 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000,
     });
     await this.MetricsService.incrementSession();
-    res.redirect(`http://localhost:3000/google-callback`);
+    // Was hardcoded to localhost:3000 — the frontend's own container port,
+    // which isn't published to the host at all behind nginx (only nginx's
+    // own port is). FRONTEND_URL is already used elsewhere in this service
+    // for exactly this reason; this redirect just wasn't using it.
+    res.redirect(`${process.env.FRONTEND_URL}/google-callback`);
   }
 
   @Public()
@@ -180,8 +184,22 @@ export class AuthController {
   async reset_password(
     @Param("token") token: string,
     @Body("new_password") new_password: string,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return await this.Authservice.reset_password(token, new_password);
+    const result = await this.Authservice.reset_password(token, new_password);
+    res.clearCookie("token");
+    res.cookie("access_token", result.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      statusCode: result.statusCode,
+      message: result.message,
+      user: result.user,
+    };
   }
   @Patch("change-password")
   async change_password(

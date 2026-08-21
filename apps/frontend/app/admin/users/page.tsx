@@ -28,12 +28,12 @@ export default async function DashboardPage({
   const accessToken = cookieStore.get("access_token")?.value;
 
   const response = await axios.get(
-    process.env.NEXT_PUBLIC_URL+ `/admin/users?page=${currentPage}&search=${searchQuery}&role=${roleQuery}`,
+    `${process.env.INTERNAL_API_URL}/admin/users?page=${currentPage}&search=${searchQuery}&role=${roleQuery}`,
     {
       headers: {
         Cookie: `access_token=${accessToken}`,
       },
-    }
+    },
   );
 
 const data = await getDashboardStats();

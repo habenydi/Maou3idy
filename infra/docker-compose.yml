@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   nginx:
     image: nginx:alpine
@@ -11,43 +9,49 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - webroot:/var/www/html
     networks: [app-net]
+    depends_on:
+      - api-gateway
+      - frontend
 
   api-gateway:
     build: ../apps/api-gateway
     container_name: api-gateway
     restart: always
     env_file:
-      - path: ../apps/api-gateway/.env.example
-  #  ports: ["${PORT:-8080}:${PORT:-8080}"]
+      - path: ../apps/api-gateway/.env
     networks: [app-net]
+    depends_on:
+      - auth
+      - notification
+      - slots
 
   frontend:
     build: ../apps/frontend
     container_name: frontend
     restart: always
     env_file:
-      - path: ../apps/frontend/.env.example
+      - path: ../apps/frontend/.env
     networks: [app-net]
+    depends_on:
+      - api-gateway
 
   auth:
     build: ../apps/auth
     container_name: auth
     restart: always
     env_file:
-      - path: ../apps/auth/.env.example
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://auth:8081/health"]
-    #   interval: 30s
-    #   timeout: 5s
-    #   retries: 3
+      - path: ../apps/auth/.env
     networks:
       - app-net
       - auth-net
+    depends_on:
+      - auth_db
+      - rabbitmq
 
   auth_db:
     image: postgres:15
     container_name: auth_db
-    env_file: ../apps/auth/.env.example
+    env_file: ../apps/auth/.db.env
     restart: always
     volumes:
       - auth_db_volume:/var/lib/postgresql/data
@@ -58,58 +62,51 @@ services:
     container_name: notification
     restart: always
     env_file:
-      - path: ../apps/notification/.env.example
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://notification:8082/health"]
-    #   interval: 30s
-    #   timeout: 5s
-    #   retries: 3
+      - path: ../apps/notification/.env
     networks:
       - app-net
-      - notification-net
+    depends_on:
+      - rabbitmq
 
-  notification_db:
+  slots:
+    build: ../apps/slots
+    container_name: slots
+    restart: always
+    env_file: ../apps/slots/.env
+    networks:
+      - app-net
+      - slots-net
+    depends_on:
+      - slots_db
+      - rabbitmq
+
+  slots_db:
     image: postgres:15
-    container_name: notification_db
-    environment:
-      POSTGRES_USER: yassir
-      POSTGRES_PASSWORD: 123
-      POSTGRES_DB: notification_db
+    container_name: slots_db
+    restart: always
+    env_file: ../apps/slots/.db.env
     volumes:
-      - notification_db_volume:/var/lib/postgresql/data
-    networks: [notification-net]
+      - slots_db_volume:/var/lib/postgresql/data
+    networks: [slots-net]
 
   rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: yassir
-      RABBITMQ_DEFAULT_PASS: yassir123
-    networks: [app-net]
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - webroot:/var/www/html
-    depends_on:
-      - nginx
-    command: certonly --webroot --webroot-path=/var/www/html --email hassanbenydir26@gmail.com --agree-tos --no-eff-email --non-interactive --keep-until-expiring -d 7host
+    env_file: ./.rabbitmq.env
+    restart: always
     networks: [app-net]
 
 networks:
   app-net:
     driver: bridge
-  notification-net:
-    driver: bridge
   auth-net:
+    driver: bridge
+  slots-net:
     driver: bridge
 
 volumes:
   auth_db_volume:
-  notification_db_volume:
+  slots_db_volume:
   webroot:
   certbot-etc:
   certbot-var:

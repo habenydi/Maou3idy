@@ -52,13 +52,17 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 			router.push("/");
 		} catch (err) {
 			console.error(err);
-
-			const message = axios.isAxiosError(err)
-				? (err.response?.data as { message?: string })?.message ||
-				  "Login failed"
-				: err instanceof Error
-					? err.message
-					: "An unknown error occurred.";
+			const rawMessage = axios.isAxiosError(err)
+				? (err.response?.data as { message?: string | string[] })?.message
+				: undefined;
+			const message = Array.isArray(rawMessage)
+				? rawMessage.join(", ")
+				: rawMessage ||
+				  (axios.isAxiosError(err)
+						? "Login failed"
+						: err instanceof Error
+							? err.message
+							: "An unknown error occurred.");
 
 			toast.error(`${message} Please try again.`);
 		} finally {

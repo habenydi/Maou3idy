@@ -15,6 +15,7 @@ import { NotificationModule } from "./notification/notification.module";
 import { UserStatsModule } from "./user-stats/user-stats.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { SeedModule } from "./seed/seed.module";
 
 @Module({
   imports: [
@@ -52,12 +53,8 @@ import { AppService } from "./app.service";
     ReviewModule,
     NotificationModule,
     UserStatsModule,
+    SeedModule,
   ],
-  // AppController (incl. GET /health, which the api-gateway's
-  // ServiceAvailabilityInterceptor polls to decide whether to let any
-  // request through at all) was never registered here, so it was dead code
-  // and every request through the gateway would 503 "Auth service
-  // unavailable" forever.
   controllers: [AppController],
   providers: [AppService],
 })
