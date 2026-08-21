@@ -184,8 +184,22 @@ export class AuthController {
   async reset_password(
     @Param("token") token: string,
     @Body("new_password") new_password: string,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return await this.Authservice.reset_password(token, new_password);
+    const result = await this.Authservice.reset_password(token, new_password);
+    res.clearCookie("token");
+    res.cookie("access_token", result.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      statusCode: result.statusCode,
+      message: result.message,
+      user: result.user,
+    };
   }
   @Patch("change-password")
   async change_password(

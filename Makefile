@@ -18,6 +18,9 @@ logs: ## show the logs of the containers
 
 re: down up ## restart the containers
 
+env: ## create .env files from .env.example files if not exist
+	@find . -name ".*env.example" -exec sh -c 'cp -n "$$0" "$${0%.example}"' {} \;
+
 clean: ## removes all unused Docker resources
 	docker system prune -f
 
@@ -37,5 +40,4 @@ help: ## show this help message
 	@echo "Targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_.-]+[^:]*:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sed 's/:.*//'
 
-# Note: Added 'help' to .PHONY, and removed 'fclean' since it wasn't defined in your file
 .PHONY: all build up down re clean volume-clean hard-clean help
