@@ -78,7 +78,7 @@
           <div className="mt-auto rounded-xl bg-slate-100 p-4">
             <div className="flex items-center gap-3">
               <Image
-                src={user?.image || 'https://ui-avatars.com/api/?name=Admin'}
+                src={user?.image || 'https://i.pinimg.com/736x/f7/82/c8/f782c8360e890a8d488eeda004b26bde.jpg'}
                 alt="Admin"
                 width={48}
                 height={48}
