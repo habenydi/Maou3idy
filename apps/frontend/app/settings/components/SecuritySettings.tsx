@@ -17,10 +17,6 @@ export default function SecuritySettings() {
         <button className="w-full py-3 rounded-xl border hover:bg-surface-variant transition-colors cursor-pointer">
           Logout From All Devices
         </button>
-
-        <button className="w-full py-3 rounded-xl border border-red-300 text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
-          Delete Account
-        </button>
       </div>
     </div>
   );

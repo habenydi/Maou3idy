@@ -25,16 +25,11 @@ export class ReviewController {
     return this.reviewService.getReviewsForDoctor(doctorId);
   }
 
-  // The caller's own reviews, so the frontend can tell "leave a review" vs
-  // "edit your review" apart for each doctor.
   @Get("mine")
   async findMine(@Req() req: RequestWithUser) {
     return this.reviewService.findByUser(req.user.sub);
   }
 
-  // userId always comes from the JWT, never the request body — previously
-  // this took doctorId/userId straight from the client, so anyone logged
-  // in could post a review pretending to be someone else.
   @Post("doctor/:doctorId")
   async upsert(
     @Req() req: RequestWithUser,

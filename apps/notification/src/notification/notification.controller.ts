@@ -89,4 +89,15 @@ export class NotificationController {
   async handleDoctorCreated(@Payload() data: DoctorRegisteredEvent) {
     await this.notificationService.handleDoctorCreated(data);
   }
+
+  // GDPR confirmation emails
+  @EventPattern('user.data_exported')
+  async handleUserDataExported(@Payload() data: { email: string; name: string }) {
+    await this.notificationService.handleUserDataExported(data);
+  }
+
+  @EventPattern('user.account_deleted')
+  async handleUserAccountDeleted(@Payload() data: { email: string; name: string }) {
+    await this.notificationService.handleUserAccountDeleted(data);
+  }
 }

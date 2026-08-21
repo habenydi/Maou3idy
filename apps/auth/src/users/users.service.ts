@@ -41,6 +41,8 @@ export class UsersService {
   }
 
   async remove(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
     await this.prisma.auditlog.create({
       data: {
         action: "DELETE_USER",
@@ -48,7 +50,63 @@ export class UsersService {
         timestamp: new Date(),
       },
     });
-    return this.prisma.user.delete({ where: { id } });
+
+    const deleted = await this.prisma.user.delete({ where: { id } });
+
+    if (user) {
+      this.rabbitMQService.emit("user.account_deleted", {
+        email: user.email,
+        name: user.name,
+      });
+    }
+
+    return deleted;
+  }
+
+  async exportMyData(userId: string) {
+    const [user, doctor, reviews, notifications, stats, auditlog] =
+      await Promise.all([
+        this.prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            image: true,
+            role: true,
+            verified: true,
+            createdAt: true,
+          },
+        }),
+        this.prisma.doctor.findUnique({
+          where: { user_id: userId },
+          include: { location: true },
+        }),
+        this.prisma.review.findMany({ where: { userId } }),
+        this.prisma.notification.findMany({ where: { user_id: userId } }),
+        this.prisma.userStats.findUnique({ where: { user_id: userId } }),
+        this.prisma.auditlog.findMany({ where: { user_id: userId } }),
+      ]);
+
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    this.rabbitMQService.emit("user.data_exported", {
+      email: user.email,
+      name: user.name,
+    });
+
+    return {
+      exportedAt: new Date().toISOString(),
+      account: user,
+      doctorProfile: doctor,
+      reviews,
+      notifications,
+      stats,
+      activityLog: auditlog,
+    };
   }
   async updateProfileImage(userId: string, file: Express.Multer.File) {
     if (!file) {

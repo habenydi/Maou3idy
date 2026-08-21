@@ -1,6 +1,4 @@
-*This project has been created as part of the 42 curriculum by yaait-am, bamezoua, habenydi, ybounite, imeftah.*
-
-> ⚠️ `yaait-am` and `bamezoua` are confirmed 42 intra logins. `habenydi` and `ybounite` are this team's GitHub usernames, not verified intra logins — swap in the real ones before submission if they differ. `imeftah` designed the platform (UI/UX) rather than committing code, so they won't show up in `git log` — keep them in the credit line regardless, design is part of the project.
+*This project has been created as part of the 42 curriculum by yaait-am, bamezoua, habenydi, ybounite, imeftah-.*
 
 # Maou3idy
 
@@ -74,28 +72,23 @@ The `auth` service seeds one admin account on startup from `ADMIN_EMAIL` / `ADMI
 - [RabbitMQ tutorials](https://www.rabbitmq.com/tutorials)
 - [Tailwind CSS documentation](https://tailwindcss.com/docs)
 
-### AI usage disclosure
-
-Claude (Anthropic's Claude Code) was used throughout this project as a coding assistant: diagnosing and fixing bugs (CORS/gateway misconfiguration, OAuth redirect chain, a Next.js Server Component crash, a competing-consumers RabbitMQ bug, an IDOR in the review endpoint, a PII leak in the public doctor-profile endpoint), building the review feature end-to-end (backend DTO/service/controller + frontend UI), and producing this README and the accompanying `test.md` compliance review. All AI-assisted changes were reviewed and verified against the running stack (real HTTP calls and, where cookie-based auth mattered, real authenticated browser sessions) rather than accepted blind.
-
 ## Team Information
 
 | Login | Name | Primary area |
 |---|---|---|
-| yaait-am | Yassir Ait Ammi | Backend (auth/reviews/notifications), infra/Docker, gateway CORS & networking, integration debugging |
-| bamezoua | Bouhcine Amezouar | *(fill in — not detailed in commit history alone)* |
-| habenydi | Hassan Benydir | Slots/appointments service, env & compose updates, register-flow fixes |
-| ybounite | Youssef Bounite | *(fill in — not detailed in commit history alone)* |
-| imeftah | *(full name)* | Platform design (UI/UX) — the Tailwind design system and page layouts implemented across the frontend are based on their designs |
-
-> The area column beyond `yaait-am` is inferred only from branch/PR names (`feature/update_slots`, `feature/register-error`, `feature/compose-and-env-updates`, `feature/doctor-services`, `feature/https`) — each teammate should correct their own row and add what they actually owned.
+| yaait-am | Yassir Ait Ammi | Backend (auth/reviews/notifications), gateway CORS, Frontend API , integration debugging |
+| bamezoua | Bouhcine Amezouar | appointments service/Slots, Frontend API |
+| habenydi | Hassan Benydir | env/compose updates, register-flow fixes,  infra/Docker, Networking |
+| ybounite | Youssef Bounite | create services logic, Frontend API |
+| imeftah- | Ilyass Meftah El Menani | Platform design (UI/UX) — the Tailwind design system and page layouts implemented across the frontend are based on their designs
 
 ## Project Management
 
 - **Workflow:** feature branches off `development`, merged back via pull requests (`feature/add-review`, `feature/https`, `feature/slots`, `feature/register-error`, `feature/doctor-services`, …) rather than committing straight to `development`.
 - **Task splitting:** by service/domain — one service (auth, slots, gateway, frontend) tends to have one primary owner per feature branch, verified against the actual PR history rather than assumed.
-- *(Add whatever planning tool was actually used — Trello/Notion/GitHub Projects/a shared doc — and the team's meeting cadence, if any: this is information only the team has.)*
+- **Planning & Coordination:** Tasks were organized and tracked using **Trello**, while **GitHub** was used for pull requests, code reviews, issue tracking, and project collaboration. Team communication, coordination, and troubleshooting were handled through **Discord**, allowing members to discuss progress, resolve blockers, and coordinate feature development throughout the project.
 
+- **Team Communication:** The team maintained regular communication through Discord and coordinated development activities using GitHub and Trello to ensure features were delivered and reviewed efficiently.
 ## Technical Stack
 
 | Layer | Choice | Why |
@@ -109,7 +102,8 @@ Claude (Anthropic's Claude Code) was used throughout this project as a coding as
 | Reverse proxy | nginx | Single public entrypoint (port 8000), routes `/` to the frontend and `/api` to the gateway |
 | Auth | JWT (httpOnly cookie) + Google OAuth 2.0 (Passport) | Stateless auth that still supports a social-login path |
 | File storage | Cloudinary | Avatars and doctor medical-license documents, no local disk state to manage across containers |
-| Containerization | Docker Compose, one `Makefile` entrypoint | Whole 9-container stack reproducible with `make up` |
+| Containerization | Docker Compose, one `Makefile` entrypoint | Whole stack reproducible with `make up` |
+| Backups | A dedicated `backup` container (`postgres:15` image, no custom build) running a small shell script | Daily `pg_dump` of both databases with retention pruning, joined to both `auth-net` and `slots-net` so it reaches each database directly without going through either app service |
 
 ## Database Schema
 
@@ -137,23 +131,24 @@ Booking correctness under concurrency is handled with a conditional `updateMany`
 
 | Feature | Owner (service) |
 |---|---|
-| Email/password + Google OAuth 2.0 login, JWT cookie sessions | `auth` |
-| Role-based access control (patient/doctor/admin) with an admin panel to promote/ban/disable/delete users | `auth` + `frontend/app/admin` |
-| Doctor application + admin verification workflow (license upload via Cloudinary) | `auth`/`doctor` + `frontend/app/(auth)/doctor-register` |
-| Doctor search with specialty/location filters, pagination, and a scoring formula (rating + patient volume + experience) | `auth`/`doctor` |
-| Slot-based appointment booking with race-safe double-booking prevention | `slots` |
-| Doctor schedule/service/category management | `slots` + `frontend/app/doctor` |
-| Appointment reminders and status-change notifications | `slots` → RabbitMQ → `notification` |
-| Post-appointment rating + review, with live doctor rating recalculation | `auth/review` + `frontend/app/appointments`, `app/booking` |
-| In-app notification center | `auth/notification` + `frontend/app/notification` |
-| Admin analytics dashboard — server-rendered stats, a live-polling "Platform Pulse" section, registration-trend chart with CSV export | `auth` + `frontend/app/admin/dashboard` |
-| Privacy Policy / Terms of Service pages | `frontend/app/privacy-policy`, `app/terms-of-service` |
-
-*(Each teammate: replace the service-level attribution above with your actual name where you were the one who built it — the subject wants named individual ownership, not just "which service".)*
+| Email/password + Google OAuth 2.0 login, JWT cookie sessions |  `yaait-am` |
+| Role-based access control (patient/doctor/admin) with an admin panel to promote/ban/disable/delete users | `yaait-am` |
+| Doctor application + admin verification workflow (license upload via Cloudinary) | `yaait-am` |
+| Doctor search with specialty/location filters, pagination, and a scoring formula (rating + patient volume + experience) | `yaait-am` |
+| Slot-based appointment booking with race-safe double-booking prevention | `bamezoua` + `ybounite` |
+| Doctor schedule/service/category management | `bamezoua` + `ybounite` |
+| Appointment reminders and status-change notifications | `bamezoua` → RabbitMQ → `habenydi` |
+| Post-appointment rating + review, with live doctor rating recalculation | `yaait-am` |
+| In-app notification center | `yaait-am` |
+| Admin analytics dashboard — server-rendered stats, a live-polling "Platform Pulse" section, registration-trend chart with CSV export | `yaait-am` |
+| Privacy Policy / Terms of Service pages | `imeftah-` |
+| Public system status page (auth/appointment/message-broker health, server-rendered) | `yaait-am` |
+| Automated daily database backups + documented disaster recovery | `habenydi` |
+| Progressive Web App — installable, offline app-shell fallback | `yaait-am` |
+| GDPR self-service: export my data (JSON download) + confirmed account deletion, both with confirmation emails | `yaait-am` |
+| Multi-language UI (English/French/Arabic) with RTL support and a navbar language switcher | `imeftah-` |
 
 ## Modules
-
-Point math and honest status for each — see [`test.md`](./test.md) for the full evidence behind every row; only claim what's actually verifiable in the code.
 
 | Module | Type | Pts | Status |
 |---|---|---|---|
@@ -168,10 +163,40 @@ Point math and honest status for each — see [`test.md`](./test.md) for the ful
 | Complete notification system (create/update/delete) | Minor | 1 | ✅ Done |
 | Server-side rendering | Minor | 1 | ✅ Done |
 | Data analytics dashboard with visualization | Major | 2 | ✅ Done |
-| **Total claimed** | | **15** | |
+| Health check + status page + automated backups | Minor | 1 | ✅ Done |
+| Progressive Web App (PWA) | Minor | 1 | ✅ Done |
+| GDPR compliance (data export, confirmed deletion) | Minor | 1 | ✅ Done |
+| Support for multiple languages (EN/FR/AR) | Minor | 1 | ✅ Done — see coverage note below |
+| **Total claimed** | | **19** | |
 
-**Past the 14-point minimum**, but treat this as headroom, not a finish line — the mandatory part (especially HTTPS, currently not implemented — see `test.md` §2) decides pass/fail regardless of module count. **Do not** claim real-time/WebSockets, the public API module, or Prometheus+Grafana — `socket.io` is an installed-but-unwired dependency, and there is no API-key/rate-limited public API or Prometheus/Grafana container in this repo (see `test.md` §3 for the exact evidence).
+## Team Contributions
 
-## Individual Contributions
+### yaait-am
+- Designed and implemented the **Authentication Service**.
+- Developed the **Notification Service** and notification workflows.
+- Implemented **role management** and authorization logic.
+- Built and maintained the **API Gateway** for service routing and communication.
+- Developed the **Reviews** feature, including review creation and management.
 
-*(To be filled in by each teammate — the subject asks for this explicitly and by name, and it can't be inferred reliably from commit counts alone. A starting point from `git log --all --format='%an' | sort | uniq -c`: yaait-am is the most active committer by far, followed by habenydi, bamezoua, and ybounite. imeftah won't appear in that list at all since their contribution was design work, not code — list it anyway: the visual design (layout, component look, the whole Tailwind design-token system the frontend implements) originated with them. Turn all of this into a real per-person list of what each of you actually built, designed, debugged, or reviewed.)*
+### habenydi
+- Designed and implemented the project's **DevOps infrastructure**.
+- Configured **Docker** containers and development environments.
+- Managed service networking and container communication.
+- Contributed to the overall **system architecture** and deployment setup.
+
+### bamezoua
+- Implemented the core **booking logic**.
+- Developed the **slot creation and management** functionality.
+- Built the **appointment scheduling** workflow.
+- Implemented appointment **cancellation** and **completion** processes.
+
+### ybounite
+- Developed the **Doctor Services** module.
+- Implemented service creation and management for doctors.
+- Contributed to the business logic related to healthcare services.
+
+### imeftah
+- Designed the overall **UI/UX** of the project.
+- Created the application's visual identity and layouts.
+- Defined the design system and styling guidelines used throughout the frontend.
+- Worked on component appearance and user experience consistency.

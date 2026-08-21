@@ -275,4 +275,39 @@ export class NotificationService {
       console.error('Failed to process doctor.created event:', error);
     }
   }
+
+  // GDPR: confirmation emails for data operations.
+  async handleUserDataExported(data: { email: string; name: string }) {
+    try {
+      await this.mailService.sendMail({
+        to: data.email,
+        subject: 'Your data export is ready',
+        html: `
+        <h2>Data Export Confirmation</h2>
+        <p>Hello ${data.name},</p>
+        <p>As requested, a copy of your account data was just generated and downloaded from your browser.</p>
+        <p>If you didn't request this, please secure your account and contact support immediately.</p>
+      `,
+      });
+    } catch (error) {
+      console.error('Failed to process user.data_exported event:', error);
+    }
+  }
+
+  async handleUserAccountDeleted(data: { email: string; name: string }) {
+    try {
+      await this.mailService.sendMail({
+        to: data.email,
+        subject: 'Your account has been deleted',
+        html: `
+        <h2>Account Deletion Confirmation</h2>
+        <p>Hello ${data.name},</p>
+        <p>This confirms that your account and associated data have been permanently deleted, as requested.</p>
+        <p>If you didn't request this, please contact support immediately.</p>
+      `,
+      });
+    } catch (error) {
+      console.error('Failed to process user.account_deleted event:', error);
+    }
+  }
 }

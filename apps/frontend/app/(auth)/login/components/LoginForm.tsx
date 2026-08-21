@@ -9,9 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { loginSchema, LoginForm as LoginFormType } from "../login.schema";
 import { LoginFormProps } from "@/types/login";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export default function LoginForm({ setUser }: LoginFormProps) {
 	const router = useRouter();
+	const { t } = useI18n();
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -77,14 +79,14 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 					className="font-headline text-3xl font-bold tracking-tight mb-2"
 					style={{ color: "#191c1e" }}
 				>
-					Welcome Back
+					{t('auth.login.title')}
 				</h2>
 
 				<p
 					className="text-sm font-medium"
 					style={{ color: "#424655" }}
 				>
-					Please enter your credentials to access your clinical dashboard.
+					{t('auth.login.subtitle')}
 				</p>
 			</header>
 
@@ -95,7 +97,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 						className="block text-xs font-semibold uppercase tracking-wider"
 						htmlFor="email"
 					>
-						Email Address
+						{t('auth.login.email')}
 					</label>
 
 					<div className="relative">
@@ -134,7 +136,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 							className="block text-xs font-semibold uppercase tracking-wider"
 							htmlFor="password"
 						>
-							Password
+							{t('auth.login.password')}
 						</label>
 
 						<button
@@ -142,7 +144,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 							onClick={() => router.push("/forgot-password")}
 							className="text-xs font-bold text-primary cursor-pointer"
 						>
-							Forgot password?
+							{t('auth.login.forgotPassword')}
 						</button>
 					</div>
 
@@ -199,7 +201,7 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 						htmlFor="rememberMe"
 						className="ml-2 text-sm font-medium"
 					>
-						Remember me for 30 days
+						{t('auth.login.rememberMe')}
 					</label>
 				</div>
 
@@ -213,18 +215,18 @@ export default function LoginForm({ setUser }: LoginFormProps) {
 							"linear-gradient(to right, #0057cd, #0d6efd)",
 					}}
 				>
-					{isLoading ? "Signing In..." : "Sign In"}
+					{isLoading ? "Signing In..." : t('auth.login.submit')}
 				</button>
 			</form>
 
 			<div className="mt-8 text-center">
 				<p className="text-sm">
-					Don&apos;t have an account?
+					{t('auth.login.noAccount')}
 					<span
 						onClick={() => router.push("/register")}
 						className="ml-1 font-bold text-primary cursor-pointer"
 					>
-						Sign Up
+						{t('nav.signUp')}
 					</span>
 				</p>
 			</div>
