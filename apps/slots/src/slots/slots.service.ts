@@ -28,8 +28,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    // Poll every minute for BOOKED appointments that just entered the
-    // "starts within 30 minutes" window and fire the reminder event once.
     this.reminderInterval = setInterval(() => {
       this.sendDueAppointmentReminders().catch((error) =>
         this.logger.error("Reminder sweep failed", error),
@@ -41,20 +39,12 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     if (this.reminderInterval) clearInterval(this.reminderInterval);
   }
 
-  /**
-   * Emits `appointment.reminder` for every BOOKED slot whose start time falls
-   * within the next REMINDER_LEAD_TIME_MINUTES and hasn't been reminded yet.
-   * Uses an atomic conditional update (reminder_sent: false -> true) as a
-   * claim so overlapping sweeps / instances can't double-send the email.
-   */
   private async sendDueAppointmentReminders() {
     const now = new Date();
     const windowEnd = new Date(
       now.getTime() + REMINDER_LEAD_TIME_MINUTES * 60_000,
     );
 
-    // date/start_time are stored separately, so narrow with a date range
-    // first and do the precise minute-level check in JS below.
     const candidates = await this.prisma.slots.findMany({
       where: {
         status: "BOOKED",
@@ -185,10 +175,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
     return combined;
   }
 
-  /**
-   * Merges contiguous unbooked AVAILABLE slots for a doctor on a specific date.
-   * Prevents database fragmentation when bookings are cancelled or shifts are created.
-   */
   private async mergeDoctorAvailableSlots(
     tx: Prisma.TransactionClient | PrismaService,
     doctorId: string,
@@ -222,7 +208,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
       const nextStartMinutes = this.parseTimeToMinutes(nextSlot.start_time);
       const nextEndMinutes = this.parseTimeToMinutes(nextSlot.end_time);
 
-      // Merge if adjacent or overlapping
       if (nextStartMinutes <= currentEndMinutes) {
         const newEndMinutes = Math.max(currentEndMinutes, nextEndMinutes);
         const newEndTimeStr = this.minutesToTime(newEndMinutes);
@@ -350,10 +335,6 @@ export class SlotsService implements OnModuleInit, OnModuleDestroy {
   });
 }
 
-  /**
-   * Slices available continuous shift blocks into service duration windows.
-   * Automatically ignores windows starting in the past when date is today.
-   */
   async getAvailableWindowsForService(
     doctorId: string,
     serviceId: string,
