@@ -23,5 +23,4 @@ export class RegisterDto {
   name: string;
   @IsNotEmpty({ message: "Phone is required" })
   phone: string;
-  role: Role;
 }
