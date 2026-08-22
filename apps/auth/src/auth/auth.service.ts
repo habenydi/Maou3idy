@@ -75,7 +75,7 @@ export class AuthService {
         sub: String(updateUser.id),
         name: updateUser.name,
         email: updateUser.email,
-        role: updateUser.role,
+        role: Role.USER,
         verified: updateUser.verified,
       };
       const token = this.signToken(payload, "1d");
@@ -119,7 +119,7 @@ export class AuthService {
       email: user.email,
       name: user.name,
       token: token,
-      role: String(user.role),
+      role: String(Role.USER),
       verified: user.verified,
     });
     return {
@@ -132,7 +132,7 @@ export class AuthService {
         name: user.name,
         phone: user.phone,
         verified: user.verified,
-        role: String(user.role),
+        role: String( Role.USER),
       },
     };
   }
