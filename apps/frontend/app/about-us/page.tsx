@@ -1,4 +1,5 @@
 "use client";
+
 import Navbar from "@/components/Navbar";
 
 const values = [
@@ -40,87 +41,108 @@ const values = [
   },
 ];
 
-const accentClasses = {
-  indigo: "text-[#33437A]",
-  brass: "text-[#8C6A3B]",
-};
-
 export default function AboutUs() {
   return (
     <div className="bg-surface text-on-surface">
       <Navbar activeLink="about" />
-      <div className="bg-[#FAF9F5] text-[#16181C] min-h-screen px-7 lg:px-30 flex flex-col gap-20">
-        {/* Nav */}
-        {/* <header className="flex justify-between px-6 sm:px-10 py-6 pt-30">
-          <span className="text-sm font-semibold tracking-tight text-black">
-            Maou<span className="text-[#33437A]">3</span>idy
-          </span>
-          <button
-            aria-label="Open menu"
-            className="flex flex-col gap-[5px] w-5"
-          >
-            <span className="block h-px w-full bg-[#16181C]" />
-            <span className="block h-px w-full bg-[#16181C]" />
-          </button>
-        </header> */}
 
-        {/* Hero */}
-        <section className="pt-30">
-          <p className="font-manrope text-2xl text-blue-300">Who we are</p>
-          <div className="flex flex-col gap-1 mt-6 max-w-3xl">
-            <h1 className="font-manrope text-[2rem] sm:text-[2.75rem] leading-[1.15] tracking-tight max-w-3xl">
-              We're building a more direct path between patients and the care
-              they can trust.
-            </h1>
-            <p className="mt-8 max-w-xl text-[#63666D] leading-relaxed">
-              Maou3idy connects patients with top-rated doctors and specialists
-              across every field of medicine, so finding and booking the right
-              care is as simple as it should have always been.
-            </p>
-          </div>
-        </section>
-
-        {/* How we're different */}
-        <section>
-          <div className="flex gap-10">
-            <h2 className="font-manrope text-2xl  text-slate-900">
-              How we're different
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-12 border-t border-[#E4E1D8] pt-10">
-              {values.map((v) => (
-                <div key={v.label} className="pr-4">
-                  <p
-                    className={`text-[11px] font-medium tracking-[0.14em] uppercase mb-3 ${accentClasses[v.accent]}`}
-                  >
-                    {v.label}
+      <div className="bg-[#FAF9F5] text-[#16181C] min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col gap-16">
+          {/* Hero */}
+          <section className="pt-24">
+            <div className="bg-white rounded-[40px] p-10 lg:p-16">
+              <div className="grid lg:grid-cols-2 gap-16 items-center">
+                <div>
+                  <p className="font-manrope text-sm uppercase tracking-[0.2em] text-[#33437A]">
+                    Who we are
                   </p>
-                  <h3 className="text-[15px] font-semibold leading-snug mb-3">
-                    {v.title}
-                  </h3>
-                  <p className="text-sm text-[#63666D] leading-relaxed">
-                    {v.body}
+
+                  <h1 className="font-manrope text-4xl sm:text-5xl lg:text-6xl leading-tight mt-6">
+                    We're building a more direct path between patients and the
+                    care they can trust.
+                  </h1>
+                </div>
+
+                <div>
+                  <p className="text-lg text-[#63666D] leading-relaxed">
+                    Maou3idy connects patients with top-rated doctors and
+                    specialists across every field of medicine, so finding and
+                    booking the right care is as simple as it should have always
+                    been.
                   </p>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Mission */}
-        <section className="max-w-screen-xl  px-6 sm:px-1 border-t border-[#E4E1D8] pt-16">
-          <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-x-10">
-            <p className="text-xs tracking-[0.18em] uppercase text-[#63666D] mb-6 md:mb-0">
-              Our mission
-            </p>
-            <p className="font-manrope text-xl sm:text-2xl leading-relaxed max-w-2xl">
-              To improve healthcare accessibility and quality by connecting
-              patients with qualified professionals — making the process of
-              finding and booking care seamless, transparent, and human.
-            </p>
-          </div>
-        </section>
-      </div>{" "}
+          {/* How we're different */}
+          <section>
+            <div className="bg-white rounded-[40px] p-10 lg:p-16">
+              <div className="mb-14">
+                <h2 className="font-manrope text-3xl sm:text-4xl">
+                  How we're different
+                </h2>
+              </div>
+
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {values.map((v) => (
+                  <div
+                    key={v.label}
+                    className="
+                      border border-[#E4E1D8]
+                      rounded-[28px]
+                      p-8
+                      min-h-[260px]
+                      hover:-translate-y-1
+                      hover:shadow-xl
+                      transition-all
+                      duration-300
+                      bg-[#FAF9F5]
+                    "
+                  >
+                    <div
+                      className={`w-12 h-1 rounded-full mb-6 ${
+                        v.accent === "indigo"
+                          ? "bg-[#33437A]"
+                          : "bg-[#8C6A3B]"
+                      }`}
+                    />
+
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#63666D] mb-4">
+                      {v.label}
+                    </p>
+
+                    <h3 className="font-semibold text-xl mb-4">
+                      {v.title}
+                    </h3>
+
+                    <p className="text-[#63666D] leading-relaxed">
+                      {v.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Mission */}
+          <section>
+            <div className="bg-white rounded-[40px] p-10 lg:p-16">
+              <div className="max-w-5xl">
+                <p className="text-sm uppercase tracking-[0.18em] text-[#63666D] mb-6">
+                  Our mission
+                </p>
+
+                <h2 className="font-manrope text-3xl sm:text-4xl leading-[1.4]">
+                  To improve healthcare accessibility and quality by connecting
+                  patients with qualified professionals — making the process of
+                  finding and booking care seamless, transparent, and human.
+                </h2>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
