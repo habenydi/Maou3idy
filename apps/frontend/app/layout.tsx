@@ -81,7 +81,7 @@ export default function RootLayout({
       <head>
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="MAOU3IDY-LOGO" href="/MAOU3IDY.png" />
         <link rel="icon" href="/icon-192.png" />
         <meta name="theme-color" content="#0f172a" />
         {/* Fonts */}
