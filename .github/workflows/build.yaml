@@ -1,8 +1,8 @@
 on:
-  # 'pull_request':
-  #   branches:
-  #     - main
-  #     - development
+  'pull_request':
+    branches:
+      - main
+      - development
   'push':
     branches:
       - feature/add-workflow
