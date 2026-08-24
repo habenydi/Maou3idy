@@ -4,7 +4,8 @@ on:
   #     - main
   #     - development
   'push':
-    - feature/add-workflow
+    branches:
+      - feature/add-workflow
 
 jobs:
   lint:
