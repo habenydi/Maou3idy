@@ -3,7 +3,8 @@ on:
   #   branches:
   #     - main
   #     - development
-  workflow_dispatch:
+  'push':
+    - feature/add-workflow
 
 jobs:
   lint:
@@ -35,5 +36,4 @@ jobs:
         run: make env
       - name: build images
         run: make build
-        
 
