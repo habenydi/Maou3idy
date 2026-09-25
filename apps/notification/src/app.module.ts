@@ -6,6 +6,8 @@ import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { LoggerModule } from 'nestjs-pino';
+import { PrometheusModule } from './prometheus/prometheus.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    LoggerModule.forRoot(),
+    PrometheusModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule, RabbitMqModule],
       inject: [ConfigService],
@@ -38,4 +42,4 @@ import { MailerModule } from '@nestjs-modules/mailer';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

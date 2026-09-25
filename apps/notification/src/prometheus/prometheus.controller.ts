@@ -1,0 +1,14 @@
+import { Controller, Get, Header } from '@nestjs/common';
+import { PrometheusService } from './prometheus.service';
+
+@Controller()
+export class PrometheusController {
+  constructor(private readonly prometheusService: PrometheusService) {}
+
+  @Get('metrics')
+  @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  getMetrics(): Promise<string> {
+    return this.prometheusService.getMetrics();
+  }
+}
