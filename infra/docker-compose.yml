@@ -116,6 +116,39 @@ services:
       - auth_db
       - slots_db
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    restart: always
+    # this is temporary:
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.external-url=https://localhost:4430/monitor/
+    # end tmp
+    volumes:
+      - ../apps/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - app-net
+    depends_on:
+      - auth
+      - slots
+      - notification
+      - api-gateway
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app-net
+    depends_on:
+      - prometheus
+
 networks:
   app-net:
     driver: bridge
@@ -125,6 +158,8 @@ networks:
     driver: bridge
 
 volumes:
+  prometheus_data:
+  grafana_data:
   auth_db_volume:
   slots_db_volume:
   backup_volume:
