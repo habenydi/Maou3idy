@@ -13,7 +13,7 @@ export class ReviewService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly doctorService: DoctorService,
-  ) {}
+  ) { }
 
   async getReviewsForDoctor(doctorId: string) {
     return this.prisma.review.findMany({
@@ -49,9 +49,9 @@ export class ReviewService {
         const newRating =
           doctor.reviewCount > 0
             ? (doctor.rating * doctor.reviewCount -
-                existing.rating +
-                dto.rating) /
-              doctor.reviewCount
+              existing.rating +
+              dto.rating) /
+            doctor.reviewCount
             : dto.rating;
 
         const updated = await tx.review.update({

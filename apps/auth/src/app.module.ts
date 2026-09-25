@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { DoctorModule } from "./doctor/doctor.module";
 import { AdminModule } from "./admin/admin.module";
 import { MetricsModule } from "./metrics/metrics.module";
+import { PrometheusModule } from "./prometheus/prometheus.module";
 import { RabbitMqModule } from "./rabbitmq/rabbitmq.module";
 import { AuthEventListenerModule } from "./auth-event-listener/auth-event-listener.module";
 import { ReviewModule } from "./review/review.module";
@@ -16,12 +17,15 @@ import { UserStatsModule } from "./user-stats/user-stats.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { SeedModule } from "./seed/seed.module";
+import { LoggerModule } from "nestjs-pino";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    LoggerModule.forRoot(),
+    PrometheusModule,
 
     AuthModule,
     PrismaModule,
@@ -58,4 +62,4 @@ import { SeedModule } from "./seed/seed.module";
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
