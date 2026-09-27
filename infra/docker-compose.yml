@@ -120,11 +120,8 @@ services:
     image: prom/prometheus:v3.5.0
     container_name: prometheus
     restart: always
-    # this is temporary:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-      - --web.external-url=https://localhost:4430/monitor/
-    # end tmp
     volumes:
       - ../apps/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
