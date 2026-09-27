@@ -3,10 +3,12 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import { MetricsInterceptor } from "./metrics/metrics.interceptor";
+import { PrometheusInterceptor } from "./prometheus/prometheus.interceptor";
 import { JwtGuard } from "./auth/guards/jwt.guard";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 
 import { v2 as cloudinary } from "cloudinary";
+import { Logger } from "nestjs-pino";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,13 +17,15 @@ cloudinary.config({
 });
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
   app.enableCors({
     origin: [process.env.API_GATEWAY ?? "http://api-gateway:8080"],
   });
   app.use(cookieParser());
   app.useGlobalGuards(app.get(JwtGuard));
   app.useGlobalInterceptors(app.get(MetricsInterceptor));
+  app.useGlobalInterceptors(app.get(PrometheusInterceptor));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   if (!process.env.RABBITMQ_URL) {
@@ -43,6 +47,6 @@ async function bootstrap() {
   });
   await app.startAllMicroservices();
 
-  await app.listen(process.env.PORT ?? 8000);
+  await app.listen(process.env.PORT ?? 8081);
 }
 void bootstrap();

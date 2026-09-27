@@ -116,6 +116,38 @@ services:
       - auth_db
       - slots_db
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    restart: always
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ../apps/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - app-net
+    depends_on:
+      - auth
+      - slots
+      - notification
+      - api-gateway
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    container_name: grafana
+    restart: always
+    environment:
+      - GF_SERVER_HTTP_PORT=9091
+      - GF_SERVER_ROOT_URL=https://localhost:4430/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app-net
+    depends_on:
+      - prometheus
+
 networks:
   app-net:
     driver: bridge
@@ -125,6 +157,8 @@ networks:
     driver: bridge
 
 volumes:
+  prometheus_data:
+  grafana_data:
   auth_db_volume:
   slots_db_volume:
   backup_volume:

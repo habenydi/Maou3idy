@@ -4,9 +4,12 @@ import { Transport, MicroserviceOptions } from "@nestjs/microservices";
 import cookieParser from "cookie-parser";
 import { ValidationPipe } from "@nestjs/common";
 import { JwtGuard } from "./auth/guards/jwt.guard";
+import { Logger } from "nestjs-pino";
+import { PrometheusInterceptor } from "./prometheus/prometheus.interceptor";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
@@ -30,7 +33,8 @@ async function bootstrap() {
   });
 
   app.useGlobalGuards(app.get(JwtGuard));
+  app.useGlobalInterceptors(app.get(PrometheusInterceptor));
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 1339);
+  await app.listen(process.env.PORT ?? 8083);
 }
 bootstrap();
