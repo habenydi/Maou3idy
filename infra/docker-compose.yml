@@ -127,6 +127,7 @@ services:
       - prometheus_data:/prometheus
     networks:
       - app-net
+
     depends_on:
       - auth
       - slots
@@ -147,6 +148,15 @@ services:
       - app-net
     depends_on:
       - prometheus
+
+  agent:
+    build: ../apps/agent
+    container_name: agent
+    restart: always
+    #env_file:
+    #  - path: ../apps/agent/.env
+    networks:
+      - app-net
 
 networks:
   app-net:
