@@ -2,6 +2,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx
+    restart: always
     ports:
       - "8000:80"
       - "4430:443"
