@@ -132,7 +132,7 @@ export class AuthService {
         name: user.name,
         phone: user.phone,
         verified: user.verified,
-        role: String( Role.USER),
+        role: String(Role.USER),
       },
     };
   }

@@ -13,10 +13,14 @@ import { ServicesModule } from "./services/services.module";
 import { CategoriesModule } from "./categories/categories.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { LoggerModule } from "nestjs-pino";
+import { PrometheusModule } from "./prometheus/prometheus.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot(),
+    PrometheusModule,
     AuthModule,
     PrismaModule,
     UsersModule,
@@ -48,4 +52,4 @@ import { AppService } from "./app.service";
   controllers: [AuthSyncController, AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

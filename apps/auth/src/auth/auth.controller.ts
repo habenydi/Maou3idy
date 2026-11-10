@@ -65,7 +65,7 @@ export class AuthController {
   constructor(
     private Authservice: AuthService,
     private MetricsService: MetricsService,
-  ) { }
+  ) {}
 
   @Get("hide_doctor_button")
   hideDoctorButton(@Req() req: RequestWithUser) {
@@ -84,7 +84,7 @@ export class AuthController {
   @Public()
   @Get("google")
   @UseGuards(AuthGuard("google"))
-  async googleAuth() { }
+  async googleAuth() {}
 
   @Public()
   @Get("google/callback")
@@ -180,7 +180,7 @@ export class AuthController {
   async reset_password(
     @Param("token") token: string,
     @Body("new_password") new_password: string,
-    @Res({ passthrough: true }) res: Response
+    @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.Authservice.reset_password(token, new_password);
     res.clearCookie("token");
